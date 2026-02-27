@@ -513,9 +513,20 @@ function update(day,path,val) {
   ref[parts[parts.length-1]]=val;
   saveWeek(); renderAll();
 }
+function ensureExercise(day,ex) {
+  // Make sure weekData has an entry for this exercise (handles newly added exercises)
+  if(!weekData[day]) weekData[day]=emptyDayData(day);
+  if(!weekData[day].exercises) weekData[day].exercises={};
+  if(!weekData[day].exercises[ex]) {
+    weekData[day].exercises[ex]={status:"pending",notes:"",sets:"",reps:"",weight:""};
+  }
+}
 function toggleEx(day,ex) {
-  const cur=weekData[day]?.exercises?.[ex]?.status||"pending";
-  update(day,`exercises.${ex}.status`,cur==="pending"?"done":cur==="done"?"skipped":"pending");
+  ensureExercise(day,ex);
+  const cur=weekData[day].exercises[ex].status||"pending";
+  const nxt=cur==="pending"?"done":cur==="done"?"skipped":"pending";
+  weekData[day].exercises[ex].status=nxt;
+  saveWeek(); renderAll();
 }
 function toggleMeal(day,id) { update(day,`meals.${id}.done`,!(weekData[day]?.meals?.[id]?.done)); }
 function toggleSupp(day,id) { update(day,`supplements.${id}`,!(weekData[day]?.supplements?.[id])); }
@@ -704,7 +715,7 @@ function renderTracker() {
           const lb=document.createElement("label"); lb.textContent=lbl;
           const ip=document.createElement("input"); ip.value=exData[f]||""; ip.placeholder=ph;
           ip.onclick=e=>e.stopPropagation();
-          ip.oninput=e=>{ weekData[day].exercises[exName][f]=e.target.value; saveWeek(); };
+          ip.oninput=e=>{ ensureExercise(day,exName); weekData[day].exercises[exName][f]=e.target.value; saveWeek(); };
           mf.appendChild(lb); mf.appendChild(ip); meta.appendChild(mf);
         });
         info.appendChild(meta);
@@ -713,7 +724,7 @@ function renderTracker() {
         const ip=document.createElement("input"); ip.className="skip-inp";
         ip.placeholder="Neden yapılamadı?"; ip.value=exData.notes||"";
         ip.onclick=e=>e.stopPropagation();
-        ip.oninput=e=>{ weekData[day].exercises[exName].notes=e.target.value; saveWeek(); };
+        ip.oninput=e=>{ ensureExercise(day,exName); weekData[day].exercises[exName].notes=e.target.value; saveWeek(); };
         info.appendChild(ip);
       }
       row.appendChild(cb); row.appendChild(info); card.appendChild(row);
@@ -1135,7 +1146,11 @@ function renderSettings() {
       const v=addInp.value.trim(); if(!v){ toast("İsim gir",false); return; }
       if(!workouts[day].exercises) workouts[day].exercises=[];
       workouts[day].exercises.push({name:v,wrist:false});
-      saveConfig(); toast("✓ Egzersiz eklendi"); addInp.value=""; renderSettings();
+      // Mevcut weekData'ya da hemen ekle — yoksa checkbox çalışmaz
+      if(!weekData[day]) weekData[day]=emptyDayData(day);
+      if(!weekData[day].exercises) weekData[day].exercises={};
+      if(!weekData[day].exercises[v]) weekData[day].exercises[v]={status:"pending",notes:"",sets:"",reps:"",weight:""};
+      saveConfig(); saveWeek(); toast("✓ Egzersiz eklendi"); addInp.value=""; renderSettings();
     };
     addBtn.onclick=doAdd;
     addInp.onkeydown=e=>{ if(e.key==="Enter") doAdd(); };
