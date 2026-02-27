@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>FitTrack Pro — Haftalık Fitness Takibi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html{scroll-behavior:smooth}
+  body{background:#0F172A;color:#E2E8F0;font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+  button{font-family:'DM Sans',sans-serif;cursor:pointer;border:none;outline:none}
+  input,textarea{font-family:'DM Sans',sans-serif;outline:none}
+  ::-webkit-scrollbar{width:4px;height:4px}
+  ::-webkit-scrollbar-track{background:#0F172A}
+  ::-webkit-scrollbar-thumb{background:#334155;border-radius:2px}
+
+/* ── LAYOUT ── */
+#app{max-width:900px;margin:0 auto;display:flex;flex-direction:column;min-height:100vh}
+#header{background:linear-gradient(135deg,#1E293B 0%,#0F172A 100%);border-bottom:1px solid #1E293B;padding:16px 16px 0;position:sticky;top:0;z-index:100}
+#header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.logo{font-size:20px;font-weight:800;letter-spacing:-0.5px;background:linear-gradient(135deg,#3B82F6,#8B5CF6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-sub{font-size:10px;color:#475569;margin-top:2px}
+.week-score-ring{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;transition:all .4s}
+.week-score-label{font-size:10px;color:#64748B;text-align:right}
+
+/* ── DAY NAV ── */
+#day-nav{display:flex;gap:2px;overflow-x:auto;padding-bottom:0;scrollbar-width:none}
+#day-nav::-webkit-scrollbar{display:none}
+.day-btn{flex:0 0 auto;min-width:48px;padding:8px 8px;border-radius:8px 8px 0 0;background:transparent;color:#64748B;font-size:11px;font-weight:500;border-bottom:2px solid transparent;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s;cursor:pointer}
+.day-btn.active{background:#1E293B;font-weight:700;border-bottom-color:var(–day-color)}
+.day-btn.active .day-label{color:var(–day-color)}
+.day-dot{width:5px;height:5px;border-radius:50%;background:#374151;transition:background .3s}
+
+/* ── PAGE TABS ── */
+#page-tabs{display:flex;gap:2px;padding:0 16px;background:#0F172A;border-bottom:1px solid #1E293B;position:sticky;top:0;z-index:99;margin-top:-1px}
+.page-tab{flex:1;padding:10px 4px;background:transparent;color:#64748B;font-size:11px;font-weight:700;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap}
+.page-tab.active{color:#3B82F6;border-bottom-color:#3B82F6}
+
+/* ── CONTENT ── */
+#content{padding:16px;flex:1;padding-bottom:24px}
+.card{background:#1E293B;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #334155}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.card-title{font-size:12px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:6px}
+.section-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+/* ── TABS ── */
+.tab-row{display:flex;gap:3px;background:#0F172A;border-radius:10px;padding:3px;margin-bottom:14px}
+.tab-btn{flex:1;padding:8px 4px;border:none;border-radius:8px;background:transparent;color:#64748B;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap}
+.tab-btn.active{background:#3B82F6;color:#fff}
+
+/* ── PROGRESS BAR ── */
+.prog-bar{height:4px;border-radius:2px;background:#0F172A;margin-top:6px;overflow:hidden}
+.prog-fill{height:100%;border-radius:2px;transition:width .4s}
+
+/* ── STAT CARDS ── */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+.stat-card{background:#0F172A;border-radius:10px;padding:10px 6px;text-align:center}
+.stat-val{font-size:18px;font-weight:800;display:block}
+.stat-lbl{font-size:9px;color:#64748B;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-top:2px}
+
+/* ── EXERCISE ROWS ── */
+.ex-row{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid #0F172A;cursor:pointer;transition:opacity .15s}
+.ex-row:last-child{border-bottom:none}
+.ex-checkbox{width:26px;height:26px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;transition:all .2s;color:#fff;margin-top:1px}
+.ex-checkbox.pending{background:#0F172A;border:2px solid #334155}
+.ex-checkbox.done{background:#10B981;border:none}
+.ex-checkbox.skipped{background:#EF4444;border:none}
+.ex-name{font-size:13px;font-weight:500;flex:1;line-height:1.4}
+.ex-name.done{color:#6EE7B7}
+.ex-name.skipped{color:#FCA5A5;text-decoration:line-through}
+.ex-name.pending{color:#CBD5E1}
+.ex-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:12px;display:inline-block}
+.ex-badge.done{background:#064E3B;color:#10B981;border:1px solid #10B981}
+.ex-badge.skipped{background:#450A0A;color:#EF4444;border:1px solid #EF4444}
+.ex-badge.pending{background:#1E293B;color:#475569;border:1px solid #334155}
+.wrist-tag{font-size:9px;color:#F59E0B;font-weight:700;margin-left:4px}
+.ex-meta{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.meta-field{display:flex;flex-direction:column;align-items:center;gap:2px}
+.meta-label{font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:.06em}
+.meta-input{background:#0F172A;border:1px solid #334155;border-radius:7px;color:#CBD5E1;font-size:12px;padding:4px 6px;width:60px;text-align:center;font-family:‘DM Sans’,sans-serif}
+.skip-input{background:#0F172A;border:1px solid #334155;border-radius:7px;color:#CBD5E1;font-size:12px;padding:5px 10px;width:100%;margin-top:7px;font-family:‘DM Sans’,sans-serif}
+
+/* ── MEAL ROWS ── */
+.meal-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #0F172A;cursor:pointer}
+.meal-row:last-child{border-bottom:none}
+.meal-check{width:24px;height:24px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;transition:all .2s;color:#fff}
+.meal-check.done{background:#059669}
+.meal-check.pending{background:#0F172A;border:2px solid #334155}
+.meal-name{font-size:13px;font-weight:600}
+.meal-name.done{color:#A7F3D0}
+.meal-name.pending{color:#CBD5E1}
+.meal-time{font-size:10px;color:#475569}
+.meal-note{background:#0F172A;border:1px solid #334155;border-radius:7px;color:#CBD5E1;font-size:12px;padding:5px 10px;width:100%;margin-top:6px;font-family:‘DM Sans’,sans-serif}
+
+/* ── SUPPLEMENT ── */
+.supp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.supp-btn{padding:10px 12px;border-radius:10px;text-align:left;display:flex;align-items:center;gap:8px;cursor:pointer;transition:all .2s;font-family:‘DM Sans’,sans-serif}
+.supp-btn.done{background:#064E3B;border:1px solid #10B981;color:#10B981}
+.supp-btn.pending{background:#0F172A;border:1px solid #334155;color:#64748B}
+.supp-name{font-weight:700;font-size:12px}
+.supp-time{font-size:10px;color:#475569;margin-top:1px}
+
+/* ── WATER ── */
+.water-big{font-size:34px;font-weight:800;color:#06B6D4}
+.water-btn-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;margin-bottom:10px}
+.water-btn{padding:7px 12px;border-radius:8px;background:#0F172A;border:1px solid #334155;color:#64748B;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;font-family:‘DM Sans’,sans-serif}
+.water-btn:hover{border-color:#3B82F6;color:#93C5FD}
+
+/* ── MOOD ── */
+.mood-row{display:flex;gap:6px}
+.mood-btn{flex:1;padding:9px 4px;border-radius:9px;font-size:18px;background:#0F172A;border:1px solid #334155;cursor:pointer;transition:all .2s}
+.mood-btn.active{background:#1E40AF;border-color:#3B82F6}
+
+/* ── BADGE ── */
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;letter-spacing:.04em}
+
+/* ── WEEK OVERVIEW CARDS ── */
+.week-overview{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.week-overview::-webkit-scrollbar{display:none}
+.week-card{flex:0 0 auto;width:88px;background:#0F172A;border-radius:12px;padding:10px 8px;text-align:center;cursor:pointer;transition:all .2s;border:1px solid #1E293B}
+.week-card.active{border-color:var(–wc-color)}
+.week-card-emoji{font-size:18px;margin-bottom:2px}
+.week-card-day{font-size:9px;font-weight:700;margin-bottom:4px}
+.week-card-score{font-size:22px;font-weight:800;margin:4px 0}
+.week-card-bar{height:3px;border-radius:2px;margin-top:4px}
+
+/* ── REPORT ── */
+.report-week-sel{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.report-week-btn{padding:7px 14px;border-radius:8px;background:#0F172A;border:1px solid #334155;color:#94A3B8;font-size:12px;font-weight:600;cursor:pointer;font-family:‘DM Sans’,sans-serif;transition:all .2s}
+.report-week-btn.active{background:#1E40AF;border-color:#3B82F6;color:#93C5FD}
+.report-header-card{background:linear-gradient(135deg,#1E3A5F,#1E293B);border:1px solid #2563EB44;border-radius:16px;padding:20px;margin-bottom:14px;text-align:center}
+.report-score-big{font-size:52px;font-weight:800}
+.report-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+.report-metric{background:#0F172A;border-radius:12px;padding:14px;border:1px solid #1E293B}
+.report-metric-val{font-size:24px;font-weight:800;display:block;margin-bottom:2px}
+.report-metric-lbl{font-size:10px;color:#64748B;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.report-day-table{width:100%;border-collapse:collapse;font-size:12px}
+.report-day-table th{background:#0F172A;color:#64748B;padding:8px 10px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.report-day-table td{padding:10px 10px;border-bottom:1px solid #0F172A;vertical-align:top}
+.report-day-table tr:last-child td{border-bottom:none}
+.report-day-table tr:hover td{background:#1E293B44}
+.ex-detail-row{margin-top:4px;font-size:11px;color:#64748B}
+.report-no-data{text-align:center;padding:40px 20px;color:#475569}
+.export-btn{width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#2563EB,#7C3AED);color:#fff;font-size:13px;font-weight:700;cursor:pointer;border:none;margin-top:8px;font-family:‘DM Sans’,sans-serif;transition:all .2s}
+.export-btn:hover{opacity:.9}
+.clear-btn{width:100%;padding:10px;border-radius:10px;background:#0F172A;border:1px solid #EF4444;color:#EF4444;font-size:12px;font-weight:700;cursor:pointer;margin-top:6px;font-family:‘DM Sans’,sans-serif}
+
+/* ── ALERT BOX ── */
+.alert-box{border-radius:10px;padding:10px 14px;margin-bottom:12px;border-left:3px solid}
+.alert-yellow{background:#1C1A0F;border-left-color:#F59E0B}
+.alert-red{background:#1C0F0F;border-left-color:#EF4444}
+.alert-blue{background:#0F1C3B;border-left-color:#3B82F6}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#10B981;color:#fff;padding:10px 20px;border-radius:30px;font-size:13px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .3s;z-index:999;white-space:nowrap}
+#toast.show{opacity:1}
+
+@media(max-width:480px){
+.stat-row{grid-template-columns:repeat(2,1fr)}
+.supp-grid{grid-template-columns:1fr}
+.report-grid{grid-template-columns:1fr}
+}
+</style>
+
+</head>
+<body>
+<div id="app">
+  <!-- HEADER -->
+  <div id="header">
+    <div id="header-top">
+      <div>
+        <div class="logo">FitTrack Pro</div>
+        <div class="logo-sub" id="week-label">Yükleniyor...</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="text-align:right">
+          <div class="week-score-label">Haftalık Skor</div>
+          <div class="week-score-label" style="color:#94A3B8;font-weight:600">Hedef: 80%+</div>
+        </div>
+        <div class="week-score-ring" id="week-score-ring">0%</div>
+      </div>
+    </div>
+    <div id="day-nav"></div>
+  </div>
+
+  <!-- PAGE TABS -->
+
+  <div id="page-tabs">
+    <button class="page-tab active" data-page="tracker" onclick="setPage('tracker')">📋 Takip</button>
+    <button class="page-tab" data-page="report" onclick="setPage('report')">📊 Rapor</button>
+  </div>
+
+  <!-- CONTENT -->
+
+  <div id="content"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DATA DEFINITIONS
+// ═══════════════════════════════════════════════════════════
+const DAYS = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"];
+const DAY_SHORT = ["Pts","Sal","Çar","Per","Cum","Cmt","Paz"];
+
+const WORKOUTS = {
+  "Pazartesi":  { type:"💪 Antrenman A", subtitle:"Kuvvet + Compound",    color:"#3B82F6",
+    exercises:["Barbell Back Squat","Romanian Deadlift","Dumbbell Floor Press","One-Arm Dumbbell Row","DB Overhead Press (Nötr)","Weighted Plank","Hanging Knee Raise"] },
+  "Salı":       { type:"💪 Antrenman B", subtitle:"Hacim + İzolasyon",    color:"#8B5CF6",
+    exercises:["Leg Press (Geniş Duruş)","Leg Curl (Makine)","Incline Dumbbell Press","Seated Cable Row","Dumbbell Lateral Raise","Hammer Curl","Tricep Rope Pushdown","Cable Crunch"] },
+  "Çarşamba":   { type:"🚶 Aktif Dinlenme", subtitle:"Mobilite & Esneme", color:"#10B981",
+    exercises:["30 dk Yürüyüş","Foam Roller (15 dk)","Statik Esneme"] },
+  "Perşembe":   { type:"💪 Antrenman C", subtitle:"Güç + Atletizm",       color:"#F59E0B",
+    exercises:["Dumbbell Romanian Deadlift","Bulgarian Split Squat","Neutral Grip Lat Pulldown","Dumbbell Incline Row","Face Pull (Rope)","Hip Thrust (Barbell)","Dumbbell Carry (Bilek Kayışı)","Forearm Plank"] },
+  "Cuma":       { type:"🌙 Sosyal Gün",   subtitle:"Dinlenme & Sosyal",   color:"#EC4899",
+    exercises:["Yürüyüş (opsiyonel)","Esneme (opsiyonel)"] },
+  "Cumartesi":  { type:"💪 Antrenman D", subtitle:"Hacim + Kondisyon",    color:"#EF4444",
+    exercises:["Hack Squat / Leg Press","Walking Lunge (Dumbbell)","Cable Fly","One-Arm Dumbbell Row","Arnold Press","Hammer Curl","DB Skull Crusher (Nötr)","10 dk HIIT"] },
+  "Pazar":      { type:"😴 Tam Dinlenme", subtitle:"Uyku & Meal Prep",    color:"#6B7280",
+    exercises:["Meal Prep","Kitap okuma","Uyku kalitesi (7-8 saat)"] },
+};
+
+const WRIST_TAGS = new Set([
+  "Dumbbell Floor Press","One-Arm Dumbbell Row","DB Overhead Press (Nötr)",
+  "Hammer Curl","Dumbbell Romanian Deadlift","Neutral Grip Lat Pulldown",
+  "Dumbbell Carry (Bilek Kayışı)","Forearm Plank","DB Skull Crusher (Nötr)",
+  "Dumbbell Incline Row"
+]);
+
+const MEALS_WEEKDAY = [
+  {id:"kahve",    label:"☕ Sabah Kahvesi",    time:"08:00"},
+  {id:"ilk",      label:"🥗 İlk Öğün",         time:"12:00"},
+  {id:"ara",      label:"🍎 Ara Öğün",          time:"15:00"},
+  {id:"antonce",  label:"⚡ Antrenman Öncesi",  time:"16:30"},
+  {id:"antsonra", label:"💪 Antrenman Sonrası", time:"19:00"},
+  {id:"aksam",    label:"🍽️ Akşam Yemeği",     time:"20:00"},
+];
+const MEALS_WEEKEND = [
+  {id:"kahvalti", label:"🍳 Kahvaltı",  time:"09:00"},
+  {id:"ogle",     label:"🥗 Öğle",      time:"13:00"},
+  {id:"ara",      label:"🍎 Ara Öğün",  time:"16:00"},
+  {id:"aksam",    label:"🍽️ Akşam",    time:"19:30"},
+];
+const SUPPLEMENTS = [
+  {id:"kreatin",   label:"Kreatin 5g",         time:"Öğünle"},
+  {id:"whey",      label:"Whey Protein 30g",   time:"Ant. Sonrası"},
+  {id:"omega3",    label:"Omega-3 2-3g",        time:"Öğle/Akşam"},
+  {id:"d3",        label:"D3 + K2",             time:"Sabah"},
+  {id:"magnezyum", label:"Magnezyum 300mg",     time:"Uyku Öncesi"},
+  {id:"kollajen",  label:"Kollajen + C Vit.",   time:"Ant. Öncesi 30dk"},
+];
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let currentWeekKey = getWeekKey();
+let currentDay = todayDayName();
+let currentTab = "antrenman";
+let currentPage = "tracker";
+let reportWeekKey = currentWeekKey;
+let weekData = {};
+
+// ═══════════════════════════════════════════════════════════
+// STORAGE — localStorage
+// ═══════════════════════════════════════════════════════════
+const LS_PREFIX = "fittrack_";
+
+function lsGet(key) {
+  try { const v = localStorage.getItem(LS_PREFIX+key); return v ? JSON.parse(v) : null; }
+  catch(e) { return null; }
+}
+function lsSet(key, val) {
+  try { localStorage.setItem(LS_PREFIX+key, JSON.stringify(val)); return true; }
+  catch(e) { return false; }
+}
+function lsList() {
+  const keys = [];
+  for(let i=0;i<localStorage.length;i++) {
+    const k = localStorage.key(i);
+    if(k && k.startsWith(LS_PREFIX+"week_")) keys.push(k.replace(LS_PREFIX,""));
+  }
+  return keys.sort().reverse();
+}
+
+function saveWeek() {
+  lsSet("week_"+currentWeekKey, weekData);
+}
+
+function loadWeek(wk) {
+  const saved = lsGet("week_"+wk);
+  if(saved) {
+    weekData = mergeWithDefaults(saved, wk);
+  } else {
+    weekData = emptyWeek();
+  }
+}
+
+function mergeWithDefaults(saved, wk) {
+  // Ensure all days/fields exist even if old data is missing keys
+  const def = emptyWeek();
+  DAYS.forEach(d => {
+    if(!saved[d]) { saved[d] = def[d]; return; }
+    const defDay = def[d];
+    // exercises
+    WORKOUTS[d].exercises.forEach(ex => {
+      if(!saved[d].exercises) saved[d].exercises = {};
+      if(!saved[d].exercises[ex]) saved[d].exercises[ex] = {status:"pending",notes:"",sets:"",reps:"",weight:""};
+    });
+    // meals
+    const ml = (d==="Cumartesi"||d==="Pazar") ? MEALS_WEEKEND : MEALS_WEEKDAY;
+    if(!saved[d].meals) saved[d].meals = {};
+    ml.forEach(m => { if(!saved[d].meals[m.id]) saved[d].meals[m.id] = {done:false,notes:""}; });
+    // supplements
+    if(!saved[d].supplements) saved[d].supplements = {};
+    SUPPLEMENTS.forEach(s => { if(saved[d].supplements[s.id]===undefined) saved[d].supplements[s.id] = false; });
+    // scalars
+    if(saved[d].water===undefined) saved[d].water = 0;
+    if(saved[d].mood===undefined) saved[d].mood = 3;
+    if(saved[d].energy===undefined) saved[d].energy = 3;
+    if(saved[d].notes===undefined) saved[d].notes = "";
+  });
+  return saved;
+}
+
+// ═══════════════════════════════════════════════════════════
+// EMPTY DATA
+// ═══════════════════════════════════════════════════════════
+function emptyDay(dayName) {
+  const isWE = dayName==="Cumartesi"||dayName==="Pazar";
+  const meals = (isWE?MEALS_WEEKEND:MEALS_WEEKDAY).reduce((a,m)=>{a[m.id]={done:false,notes:""};return a},{});
+  const exercises = WORKOUTS[dayName].exercises.reduce((a,ex)=>{a[ex]={status:"pending",notes:"",sets:"",reps:"",weight:""};return a},{});
+  const supplements = SUPPLEMENTS.reduce((a,s)=>{a[s.id]=false;return a},{});
+  return {exercises,meals,supplements,water:0,mood:3,energy:3,notes:""};
+}
+function emptyWeek() { return DAYS.reduce((a,d)=>{a[d]=emptyDay(d);return a},{}); }
+
+// ═══════════════════════════════════════════════════════════
+// DATE UTILS
+// ═══════════════════════════════════════════════════════════
+function getWeekKey(offset=0) {
+  const now = new Date();
+  now.setDate(now.getDate() + offset*7);
+  const day = now.getDay();
+  const mon = new Date(now);
+  mon.setDate(now.getDate() - (day===0?6:day-1));
+  return mon.toISOString().slice(0,10);
+}
+function todayDayName() {
+  const d = new Date().getDay();
+  return DAYS[d===0?6:d-1];
+}
+function weekKeyToLabel(wk) {
+  const d = new Date(wk+"T00:00:00");
+  const end = new Date(d); end.setDate(d.getDate()+6);
+  return `${d.getDate()} ${monthName(d.getMonth())} – ${end.getDate()} ${monthName(end.getMonth())} ${end.getFullYear()}`;
+}
+function monthName(m) {
+  return ["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"][m];
+}
+
+// ═══════════════════════════════════════════════════════════
+// STATS
+// ═══════════════════════════════════════════════════════════
+function getDayStats(dayName, wd) {
+  wd = wd || weekData;
+  const d = wd[dayName]; if(!d) return {exPct:0,mealPct:0,suppPct:0,waterPct:0,total:0,exDone:0,exTotal:0,mDone:0,mTotal:0,sDone:0,water:0};
+  const exs = WORKOUTS[dayName].exercises;
+  const exDone = exs.filter(e=>d.exercises?.[e]?.status==="done").length;
+  const exTotal = exs.length;
+  const isWE = dayName==="Cumartesi"||dayName==="Pazar";
+  const ml = isWE?MEALS_WEEKEND:MEALS_WEEKDAY;
+  const mDone = ml.filter(m=>d.meals?.[m.id]?.done).length;
+  const sDone = SUPPLEMENTS.filter(s=>d.supplements?.[s.id]).length;
+  const water = d.water||0;
+  const exPct = exTotal?(exDone/exTotal)*100:0;
+  const mealPct = ml.length?(mDone/ml.length)*100:0;
+  const suppPct = (sDone/SUPPLEMENTS.length)*100;
+  const waterPct = Math.min(100,(water/3000)*100);
+  const total = Math.round((exPct+mealPct+suppPct+waterPct)/4);
+  return {exPct,mealPct,suppPct,waterPct,total,exDone,exTotal,mDone,mTotal:ml.length,sDone,water};
+}
+function getWeekScore(wd) {
+  wd = wd || weekData;
+  return Math.round(DAYS.reduce((a,d)=>a+getDayStats(d,wd).total,0)/7);
+}
+function scoreColor(s) { return s>79?"#10B981":s>49?"#F59E0B":s>0?"#EF4444":"#374151"; }
+
+// ═══════════════════════════════════════════════════════════
+// UPDATE
+// ═══════════════════════════════════════════════════════════
+function setPath(obj, path, val) {
+  const parts = path.split(".");
+  let ref = obj;
+  for(let i=0;i<parts.length-1;i++) ref=ref[parts[i]];
+  ref[parts[parts.length-1]] = val;
+}
+function update(day, path, val) {
+  setPath(weekData[day], path, val);
+  saveWeek();
+  renderAll();
+}
+function toggleExercise(day, ex) {
+  const cur = weekData[day]?.exercises?.[ex]?.status||"pending";
+  const nxt = cur==="pending"?"done":cur==="done"?"skipped":"pending";
+  update(day, `exercises.${ex}.status`, nxt);
+}
+function toggleMeal(day, mealId) {
+  const cur = weekData[day]?.meals?.[mealId]?.done||false;
+  update(day, `meals.${mealId}.done`, !cur);
+}
+function toggleSupp(day, suppId) {
+  const cur = weekData[day]?.supplements?.[suppId]||false;
+  update(day, `supplements.${suppId}`, !cur);
+}
+function addWater(day, ml) {
+  const cur = weekData[day]?.water||0;
+  update(day, "water", Math.max(0,Math.min(4000,cur+ml)));
+}
+
+// ═══════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2000);
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER HELPERS
+// ═══════════════════════════════════════════════════════════
+function h(tag,attrs,children) {
+  const el = document.createElement(tag);
+  if(Array.isArray(attrs)||typeof attrs==="string"||attrs instanceof Node) {
+    children=attrs; attrs={};
+  }
+  if(!attrs||typeof attrs!=="object"||Array.isArray(attrs)) attrs={};
+  if(children===undefined||children===null) children=[];
+  if(!Array.isArray(children)) children=[children];
+  Object.entries(attrs).forEach(([k,v])=>{
+    if(v===null||v===undefined) return;
+    if(k==="class") el.className=v;
+    else if(k==="style") el.style.cssText=v;
+    else if(k.startsWith("on")) el.addEventListener(k.slice(2).toLowerCase(),v);
+    else el.setAttribute(k,String(v));
+  });
+  children.forEach(c=>{
+    if(c===null||c===undefined) return;
+    if(typeof c==="string"||typeof c==="number") el.appendChild(document.createTextNode(String(c)));
+    else if(c instanceof Node) el.appendChild(c);
+  });
+  return el;
+}
+function div(cls,children,style) {
+  if(children===undefined) children=[];
+  if(typeof children==="string"&&!style) { style=children; children=[]; }
+  if(!Array.isArray(children)) children=[];
+  return h("div",{class:cls||"",style:style||""},children);
+}
+function span(cls,text,style="") { const s=h("span",{class:cls,style}); s.textContent=text; return s; }
+function progBar(pct,color) {
+  const wrap = div("prog-bar");
+  const fill = h("div",{class:"prog-fill",style:`width:${pct}%;background:${color}`});
+  wrap.appendChild(fill);
+  return wrap;
+}
+function badge(text,color) {
+  const b = span("badge",text,`background:${color}22;color:${color};border:1px solid ${color}44`);
+  return b;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER DAY NAV
+// ═══════════════════════════════════════════════════════════
+function renderDayNav() {
+  const nav = document.getElementById("day-nav");
+  nav.innerHTML="";
+  DAYS.forEach((day,i)=>{
+    const stats = getDayStats(day);
+    const col = WORKOUTS[day].color;
+    const isActive = day===currentDay;
+    const sc = scoreColor(stats.total);
+    const btn = h("button",{
+      class:"day-btn"+(isActive?" active":""),
+      style:`--day-color:${col}`,
+      onclick:()=>{ currentDay=day; currentTab="antrenman"; renderAll(); }
+    },[
+      h("span",{style:"font-size:10px;color:"+(isActive?col:"#64748B")},[ DAY_SHORT[i] ]),
+      h("span",{style:"font-size:17px"},[ WORKOUTS[day].type.split(" ")[0] ]),
+      h("span",{class:"day-dot",style:`background:${stats.total>0?sc:"#374151"}`}),
+    ]);
+    nav.appendChild(btn);
+  });
+  // week label
+  document.getElementById("week-label").textContent = `Hafta: ${weekKeyToLabel(currentWeekKey)}  ·  31Y · 78kg · 168cm`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER WEEK SCORE
+// ═══════════════════════════════════════════════════════════
+function renderWeekScore() {
+  const score = getWeekScore();
+  const col = scoreColor(score);
+  const ring = document.getElementById("week-score-ring");
+  ring.textContent = score+"%";
+  ring.style.background = `conic-gradient(${col} ${score*3.6}deg, #1E293B 0deg)`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER TRACKER PAGE
+// ═══════════════════════════════════════════════════════════
+function renderTracker() {
+  const content = document.getElementById("content");
+  content.innerHTML="";
+  if(currentPage!=="tracker") return;
+
+  const day = currentDay;
+  const d = weekData[day];
+  const wk = WORKOUTS[day];
+  const stats = getDayStats(day);
+  const isWE = day==="Cumartesi"||day==="Pazar";
+  const mealList = isWE?MEALS_WEEKEND:MEALS_WEEKDAY;
+
+  // ── Day title ──
+  const dayTitle = div("",[ 
+    h("div",{style:"display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px"},[
+      h("div",{},[
+        h("div",{style:"font-size:20px;font-weight:800;letter-spacing:-.5px"},[day]),
+        h("div",{style:`font-size:12px;color:${wk.color};font-weight:600;margin-top:2px`},[ 
+          wk.type+" · ",
+          h("span",{style:"color:#64748B"},[wk.subtitle])
+        ]),
+      ]),
+      h("div",{style:"text-align:right"},[
+        h("div",{style:`font-size:26px;font-weight:800;color:${scoreColor(stats.total)}`},[stats.total+"%"]),
+        h("div",{style:"font-size:9px;color:#475569"},["günlük tamamlama"]),
+      ])
+    ])
+  ]);
+  content.appendChild(dayTitle);
+
+  // ── Mini stat row ──
+  const statRow = div("stat-row");
+  [
+    {label:"Antrenman",   val:`${stats.exDone}/${stats.exTotal}`,      color:"#3B82F6",  pct:stats.exPct},
+    {label:"Beslenme",    val:`${stats.mDone}/${stats.mTotal}`,         color:"#8B5CF6",  pct:stats.mealPct},
+    {label:"Supplement",  val:`${stats.sDone}/${SUPPLEMENTS.length}`,   color:"#10B981",  pct:stats.suppPct},
+    {label:"Su (ml)",     val:stats.water,                              color:"#06B6D4",  pct:Math.min(100,(stats.water/3000)*100)},
+  ].forEach(item=>{
+    const c = div("stat-card",[],"border:1px solid "+item.color+"22");
+    const v = span("stat-val",item.val,`color:${item.color}`);
+    const l = span("stat-lbl",item.label);
+    c.appendChild(v); c.appendChild(l); c.appendChild(progBar(item.pct,item.color));
+    statRow.appendChild(c);
+  });
+  content.appendChild(statRow);
+
+  // ── Tabs ──
+  const tabRow = div("tab-row");
+  [
+    {key:"antrenman",label:"💪 Antrenman"},
+    {key:"beslenme", label:"🥗 Beslenme"},
+    {key:"supplement",label:"💊 Supps"},
+    {key:"gunluk",   label:"📊 Günlük"},
+  ].forEach(t=>{
+    const btn = h("button",{
+      class:"tab-btn"+(currentTab===t.key?" active":""),
+      onclick:()=>{ currentTab=t.key; renderTracker(); }
+    },[t.label]);
+    tabRow.appendChild(btn);
+  });
+  content.appendChild(tabRow);
+
+  // ── TAB CONTENT ──
+  if(currentTab==="antrenman") renderTabAntrenman(content, day, d, wk, stats);
+  if(currentTab==="beslenme")  renderTabBeslenme(content, day, d, mealList, stats, isWE);
+  if(currentTab==="supplement") renderTabSupp(content, day, d, stats);
+  if(currentTab==="gunluk")    renderTabGunluk(content, day, d, stats);
+}
+
+// ── TAB: ANTRENMAN ────────────────────────────────────────
+function renderTabAntrenman(content, day, d, wk, stats) {
+  const card = div("card");
+  const ch = div("card-header",[
+    div("card-title",[
+      h("span",{style:`background:${wk.color};`,class:"section-dot"}),
+      " "+wk.type
+    ]),
+    badge(`${stats.exDone}/${stats.exTotal} Hareket`, wk.color)
+  ]);
+  card.appendChild(ch);
+  card.appendChild(h("div",{style:"font-size:10px;color:#475569;margin-bottom:10px"},["✅ Yapıldı  ❌ Yapılamadı  — Bekliyor  ·  Tıkla değiştir"]));
+
+  wk.exercises.forEach((ex,i)=>{
+    const exData = d.exercises?.[ex]||{status:"pending",notes:"",sets:"",reps:"",weight:""};
+    const st = exData.status;
+    const row = div("ex-row");
+    row.style.borderBottom = i===wk.exercises.length-1?"none":"1px solid #0F172A";
+    row.addEventListener("click",(e)=>{
+      if(e.target.tagName==="INPUT") return;
+      toggleExercise(day,ex);
+    });
+
+    const chk = div(`ex-checkbox ${st}`,[ st==="done"?"✓":st==="skipped"?"✕":"" ]);
+    const nameWrap = div("",[]);
+    const nameLine = div("",[]);
+    const nameSpan = h("span",{class:`ex-name ${st}`},[ex]);
+    if(WRIST_TAGS.has(ex)) nameLine.appendChild(h("span",{class:"wrist-tag"},["⚠️ Bilek"]));
+    const bdg = h("span",{class:`ex-badge ${st}`},[ st==="done"?"Yapıldı":st==="skipped"?"Yapılamadı":"Bekliyor" ]);
+    nameLine.prepend(nameSpan);
+    nameWrap.appendChild(nameLine);
+    nameWrap.appendChild(h("span",{style:"margin-left:6px"},[])); 
+    nameWrap.appendChild(bdg);
+
+    if(st==="done") {
+      const meta = div("ex-meta");
+      ["sets","reps","weight"].forEach(f=>{
+        const mf = div("meta-field");
+        const lb = h("label",{class:"meta-label"},[f==="sets"?"Set":f==="reps"?"Tekrar":"Kg"]);
+        const inp = h("input",{
+          class:"meta-input",
+          placeholder:f==="sets"?"4":f==="reps"?"12":"60",
+          value:exData[f]||"",
+          onclick:e=>e.stopPropagation(),
+          oninput:(e)=>{ weekData[day].exercises[ex][f]=e.target.value; saveWeek(); }
+        });
+        mf.appendChild(lb); mf.appendChild(inp);
+        meta.appendChild(mf);
+      });
+      nameWrap.appendChild(meta);
+    }
+    if(st==="skipped") {
+      const inp = h("input",{
+        class:"skip-input",
+        placeholder:"Neden yapılamadı? (opsiyonel)",
+        value:exData.notes||"",
+        onclick:e=>e.stopPropagation(),
+        oninput:(e)=>{ weekData[day].exercises[ex].notes=e.target.value; saveWeek(); }
+      });
+      nameWrap.appendChild(inp);
+    }
+    row.appendChild(chk); row.appendChild(nameWrap);
+    card.appendChild(row);
+  });
+  content.appendChild(card);
+}
+
+// ── TAB: BESLENME ─────────────────────────────────────────
+function renderTabBeslenme(content, day, d, mealList, stats, isWE) {
+  const card = div("card");
+  card.appendChild(div("card-header",[
+    div("card-title",[h("span",{style:"background:#8B5CF6",class:"section-dot"})," Öğünler"]),
+    badge(`${stats.mDone}/${stats.mTotal} Öğün`,"#8B5CF6")
+  ]));
+  if(!isWE) card.appendChild(div("alert-box alert-yellow",[
+    h("div",{style:"font-size:11px;color:#F59E0B;font-weight:700"},["⏰ 16:8 IF aktif — İlk öğün 12:00 | Son öğün 20:00"])
+  ]));
+
+  mealList.forEach((meal,i)=>{
+    const mData = d.meals?.[meal.id]||{done:false,notes:""};
+    const done = mData.done;
+    const row = div("meal-row");
+    row.style.borderBottom = i===mealList.length-1?"none":"1px solid #0F172A";
+    const chk = div(`meal-check ${done?"done":"pending"}`,[ done?"✓":"" ]);
+    chk.addEventListener("click",()=>toggleMeal(day,meal.id));
+    const info = div("",[]);
+    const top = div("",[
+      h("span",{class:`meal-name ${done?"done":"pending"}`},[meal.label]),
+      h("span",{class:"meal-time",style:"margin-left:8px"},[meal.time])
+    ]);
+    top.addEventListener("click",()=>toggleMeal(day,meal.id));
+    const note = h("input",{
+      class:"meal-note",
+      placeholder:"Ne yedin? (opsiyonel not)",
+      value:mData.notes||"",
+      oninput:(e)=>{ weekData[day].meals[meal.id].notes=e.target.value; saveWeek(); }
+    });
+    info.appendChild(top); info.appendChild(note);
+    row.appendChild(chk); row.appendChild(info);
+    card.appendChild(row);
+  });
+  content.appendChild(card);
+
+  // Su kartı
+  const water = d.water||0;
+  const wCard = div("card");
+  wCard.appendChild(div("card-header",[
+    div("card-title",[h("span",{style:"background:#06B6D4",class:"section-dot"})," Su Takibi"]),
+    badge("Hedef: 3.000ml","#06B6D4")
+  ]));
+  const waterNum = h("div",{style:"display:flex;align-items:baseline;gap:8px;margin-bottom:10px"},[
+    h("span",{class:"water-big"},[String(water)]),
+    h("span",{style:"font-size:13px;color:#475569"},["/ 3.000 ml"]),
+    h("span",{style:`font-size:12px;font-weight:700;color:${water>=3000?"#10B981":"#F59E0B"}`},[ water>=3000?"✓ Hedef tamam!":` ${3000-water}ml kaldı` ])
+  ]);
+  wCard.appendChild(waterNum);
+  wCard.appendChild(progBar(Math.min(100,(water/3000)*100),"#06B6D4"));
+  const wBtns = div("water-btn-row");
+  [["+200ml",200],["+300ml",300],["+500ml",500],["-200ml",-200],["Sıfırla",null]].forEach(([lbl,ml])=>{
+    const wb = h("button",{class:"water-btn",style:ml===null?"color:#64748B":ml<0?"color:#EF4444;border-color:#EF4444":"",
+      onclick:()=>{ ml===null?update(day,"water",0):addWater(day,ml); }
+    },[lbl]);
+    wBtns.appendChild(wb);
+  });
+  wCard.appendChild(wBtns);
+  const wShort = div("water-btn-row");
+  [["☕ Sabah",500],["🌅 Öğlen",500],["⚡ Ant.Önce",500],["💪 Ant.Sırası",700],["🌙 Akşam",500]].forEach(([lbl,ml])=>{
+    wShort.appendChild(h("button",{class:"water-btn",style:"font-size:10px",onclick:()=>addWater(day,ml)},[`${lbl} (+${ml})`]));
+  });
+  wCard.appendChild(wShort);
+  content.appendChild(wCard);
+}
+
+// ── TAB: SUPPLEMENT ──────────────────────────────────────
+function renderTabSupp(content, day, d, stats) {
+  const card = div("card");
+  card.appendChild(div("card-header",[
+    div("card-title",[h("span",{style:"background:#10B981",class:"section-dot"})," Günlük Supplementler"]),
+    badge(`${stats.sDone}/${SUPPLEMENTS.length}`,"#10B981")
+  ]));
+  const grid = div("supp-grid");
+  SUPPLEMENTS.forEach(supp=>{
+    const done = d.supplements?.[supp.id]||false;
+    const btn = div(`supp-btn ${done?"done":"pending"}`,[
+      h("span",{style:"font-size:20px"},[done?"✅":"⬜"]),
+      h("div",{},[
+        h("div",{class:"supp-name"},[supp.label]),
+        h("div",{class:"supp-time"},[supp.time])
+      ])
+    ]);
+    btn.addEventListener("click",()=>toggleSupp(day,supp.id));
+    grid.appendChild(btn);
+  });
+  card.appendChild(grid);
+  card.appendChild(div("alert-box alert-yellow"));
+  const alertBox = card.lastChild;
+  alertBox.innerHTML = `<div style="font-size:11px;font-weight:700;color:#F59E0B;margin-bottom:4px">⚠️ Bilek Protokolü</div>
+    <div style="font-size:11px;color:#94A3B8">Kollajen + C vitamini → antrenman öncesi 30-60 dk alındığında en etkili.<br>Glukozamin + Kondroitin → sabah yemeğiyle, 8-12 hafta kesintisiz kullan.</div>`;
+  content.appendChild(card);
+}
+
+// ── TAB: GÜNLÜK ──────────────────────────────────────────
+function renderTabGunluk(content, day, d, stats) {
+  // Mood/Energy
+  const moodCard = div("card");
+  moodCard.appendChild(div("card-header",[div("card-title",[h("span",{style:"background:#F59E0B",class:"section-dot"})," Günlük Durum"])]));
+  ["energy","mood"].forEach(field=>{
+    const label = field==="energy"?"😴 Enerji Seviyesi":"💭 Ruh Hali";
+    const emojis = field==="energy"?["😩","😕","😐","😊","🔥"]:["😞","😔","😶","😌","😁"];
+    const lbl = h("div",{style:"font-size:11px;color:#64748B;font-weight:600;margin-bottom:6px;margin-top:"+(field==="mood"?"14px":"0")},[label]);
+    moodCard.appendChild(lbl);
+    const row = div("mood-row");
+    [1,2,3,4,5].forEach(v=>{
+      const btn = h("button",{class:"mood-btn"+(v===(d[field]||3)?" active":""),onclick:()=>{ update(day,field,v); }},[ emojis[v-1] ]);
+      row.appendChild(btn);
+    });
+    moodCard.appendChild(row);
+  });
+  content.appendChild(moodCard);
+
+  // Notes
+  const noteCard = div("card");
+  noteCard.appendChild(div("card-title",[h("span",{style:"background:#94A3B8",class:"section-dot"})," Günlük Not"]));
+  noteCard.style.marginTop="0";
+  const ta = h("textarea",{
+    style:"width:100%;background:#0F172A;border:1px solid #334155;border-radius:10px;color:#CBD5E1;font-size:12px;padding:10px 12px;resize:vertical;min-height:80px;margin-top:10px;font-family:'DM Sans',sans-serif;box-sizing:border-box",
+    placeholder:"Bugün nasıl geçti? Hangi harekette zorlandın? Beslenme nasıldı? Bileğin nasıl?",
+  });
+  ta.value = d.notes||"";
+  ta.addEventListener("input",e=>{ weekData[day].notes=e.target.value; saveWeek(); });
+  noteCard.appendChild(ta);
+  content.appendChild(noteCard);
+
+  // Weekly overview
+  const wkCard = div("card");
+  wkCard.appendChild(div("card-title"));
+  wkCard.firstChild.innerHTML = `<span class="section-dot" style="background:#3B82F6"></span> Haftalık Genel Bakış`;
+  wkCard.style.paddingTop="16px";
+
+  const overview = div("week-overview");
+  DAYS.forEach(dn=>{
+    const s2 = getDayStats(dn);
+    const col = WORKOUTS[dn].color;
+    const sc = scoreColor(s2.total);
+    const wc = div("week-card"+(dn===currentDay?" active":""),[],"--wc-color:"+col);
+    wc.innerHTML = `
+      <div class="week-card-emoji">${WORKOUTS[dn].type.split(" ")[0]}</div>
+      <div class="week-card-day" style="color:${col}">${DAY_SHORT[DAYS.indexOf(dn)]}</div>
+      <div class="week-card-score" style="color:${sc}">${s2.total}%</div>
+      <div class="week-card-bar" style="background:linear-gradient(90deg,${sc} ${s2.total}%,#0F172A ${s2.total}%)"></div>`;
+    wc.addEventListener("click",()=>{ currentDay=dn; currentTab="antrenman"; renderAll(); });
+    overview.appendChild(wc);
+  });
+  wkCard.appendChild(overview);
+
+  const wkGrid = h("div",{style:"display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:14px"});
+  const wkScore = getWeekScore();
+  [
+    {label:"Toplam Antrenman", val:DAYS.filter(d2=>getDayStats(d2).exDone>0).length+"/4 gün", color:"#3B82F6"},
+    {label:"Ortalama Su",      val:Math.round(DAYS.reduce((a,d2)=>a+(weekData[d2]?.water||0),0)/7)+"ml/gün", color:"#06B6D4"},
+    {label:"Haftalık Skor",    val:wkScore+"%", color:scoreColor(wkScore)},
+    {label:"Supp. Tamamlama",  val:Math.round(DAYS.reduce((a,d2)=>a+getDayStats(d2).suppPct,0)/7)+"%", color:"#10B981"},
+  ].forEach(item=>{
+    const mc = h("div",{style:`background:#0F172A;border-radius:10px;padding:12px;border:1px solid ${item.color}22`},[
+      h("div",{style:`font-size:18px;font-weight:800;color:${item.color}`},[item.val]),
+      h("div",{style:"font-size:10px;color:#475569;margin-top:2px"},[item.label])
+    ]);
+    wkGrid.appendChild(mc);
+  });
+  wkCard.appendChild(wkGrid);
+  content.appendChild(wkCard);
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER REPORT PAGE
+// ═══════════════════════════════════════════════════════════
+function renderReport() {
+  const content = document.getElementById("content");
+  content.innerHTML="";
+  if(currentPage!=="report") return;
+
+  // Week selector
+  const allWeeks = lsList();
+  if(!allWeeks.includes("week_"+reportWeekKey) && allWeeks.length>0) {
+    reportWeekKey = allWeeks[0].replace("week_","");
+  }
+
+  const selRow = div("report-week-sel");
+  selRow.appendChild(h("div",{style:"font-size:12px;color:#64748B;font-weight:600;margin-right:4px"},["Hafta seç:"]));
+
+  if(allWeeks.length===0) {
+    selRow.appendChild(h("div",{style:"font-size:12px;color:#EF4444"},["Henüz kayıtlı hafta yok"]));
+  } else {
+    allWeeks.slice(0,8).forEach(wk=>{
+      const wkDate = wk.replace("week_","");
+      const btn = h("button",{
+        class:"report-week-btn"+(wkDate===reportWeekKey?" active":""),
+        onclick:()=>{ reportWeekKey=wkDate; renderReport(); }
+      },[weekKeyToLabel(wkDate)]);
+      selRow.appendChild(btn);
+    });
+  }
+  content.appendChild(selRow);
+
+  // Load selected week's data
+  const rwd = lsGet("week_"+reportWeekKey);
+  if(!rwd) {
+    content.appendChild(div("report-no-data",[
+      h("div",{style:"font-size:32px;margin-bottom:8px"},["📊"]),
+      h("div",{style:"font-size:14px;font-weight:700;color:#64748B"},["Bu hafta için veri bulunamadı"]),
+      h("div",{style:"font-size:12px;color:#374151;margin-top:4px"},["Takip sekmesinde verileri girdikten sonra rapor burada görünür"])
+    ]));
+    return;
+  }
+  const merged = mergeWithDefaults(JSON.parse(JSON.stringify(rwd)), reportWeekKey);
+  const wkScore = getWeekScore(merged);
+
+  // ── HEADER ──
+  const hCard = div("report-header-card");
+  hCard.innerHTML = `
+    <div style="font-size:12px;color:#64748B;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">📊 HAFTALIK RAPOR</div>
+    <div style="font-size:13px;color:#94A3B8;margin-bottom:12px">${weekKeyToLabel(reportWeekKey)}</div>
+    <div class="report-score-big" style="color:${scoreColor(wkScore)}">${wkScore}%</div>
+    <div style="font-size:13px;color:#64748B;margin-top:4px">Genel Tamamlama Skoru</div>
+    <div style="margin-top:12px;height:8px;border-radius:4px;background:#0F172A;overflow:hidden">
+      <div style="height:100%;width:${wkScore}%;background:${scoreColor(wkScore)};border-radius:4px;transition:width .6s"></div>
+    </div>`;
+  content.appendChild(hCard);
+
+  // ── METRIC GRID ──
+  const exTotal = DAYS.reduce((a,d)=>{
+    const s = getDayStats(d,merged); return a+s.exDone;
+  },0);
+  const exPoss = DAYS.reduce((a,d)=>a+WORKOUTS[d].exercises.length,0);
+  const avgWater = Math.round(DAYS.reduce((a,d)=>a+(merged[d]?.water||0),0)/7);
+  const suppTotal = Math.round(DAYS.reduce((a,d)=>a+getDayStats(d,merged).suppPct,0)/7);
+  const mealTotal = Math.round(DAYS.reduce((a,d)=>a+getDayStats(d,merged).mealPct,0)/7);
+  const antDays = DAYS.filter(d=>["Pazartesi","Salı","Perşembe","Cumartesi"].includes(d)&&getDayStats(d,merged).exDone>0).length;
+  const avgEnergy = (DAYS.reduce((a,d)=>a+(merged[d]?.energy||3),0)/7).toFixed(1);
+  const avgMood = (DAYS.reduce((a,d)=>a+(merged[d]?.mood||3),0)/7).toFixed(1);
+
+  const grid = div("report-grid");
+  [
+    {label:"Antrenman Tamamlama", val:`${exTotal}/${exPoss}`, sub:"hareket", color:"#3B82F6"},
+    {label:"Antrenman Günleri",   val:`${antDays}/4`,         sub:"gün",     color:"#8B5CF6"},
+    {label:"Ort. Günlük Su",      val:`${avgWater}ml`,        sub:"hedef 3000ml", color:"#06B6D4"},
+    {label:"Beslenme Uyumu",      val:`${mealTotal}%`,        sub:"öğün tamamlama", color:"#EC4899"},
+    {label:"Supplement Uyumu",    val:`${suppTotal}%`,        sub:"günlük ortalama", color:"#10B981"},
+    {label:"Ort. Enerji",         val:`${avgEnergy}/5`,       sub:["😩","😕","😐","😊","🔥"][Math.round(avgEnergy)-1]||"😐", color:"#F59E0B"},
+  ].forEach(item=>{
+    const mc = div("report-metric");
+    mc.innerHTML=`<span class="report-metric-val" style="color:${item.color}">${item.val}</span>
+      <div class="report-metric-lbl">${item.label}</div>
+      <div style="font-size:10px;color:#334155;margin-top:3px">${item.sub}</div>
+      <div style="height:3px;border-radius:2px;background:#0F172A;margin-top:8px;overflow:hidden">
+        <div style="height:100%;width:${Math.min(100,parseFloat(item.val))}%;background:${item.color}"></div>
+      </div>`;
+    grid.appendChild(mc);
+  });
+  content.appendChild(grid);
+
+  // ── GÜN GÜN DETAY ──
+  const detCard = div("card");
+  detCard.appendChild(div("card-title",[h("span",{style:"background:#3B82F6",class:"section-dot"})," Gün Gün Detay"]));
+  detCard.style.marginTop="0";
+
+  const table = h("table",{class:"report-day-table",style:"margin-top:12px"});
+  const thead = h("thead",{},[h("tr",{},[
+    h("th",{},["GÜN / TİP"]),
+    h("th",{},["ANTRENMAN"]),
+    h("th",{},["BESLENME"]),
+    h("th",{},["SU"]),
+    h("th",{},["SUPPS"]),
+    h("th",{},["SKOR"]),
+  ])]);
+  table.appendChild(thead);
+  const tbody = h("tbody");
+  DAYS.forEach(d=>{
+    const s = getDayStats(d,merged);
+    const dd = merged[d];
+    const wk = WORKOUTS[d];
+    const sc = scoreColor(s.total);
+    const tr = h("tr",{},[
+      h("td",{},[
+        h("div",{style:`font-weight:700;font-size:12px;color:${wk.color}`},[d]),
+        h("div",{style:"font-size:10px;color:#475569;margin-top:1px"},[wk.subtitle])
+      ]),
+      h("td",{},[
+        h("div",{style:`font-weight:700;font-size:13px;color:${s.exPct>79?"#10B981":s.exPct>0?"#F59E0B":"#475569"}`},[`${s.exDone}/${s.exTotal}`]),
+        // Show done exercises
+        ...wk.exercises.filter(ex=>dd?.exercises?.[ex]?.status==="done").map(ex=>{
+          const exd = dd.exercises[ex];
+          const parts = [];
+          if(exd.sets) parts.push(exd.sets+"s");
+          if(exd.reps) parts.push(exd.reps+"r");
+          if(exd.weight) parts.push(exd.weight+"kg");
+          return h("div",{class:"ex-detail-row"},[
+            h("span",{style:"color:#3B82F6"},"✓ "),
+            ex.length>20?ex.slice(0,20)+"…":ex,
+            parts.length?h("span",{style:"color:#10B981;margin-left:4px"},[" "+parts.join(" · ")]):" "
+          ]);
+        }),
+        ...wk.exercises.filter(ex=>dd?.exercises?.[ex]?.status==="skipped").map(ex=>{
+          return h("div",{class:"ex-detail-row"},[h("span",{style:"color:#EF4444"},"✕ "), ex.length>20?ex.slice(0,20)+"…":ex]);
+        }),
+      ]),
+      h("td",{},[
+        h("div",{style:`font-weight:700;font-size:13px;color:${s.mealPct>79?"#10B981":s.mealPct>0?"#F59E0B":"#475569"}`},[`${s.mDone}/${s.mTotal}`]),
+        // meal notes
+        ...(d==="Cumartesi"||d==="Pazar"?MEALS_WEEKEND:MEALS_WEEKDAY).filter(m=>dd?.meals?.[m.id]?.notes).map(m=>{
+          return h("div",{class:"ex-detail-row"},[m.label.split(" ")[0]+" ",dd.meals[m.id].notes.slice(0,25)+(dd.meals[m.id].notes.length>25?"…":"")]);
+        })
+      ]),
+      h("td",{},[
+        h("div",{style:`font-weight:700;font-size:13px;color:${s.waterPct>=100?"#10B981":s.waterPct>50?"#F59E0B":"#475569"}`},[(dd?.water||0)+"ml"]),
+      ]),
+      h("td",{},[
+        h("div",{style:`font-weight:700;font-size:13px;color:${s.suppPct>79?"#10B981":s.suppPct>0?"#F59E0B":"#475569"}`},[`${s.sDone}/${SUPPLEMENTS.length}`])
+      ]),
+      h("td",{},[
+        h("div",{style:`font-size:18px;font-weight:800;color:${sc}`},[s.total+"%"]),
+        h("div",{style:`height:3px;border-radius:2px;width:40px;background:linear-gradient(90deg,${sc} ${s.total}%,#0F172A ${s.total}%);margin-top:4px`})
+      ]),
+    ]);
+    tbody.appendChild(tr);
+
+    // Notes row
+    if(dd?.notes && dd.notes.trim()) {
+      tbody.appendChild(h("tr",{},[
+        h("td",{style:"padding:0 10px 10px;color:#64748B;font-size:11px;font-style:italic",colspan:"6"},["💬 "+dd.notes])
+      ]));
+    }
+  });
+  table.appendChild(tbody);
+  detCard.appendChild(table);
+  content.appendChild(detCard);
+
+  // ── KOÇLUK YORUMU ──
+  const coachCard = div("card");
+  coachCard.innerHTML = `<div class="card-title"><span class="section-dot" style="background:#F59E0B"></span> Fitness Koçu & Diyetisyen Yorumu</div>
+  <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+    ${antDays>=4?'<div class="alert-box alert-blue"><b style="color:#3B82F6">💪 Antrenman:</b> <span style="font-size:12px">Haftanın 4 antrenmanını tamamladın. Harika tutarlılık. Progressive overload için bir sonraki haftada ağırlıkları 2.5kg artırmayı dene.</span></div>'
+    :'<div class="alert-box alert-yellow"><b style="color:#F59E0B">💪 Antrenman:</b> <span style="font-size:12px">Bu hafta '+antDays+'/4 antrenman yapıldı. Eksik günler uzun vadeli ilerlemeyi yavaşlatır. Önümüzdeki hafta 4 güne ulaşmayı hedefle.</span></div>'}
+    ${avgWater>=2800?'<div class="alert-box alert-blue"><b style="color:#06B6D4">💧 Su:</b> <span style="font-size:12px">Günlük ortalama su tüketimi hedefe yakın. Devam et.</span></div>'
+    :'<div class="alert-box alert-yellow"><b style="color:#F59E0B">💧 Su:</b> <span style="font-size:12px">Ort. '+avgWater+'ml/gün — hedef 3.000ml. Masana 1 litrelik şişe koy, doldurduğunu gör.</span></div>'}
+    ${suppTotal>=80?'<div class="alert-box alert-blue"><b style="color:#10B981">💊 Supplement:</b> <span style="font-size:12px">Supplement uyumu mükemmel. Kreatin etkisi 4-8 haftalık düzenli kullanımda en yüksek noktaya ulaşır.</span></div>'
+    :'<div class="alert-box alert-yellow"><b style="color:#F59E0B">💊 Supplement:</b> <span style="font-size:12px">Supplement uyumu %'+suppTotal+'. En az Kreatin ve Magnezyumu atlamaya çalış — bu ikisi en kritik.</span></div>'}
+    <div class="alert-box" style="background:#110A1C;border-left-color:#8B5CF6"><b style="color:#8B5CF6">⚠️ Bilek:</b> <span style="font-size:12px">Kollajen + C vitamini protokolünü antrenman öncesi almayı unutma. 8-12 haftalık tutarlı kullanım eklem sağlığında fark yaratır.</span></div>
+  </div>`;
+  content.appendChild(coachCard);
+
+  // ── EXPORT / CLEAR ──
+  const actCard = div("card");
+  const expBtn = h("button",{class:"export-btn",onclick:exportReport},["📄 Raporu Metin Olarak Kopyala"]);
+  const clrBtn = h("button",{class:"clear-btn",onclick:()=>{
+    if(confirm(`${weekKeyToLabel(reportWeekKey)} haftasının verilerini silmek istediğinize emin misiniz?`)) {
+      localStorage.removeItem(LS_PREFIX+"week_"+reportWeekKey);
+      showToast("Hafta verisi silindi");
+      if(reportWeekKey===currentWeekKey) { weekData=emptyWeek(); }
+      renderAll();
+    }
+  }},["🗑️ Bu Haftanın Verilerini Sil"]);
+  actCard.appendChild(expBtn);
+  actCard.appendChild(clrBtn);
+  content.appendChild(actCard);
+}
+
+// ═══════════════════════════════════════════════════════════
+// EXPORT REPORT AS TEXT
+// ═══════════════════════════════════════════════════════════
+function exportReport() {
+  const rwd = lsGet("week_"+reportWeekKey);
+  if(!rwd) { showToast("Veri yok"); return; }
+  const merged = mergeWithDefaults(JSON.parse(JSON.stringify(rwd)), reportWeekKey);
+  const wkScore = getWeekScore(merged);
+  let txt = `FitTrack Pro — Haftalık Rapor\n`;
+  txt += `${weekKeyToLabel(reportWeekKey)}\n`;
+  txt += `${"=".repeat(50)}\n\n`;
+  txt += `Genel Skor: ${wkScore}%\n\n`;
+  DAYS.forEach(d=>{
+    const s = getDayStats(d,merged);
+    const dd = merged[d];
+    txt += `${d} (${WORKOUTS[d].type}) — ${s.total}%\n`;
+    txt += `  Antrenman: ${s.exDone}/${s.exTotal}  Beslenme: ${s.mDone}/${s.mTotal}  Su: ${dd?.water||0}ml  Supps: ${s.sDone}/6\n`;
+    WORKOUTS[d].exercises.forEach(ex=>{
+      const st = dd?.exercises?.[ex]?.status||"pending";
+      const exd = dd?.exercises?.[ex];
+      if(st==="done") {
+        const parts=[];
+        if(exd?.sets) parts.push(exd.sets+"s");
+        if(exd?.reps) parts.push(exd.reps+"r");
+        if(exd?.weight) parts.push(exd.weight+"kg");
+        txt+=`    ✓ ${ex}${parts.length?" ("+parts.join(" ")+")" :""}\n`;
+      } else if(st==="skipped") {
+        txt+=`    ✕ ${ex}${exd?.notes?" — "+exd.notes:""}\n`;
+      }
+    });
+    if(dd?.notes && dd.notes.trim()) txt+=`  Not: ${dd.notes}\n`;
+    txt+="\n";
+  });
+  try {
+    navigator.clipboard.writeText(txt).then(()=>showToast("✓ Rapor panoya kopyalandı!"));
+  } catch(e) {
+    const ta = document.createElement("textarea");
+    ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta);
+    showToast("✓ Rapor kopyalandı!");
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// PAGE SWITCH
+// ═══════════════════════════════════════════════════════════
+function setPage(page) {
+  currentPage = page;
+  document.querySelectorAll(".page-tab").forEach(btn=>{
+    btn.classList.toggle("active", btn.dataset.page===page);
+  });
+  renderContent();
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER ALL
+// ═══════════════════════════════════════════════════════════
+function renderContent() {
+  if(currentPage==="tracker") renderTracker();
+  else renderReport();
+}
+function renderAll() {
+  renderDayNav();
+  renderWeekScore();
+  renderContent();
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+function init() {
+  // Load current week
+  loadWeek(currentWeekKey);
+  renderAll();
+
+  // Auto-save every 30s as backup
+  setInterval(saveWeek, 30000);
+}
+
+document.addEventListener("DOMContentLoaded", init);
+</script>
+
+</body>
+</html>
