@@ -548,14 +548,31 @@ function saveWeek() { lsSet("week_"+currentWeekKey, weekData); }
 // DATE UTILS
 // ════════════════════════════════════════════════════════════
 function getWeekKey() {
-  const now=new Date(), day=now.getDay(), mon=new Date(now);
+  // Yerel saat kullan — toISOString() UTC verir, timezone'u kayar
+  const now=new Date();
+  const day=now.getDay(); // 0=Pazar
+  const mon=new Date(now);
   mon.setDate(now.getDate()-(day===0?6:day-1));
-  return mon.toISOString().slice(0,10);
+  // Yerel tarih formatla (UTC kullanma)
+  const y=mon.getFullYear();
+  const m=String(mon.getMonth()+1).padStart(2,"0");
+  const d=String(mon.getDate()).padStart(2,"0");
+  return `${y}-${m}-${d}`;
 }
 function todayDayName() { const d=new Date().getDay(); return DAYS[d===0?6:d-1]; }
+// Timezone-safe yerel tarih string'i üret
+function localDate(dt) {
+  const d=dt||new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+// "YYYY-MM-DD" string'ini yerel Date objesine çevir (UTC kayması olmadan)
+function parseLocalDate(s) { const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); }
 function isWeekend(d) { return d==="Cumartesi"||d==="Pazar"; }
 function weekLabel(wk) {
-  const d=new Date(wk+"T00:00:00"), e=new Date(d); e.setDate(d.getDate()+6);
+  // wk = "YYYY-MM-DD", yerel olarak parse et
+  const [y,mo,dd]=wk.split("-").map(Number);
+  const d=new Date(y,mo-1,dd); // ayın 0-indexed, yerel
+  const e=new Date(y,mo-1,dd+6);
   const mn=["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];
   return `${d.getDate()} ${mn[d.getMonth()]} – ${e.getDate()} ${mn[e.getMonth()]} ${e.getFullYear()}`;
 }
@@ -1201,7 +1218,7 @@ function renderIlerleme() {
     const weight=document.getElementById("mw")?.value;
     if(!weight){toast("En azından kilo gir",false);return;}
     const entry={
-      date:new Date().toISOString().slice(0,10),
+      date:(()=>{const _d=new Date();return _d.getFullYear()+"-"+String(_d.getMonth()+1).padStart(2,"0")+"-"+String(_d.getDate()).padStart(2,"0")})(),
       weight:parseFloat(document.getElementById("mw")?.value)||null,
       waist:parseFloat(document.getElementById("mwst")?.value)||null,
       chest:parseFloat(document.getElementById("mch")?.value)||null,
@@ -1269,7 +1286,7 @@ function renderIlerleme() {
     saveRm.onclick=()=>{
       const v=parseFloat(inp.value); if(!v||v<1){toast("Geçerli kg gir",false);return;}
       if(!rmRecords[ex]) rmRecords[ex]=[];
-      rmRecords[ex].push({date:new Date().toISOString().slice(0,10),kg:v});
+      const _rd=new Date(); rmRecords[ex].push({date:_rd.getFullYear()+"-"+String(_rd.getMonth()+1).padStart(2,"0")+"-"+String(_rd.getDate()).padStart(2,"0"),kg:v});
       saveConfig(); toast(`✓ ${ex}: ${v}kg kaydedildi`); renderIlerleme();
     };
     inp.onkeydown=e=>{ if(e.key==="Enter") saveRm.click(); };
@@ -1327,10 +1344,11 @@ function calcStreak() {
       if(done){
         totalDays++;
         // Get date for this day
-        const wkDate=new Date(wk.replace("week_","")+"T00:00:00");
-        const dayIdx=DAYS.indexOf(d);
-        const dt=new Date(wkDate); dt.setDate(wkDate.getDate()+dayIdx);
-        trainedDates.add(dt.toISOString().slice(0,10));
+        const [sy,sm,sd]=wk.replace("week_","").split("-").map(Number);
+        const wkDate=new Date(sy,sm-1,sd);
+        const dt=new Date(sy,sm-1,sd+DAYS.indexOf(d));
+        const dds=dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0");
+        trainedDates.add(dds);
       }
     });
   });
@@ -1340,19 +1358,19 @@ function calcStreak() {
     const done=exList.some(ex=>weekData[d]?.exercises?.[ex]?.status==="done");
     if(done) {
       thisWeek++;
-      const wkDate=new Date(currentWeekKey+"T00:00:00");
+      const wkBase=parseLocalDate(currentWeekKey);
       const dayIdx=DAYS.indexOf(d);
-      const dt=new Date(wkDate); dt.setDate(wkDate.getDate()+dayIdx);
-      trainedDates.add(dt.toISOString().slice(0,10));
+      const dt=new Date(wkBase.getFullYear(),wkBase.getMonth(),wkBase.getDate()+dayIdx);
+      trainedDates.add(localDate(dt));
     }
   });
   // Current streak (backwards from today)
-  const today=new Date(); let streakDate=new Date(today);
+  let streakDate=new Date();
   while(true){
-    const ds=streakDate.toISOString().slice(0,10);
+    const ds=localDate(streakDate);
     if(trainedDates.has(ds)){ current++; streakDate.setDate(streakDate.getDate()-1); }
-    else { streakDate.setDate(streakDate.getDate()-1); const ds2=streakDate.toISOString().slice(0,10);
-      if(!trainedDates.has(ds2)) break; // allow 1 rest day
+    else { streakDate.setDate(streakDate.getDate()-1);
+      if(!trainedDates.has(localDate(streakDate))) break;
     }
     if(current>365) break;
   }
@@ -1805,7 +1823,56 @@ function alertBox(text,col,bg) {
 // ════════════════════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════════════════════
+// Birden fazla aynı haftaya ait key'leri temizle (timezone hatası giderimi)
+function cleanupDuplicateWeeks() {
+  const allKeys = [];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k && k.startsWith(LS+"week_")) allKeys.push(k);
+  }
+  // Her key'in kanonik Pazartesi key'ini hesapla
+  const canonMap = {}; // canonKey -> [originalKey, ...]
+  allKeys.forEach(k=>{
+    const dateStr = k.replace(LS+"week_","");
+    const [y,m,d] = dateStr.split("-").map(Number);
+    const dt = new Date(y,m-1,d);
+    const dow = dt.getDay(); // 0=Sun
+    const mon = new Date(y,m-1,d-(dow===0?6:dow-1));
+    const canonKey = LS+"week_"+localDate(mon);
+    if(!canonMap[canonKey]) canonMap[canonKey]=[];
+    canonMap[canonKey].push(k);
+  });
+  // Birden fazla key aynı kanonik haftaya düşüyorsa birleştir
+  Object.entries(canonMap).forEach(([canonKey, keys])=>{
+    if(keys.length<=1) return; // Sorun yok
+    // En çok veri içereni bul (egzersiz done sayısı en fazla olan)
+    let best=null, bestScore=-1;
+    keys.forEach(k=>{
+      try{
+        const wd=JSON.parse(localStorage.getItem(k));
+        let score=0;
+        if(wd) DAYS.forEach(day=>{
+          const exs=wd[day]?.exercises||{};
+          score+=Object.values(exs).filter(e=>e?.status==="done").length;
+          score+=(wd[day]?.water||0)/100;
+        });
+        if(score>bestScore){ bestScore=score; best={k,wd}; }
+      }catch(e){}
+    });
+    // Canonical key'e en iyi veriyi yaz
+    if(best){
+      if(best.k!==canonKey){
+        localStorage.setItem(canonKey, localStorage.getItem(best.k));
+      }
+      // Diğer (non-canonical) key'leri sil
+      keys.forEach(k=>{ if(k!==canonKey){ localStorage.removeItem(k); } });
+      console.log(`Temizlendi: ${keys.length} key → ${canonKey}`);
+    }
+  });
+}
+
 function init() {
+  cleanupDuplicateWeeks();
   initConfig();
   loadWeek(currentWeekKey);
   renderAll();
