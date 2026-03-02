@@ -466,6 +466,15 @@ let timerState      = {running:false, start:null, elapsed:0, interval:null};
 const lsGet = k => { try{ const v=localStorage.getItem(LS+k); return v?JSON.parse(v):null; }catch(e){return null;} };
 const lsSet = (k,v) => { try{ localStorage.setItem(LS+k,JSON.stringify(v)); }catch(e){} };
 const lsDel = k => { try{ localStorage.removeItem(LS+k); }catch(e){} };
+// Sadece bu uygulamaya ait (ft2_ prefix'li) tüm key'leri sil — diğer domain verilerine dokunma
+function clearAppStorage() {
+  const toDelete=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k && k.startsWith(LS)) toDelete.push(k);
+  }
+  toDelete.forEach(k=>localStorage.removeItem(k));
+}
 
 function lsWeekKeys() {
   const keys=[];
@@ -1790,7 +1799,7 @@ function renderSettings() {
   const resetAllBtn=document.createElement("button"); resetAllBtn.className="btn-danger"; resetAllBtn.textContent="TÜM VERİLERİ SİL";
   resetAllBtn.onclick=()=>{
     if(!confirm("UYARI: Tüm haftalık takip verileri, profil ve ayarlar silinecek. Geri alınamaz! Devam et?")) return;
-    localStorage.clear(); initConfig(); loadWeek(currentWeekKey);
+    clearAppStorage(); initConfig(); loadWeek(currentWeekKey);
     toast("Tüm veriler silindi",false); renderAll();
   };
   dz.appendChild(resetConfigBtn); dz.appendChild(resetAllBtn);
