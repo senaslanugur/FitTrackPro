@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+
+<html lang="tr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>QuantAI — Akademik Yatırım Analiz Sistemi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+/* ── DESIGN TOKENS ─────────────────────────────────────────────── */
+:root{
+  --bg:    #060a0f;
+  --s1:    #0d1117;
+  --s2:    #161b22;
+  --s3:    #21262d;
+  --bd:    #30363d;
+  --tx:    #e6edf3;
+  --mu:    #7d8590;
+  --dim:   #484f58;
+  --gr:    #3fb950;
+  --rd:    #f85149;
+  --ye:    #e3b341;
+  --bl:    #58a6ff;
+  --pu:    #bc8cff;
+  --or:    #ffa657;
+  --te:    #00c9a7;
+  --cy:    #39d353;
+  --mono:  'JetBrains Mono',monospace;
+  --disp:  'Syne',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+
+body{
+  font-family:var(--mono);font-size:12.5px;
+  background:var(--bg);color:var(--tx);
+  min-height:100vh;overflow-x:hidden;
+}
+
+/* grid */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    linear-gradient(rgba(0,201,167,.022) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,201,167,.022) 1px,transparent 1px);
+  background-size:44px 44px;
+}
+/* top bar */
+body::after{
+  content:'';position:fixed;top:0;left:0;right:0;height:2px;z-index:500;
+  background:linear-gradient(90deg,transparent 0%,var(--te) 30%,var(--bl) 70%,transparent 100%);
+  animation:sweep 4s ease-in-out infinite alternate;
+}
+@keyframes sweep{from{opacity:.4}to{opacity:1}}
+
+/* ── HEADER ──────────────────────────────────────────────────── */
+header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(6,10,15,.92);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--bd);
+  padding:0 1.4rem;height:52px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.logo{
+  font-family:var(--disp);font-size:1.25rem;font-weight:800;letter-spacing:-.03em;
+  background:linear-gradient(120deg,var(--te),var(--bl));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.logo-sub{
+  font-family:var(--mono);font-size:.65rem;font-weight:300;
+  color:var(--mu);margin-left:.5rem;letter-spacing:.04em;
+  -webkit-text-fill-color:var(--mu);
+}
+.hbadge{display:flex;gap:.4rem}
+.hb{
+  font-size:.58rem;padding:.18rem .48rem;border-radius:4px;letter-spacing:.06em;
+  background:var(--s2);border:1px solid var(--bd);color:var(--mu);
+}
+.hb.live{border-color:var(--te);color:var(--te)}
+.hb.live::before{content:'● ';animation:blink 1.5s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+
+/* ── MAIN ────────────────────────────────────────────────────── */
+main{position:relative;z-index:1;max-width:1680px;margin:0 auto;padding:1.2rem 1.2rem 3rem}
+
+/* ── CONTROL PANEL ───────────────────────────────────────────── */
+.ctrl{
+  background:var(--s1);border:1px solid var(--bd);border-radius:12px;
+  padding:1.1rem 1.3rem;margin-bottom:1.1rem;
+}
+.ctrl-grid{
+  display:grid;
+  grid-template-columns:auto 200px 140px auto auto;
+  gap:.9rem;align-items:end;
+}
+.fl{display:flex;flex-direction:column;gap:.32rem}
+.fl label{font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--mu)}
+
+.mkt{
+  display:flex;height:38px;
+  background:var(--s2);border:1px solid var(--bd);border-radius:8px;overflow:hidden;
+}
+.mkt button{
+  flex:1;border:none;background:none;color:var(--mu);
+  font-family:var(--mono);font-size:.73rem;cursor:pointer;padding:0 1rem;
+  letter-spacing:.04em;transition:all .15s;
+}
+.mkt button.on{background:var(--s3);color:var(--tx)}
+.mkt button.on.c{color:var(--or)}.mkt button.on.s{color:var(--bl)}
+
+input,select{
+  height:38px;background:var(--s2);border:1px solid var(--bd);
+  border-radius:8px;color:var(--tx);font-family:var(--mono);font-size:.87rem;
+  padding:0 .75rem;outline:none;transition:border-color .15s;width:100%;
+}
+input:focus,select:focus{border-color:var(--te)}
+input::placeholder{color:var(--dim)}
+select option{background:var(--s2)}
+
+.gobtn{
+  height:38px;padding:0 1.6rem;
+  background:linear-gradient(135deg,var(--te),var(--bl));
+  border:none;border-radius:8px;color:#000;
+  font-family:var(--mono);font-size:.8rem;font-weight:700;
+  cursor:pointer;letter-spacing:.06em;white-space:nowrap;transition:all .2s;
+}
+.gobtn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,201,167,.3)}
+.gobtn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+.chips{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.7rem}
+.chip{
+  padding:.16rem .52rem;border:1px solid var(--bd);border-radius:5px;
+  cursor:pointer;font-size:.67rem;color:var(--mu);background:var(--s2);
+  transition:all .13s;
+}
+.chip:hover{border-color:var(--te);color:var(--te)}
+.chip.c{border-color:rgba(255,166,87,.28);color:var(--or)}
+.chip.s{border-color:rgba(88,166,255,.28);color:var(--bl)}
+
+/* ── ALERTS ──────────────────────────────────────────────────── */
+.alert{
+  display:none;border-radius:9px;padding:.8rem 1.1rem;margin-bottom:1rem;
+  font-size:.73rem;line-height:1.6;
+}
+.alert.on{display:flex;gap:.6rem;align-items:flex-start}
+.alert.err{background:rgba(248,81,73,.07);border:1px solid rgba(248,81,73,.3);color:var(--rd)}
+.alert.warn{background:rgba(227,179,65,.07);border:1px solid rgba(227,179,65,.28);color:var(--ye)}
+
+/* ── LOADING ─────────────────────────────────────────────────── */
+#overlay{
+  display:none;position:fixed;inset:0;z-index:900;
+  background:rgba(6,10,15,.88);backdrop-filter:blur(8px);
+  flex-direction:column;align-items:center;justify-content:center;gap:.9rem;
+}
+#overlay.on{display:flex}
+.spin{width:50px;height:50px;border:2px solid var(--bd);border-top-color:var(--te);border-radius:50%;animation:rot 1s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.lt{font-family:var(--disp);font-size:.9rem;color:var(--te);font-weight:700;letter-spacing:.12em}
+.ls{color:var(--mu);font-size:.68rem;text-align:center;line-height:2.1}
+
+/* ── RESULTS ─────────────────────────────────────────────────── */
+#R{display:none}
+#R.on{display:block}
+
+/* ── VERDICT ROW ─────────────────────────────────────────────── */
+.vrow{display:grid;grid-template-columns:1.1fr 1.3fr 1fr 1fr;gap:.9rem;margin-bottom:.9rem}
+.vc{
+  background:var(--s1);border:1px solid var(--bd);border-radius:12px;
+  padding:1rem 1.1rem;position:relative;overflow:hidden;
+}
+.vc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.vc.G::before{background:var(--gr)}.vc.R::before{background:var(--rd)}
+.vc.Y::before{background:var(--ye)}.vc.B::before{background:var(--bl)}
+.vc.P::before{background:var(--pu)}
+
+.vlb{font-size:.56rem;text-transform:uppercase;letter-spacing:.12em;color:var(--mu);margin-bottom:.45rem}
+.vv{font-family:var(--disp);font-size:1.3rem;font-weight:800;line-height:1.1}
+.vv.G{color:var(--gr)}.vv.R{color:var(--rd)}.vv.Y{color:var(--ye)}
+.vv.B{color:var(--bl)}.vv.O{color:var(--or)}.vv.P{color:var(--pu)}
+.vsb{font-size:.66rem;color:var(--mu);margin-top:.3rem;line-height:1.5}
+
+.sbar{display:flex;gap:.28rem;margin-top:.75rem;align-items:center}
+.sbtr{height:5px;flex:1;background:var(--s3);border-radius:3px;overflow:hidden}
+.sbfi{height:100%;border-radius:3px;transition:width .7s ease}
+.sbfi.g{background:var(--gr)}.sbfi.r{background:var(--rd)}
+.sblb{font-size:.56rem;width:20px;text-align:right}
+
+.tg{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-top:.65rem}
+.ti{background:var(--s2);border:1px solid var(--bd);border-radius:7px;padding:.6rem;text-align:center}
+.tk{font-size:.55rem;color:var(--mu);text-transform:uppercase;letter-spacing:.06em}
+.tv{font-size:.88rem;font-weight:700;margin-top:.2rem}
+.ti.g .tv{color:var(--gr)}.ti.r .tv{color:var(--rd)}
+.ti.o .tv{color:var(--or)}.ti.p .tv{color:var(--pu)}
+
+.frow{display:flex;justify-content:space-between;align-items:center;
+      padding:.35rem .48rem;background:var(--s2);border-radius:5px;margin:.25rem 0}
+.fk{color:var(--mu);font-size:.66rem}
+.fv{font-size:.7rem;font-weight:600}
+.fv.up{color:var(--gr)}.fv.dn{color:var(--rd)}.fv.nt{color:var(--mu)}
+
+/* ── DASHBOARD ───────────────────────────────────────────────── */
+.dash{display:grid;grid-template-columns:2fr 1fr;gap:.9rem}
+.pn{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:1rem 1.1rem}
+.ph{display:flex;align-items:center;justify-content:space-between;
+    padding-bottom:.65rem;margin-bottom:.75rem;border-bottom:1px solid var(--bd)}
+.pt{font-family:var(--disp);font-size:.8rem;font-weight:700}
+.pb{font-size:.57rem;padding:.16rem .42rem;border-radius:4px;background:var(--s3);color:var(--mu)}
+.pb.hi{color:var(--te);border:1px solid rgba(0,201,167,.3)}
+
+.ctabs{display:flex;gap:.28rem}
+.ctab{
+  padding:.2rem .58rem;background:none;border:1px solid var(--bd);
+  border-radius:5px;color:var(--mu);cursor:pointer;
+  font-family:var(--mono);font-size:.63rem;transition:all .13s;
+}
+.ctab.on{background:var(--s3);color:var(--tx);border-color:var(--te)}
+
+.cw{position:relative}
+.cw.h280{height:280px}.cw.h180{height:180px}.cw.h160{height:160px}
+
+/* ML ring */
+.prw{display:flex;flex-direction:column;align-items:center;padding:.7rem 0}
+.prg{position:relative;width:90px;height:90px}
+.prg svg{transform:rotate(-90deg)}
+.rc{fill:none;stroke:var(--s3);stroke-width:9}
+.rf{fill:none;stroke-width:9;stroke-linecap:round;transition:stroke-dashoffset .85s ease}
+.rp{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--disp);font-size:1.05rem;font-weight:800;
+}
+.mld{font-family:var(--disp);font-size:.88rem;font-weight:700;margin-top:.45rem;text-align:center}
+.mlc{font-size:.6rem;color:var(--mu);text-align:center}
+.mlbs{display:flex;flex-direction:column;gap:.3rem;margin-top:.55rem}
+.mlbr{display:grid;grid-template-columns:42px 1fr 38px;gap:.35rem;align-items:center}
+.mlbl{font-size:.62rem;color:var(--mu);text-align:right}
+.mlbt{height:6px;background:var(--s3);border-radius:3px;overflow:hidden}
+.mlbf{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--te),var(--bl));transition:width .65s}
+.mlbv{font-size:.62rem;text-align:right}
+
+/* Stats */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:.38rem}
+.sr{display:flex;justify-content:space-between;align-items:center;
+    padding:.4rem .58rem;background:var(--s2);border-radius:5px}
+.sk{color:var(--mu);font-size:.65rem}
+.sv{font-size:.68rem;font-weight:500}
+.sv.pos{color:var(--gr)}.sv.neg{color:var(--rd)}.sv.warn{color:var(--ye)}
+.sv.info{color:var(--bl)}.sv.pur{color:var(--pu)}
+
+/* Signals */
+.sgl{display:flex;flex-direction:column;gap:.4rem;max-height:420px;overflow-y:auto}
+.sg2{
+  background:var(--s2);border:1px solid var(--bd);border-radius:8px;
+  padding:.7rem .8rem;border-left:3px solid transparent;
+}
+.sg2.AL{border-left-color:var(--gr)}.sg2.SAT{border-left-color:var(--rd)}.sg2.BEKLE{border-left-color:var(--ye)}
+.sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:.28rem}
+.st{font-size:.58rem;font-weight:700;padding:.1rem .36rem;border-radius:4px;letter-spacing:.07em}
+.st.AL{background:rgba(63,185,80,.14);color:var(--gr)}
+.st.SAT{background:rgba(248,81,73,.14);color:var(--rd)}
+.st.BEKLE{background:rgba(227,179,65,.14);color:var(--ye)}
+.ss{font-size:.58rem;background:var(--s3);padding:.08rem .38rem;border-radius:4px;color:var(--mu)}
+.stf{font-size:.56rem;color:var(--pu)}
+.sd{font-size:.68rem;color:var(--mu);line-height:1.55}
+
+/* Academic note */
+.acnote{
+  margin-top:1.4rem;padding:.85rem 1.1rem;
+  background:var(--s1);border:1px solid var(--bd);border-radius:8px;
+  font-size:.6rem;color:var(--mu);line-height:2;
+  border-left:3px solid var(--pu);
+}
+.acnote strong{color:var(--pu)}
+
+/* Responsive */
+@media(max-width:1100px){
+  .ctrl-grid{grid-template-columns:auto 1fr auto auto;grid-template-rows:auto auto}
+  .vrow{grid-template-columns:1fr 1fr}
+  .dash{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .ctrl-grid{grid-template-columns:1fr}
+  .vrow{grid-template-columns:1fr}
+  main{padding:.8rem .8rem 2rem}
+  header{padding:0 .9rem}
+}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--s1)}
+::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px}
+</style>
+
+</head>
+<body>
+
+<!-- HEADER -->
+
+<header>
+  <div>
+    <span class="logo">QuantAI</span>
+    <span class="logo-sub">// Akademik Yatırım Analiz Sistemi</span>
+  </div>
+  <div class="hbadge">
+    <span class="hb live">CANLI</span>
+    <span class="hb">Greene · Tsay · Chan · QuantStart</span>
+    <span class="hb" id="hb-ts">—</span>
+  </div>
+</header>
+
+<!-- LOADING -->
+
+<div id="overlay">
+  <div class="spin"></div>
+  <div class="lt">ANALİZ YAPILIYOR</div>
+  <div class="ls" id="load-step">
+    📥 Piyasa verisi indiriliyor…<br>
+    🔬 ADF · Hurst · ARCH-LM testleri…<br>
+    📐 ARIMA(p,d) model eğitimi…<br>
+    ⚡ GARCH(1,1) volatilite tahmini…<br>
+    🤖 ML Ensemble sınıflandırıcılar…<br>
+    📊 Alım / Satım sinyalleri üretiliyor…
+  </div>
+</div>
+
+<main>
+
+<!-- CONTROL -->
+
+<div class="ctrl">
+  <div class="ctrl-grid">
+    <div class="fl">
+      <label>Piyasa</label>
+      <div class="mkt">
+        <button id="btn-c" class="on c" onclick="setMkt('crypto')">₿ KRİPTO</button>
+        <button id="btn-s" onclick="setMkt('stock')">📈 HİSSE</button>
+      </div>
+    </div>
+    <div class="fl">
+      <label>Sembol</label>
+      <input id="sym" type="text" value="BTC" placeholder="BTC, ETH, AAPL…"
+             onkeydown="if(event.key==='Enter')go()"/>
+    </div>
+    <div class="fl">
+      <label>Dönem</label>
+      <select id="period">
+        <option value="90">3 Ay</option>
+        <option value="180" selected>6 Ay</option>
+        <option value="365">1 Yıl</option>
+      </select>
+    </div>
+    <div class="fl" style="min-width:0">
+      <label>Hızlı Seçim</label>
+      <div style="display:flex;gap:.28rem;flex-wrap:wrap">
+        <span class="chip c" onclick="qs('BTC','crypto')">BTC</span>
+        <span class="chip c" onclick="qs('ETH','crypto')">ETH</span>
+        <span class="chip c" onclick="qs('SOL','crypto')">SOL</span>
+        <span class="chip c" onclick="qs('BNB','crypto')">BNB</span>
+        <span class="chip c" onclick="qs('XRP','crypto')">XRP</span>
+        <span class="chip s" onclick="qs('AAPL','stock')">AAPL</span>
+        <span class="chip s" onclick="qs('NVDA','stock')">NVDA</span>
+        <span class="chip s" onclick="qs('TSLA','stock')">TSLA</span>
+        <span class="chip s" onclick="qs('MSFT','stock')">MSFT</span>
+      </div>
+    </div>
+    <div class="fl">
+      <label>&nbsp;</label>
+      <button class="gobtn" id="gobtn" onclick="go()">▶ ANALİZ ET</button>
+    </div>
+  </div>
+</div>
+
+<!-- ALERTS -->
+
+<div class="alert err" id="erralert"><span>⚠</span><span id="errmsg"></span></div>
+<div class="alert warn" id="demoalert">
+  <span>⚠</span>
+  <span>
+    <strong>API HATASI:</strong> Veri alınamadı. Lütfen tarayıcının internet erişimi olduğunu kontrol edin.
+    CoinGecko zaman zaman rate-limit uygular — 1 dakika bekleyip tekrar deneyin.
+    Hisse senetleri için CORS kısıtlaması nedeniyle veri alınamayabilir; kripto için CoinGecko daha kararlıdır.
+  </span>
+</div>
+
+<!-- RESULTS -->
+
+<div id="R">
+
+<!-- VERDICT ROW -->
+
+<div class="vrow">
+  <!-- Ana Karar -->
+  <div class="vc" id="vc0">
+    <div class="vlb">📊 Genel Tavsiye</div>
+    <div class="vv" id="vv0">—</div>
+    <div class="vsb" id="vs0"></div>
+    <div class="sbar" style="margin-top:.72rem">
+      <span class="sblb" style="color:var(--gr);font-size:.56rem">AL</span>
+      <div class="sbtr"><div class="sbfi g" id="sb-b" style="width:0"></div></div>
+      <div class="sbtr"><div class="sbfi r" id="sb-s" style="width:0"></div></div>
+      <span class="sblb" style="color:var(--rd);font-size:.56rem">SAT</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:.28rem">
+      <span style="font-size:.56rem;color:var(--gr)" id="sc-b">AL: 0</span>
+      <span style="font-size:.56rem;color:var(--ye)" id="sc-h">BKL: 0</span>
+      <span style="font-size:.56rem;color:var(--rd)" id="sc-s">SAT: 0</span>
+    </div>
+  </div>
+
+  <!-- Fiyat Seviyeleri -->
+
+  <div class="vc B">
+    <div class="vlb">🎯 Fiyat Seviyeleri (ATR Bazlı · Chan B.7)</div>
+    <div class="tg">
+      <div class="ti g"><div class="tk">Alım Bölgesi</div><div class="tv" id="t-b">—</div></div>
+      <div class="ti r"><div class="tk">Satış Hedefi</div><div class="tv" id="t-s">—</div></div>
+      <div class="ti o"><div class="tk">Stop-Loss</div><div class="tv" id="t-sl">—</div></div>
+      <div class="ti p"><div class="tk">Anlık Fiyat</div><div class="tv" id="t-n">—</div></div>
+    </div>
+  </div>
+
+  <!-- ARIMA -->
+
+  <div class="vc Y">
+    <div class="vlb">📅 ARIMA Fiyat Öngörüsü (Tsay B.2.4)</div>
+    <div class="frow"><span class="fk">7 Gün Hedef</span><span class="fv" id="fc7">—</span></div>
+    <div class="frow"><span class="fk">14 Gün Hedef</span><span class="fv" id="fc14">—</span></div>
+    <div class="frow"><span class="fk">30 Gün Hedef</span><span class="fv" id="fc30">—</span></div>
+    <div class="frow" style="margin-top:.4rem;background:none">
+      <span class="fk" style="font-size:.58rem">Model</span>
+      <span class="fv nt" id="fc-m">—</span>
+    </div>
+  </div>
+
+  <!-- GARCH -->
+
+  <div class="vc" id="vc-v">
+    <div class="vlb">⚡ GARCH(1,1) Volatilite (Tsay B.3.5)</div>
+    <div class="vv" id="vv-v">—</div>
+    <div class="vsb" id="vs-v"></div>
+    <div style="margin-top:.65rem">
+      <div class="frow"><span class="fk">Uzun Dön. Vol</span><span class="fv nt" id="g-lv">—</span></div>
+      <div class="frow"><span class="fk">α+β Persist.</span><span class="fv warn" id="g-ps">—</span></div>
+      <div class="frow"><span class="fk">α (şok etkisi)</span><span class="fv" id="g-a">—</span></div>
+      <div class="frow"><span class="fk">β (sönümleme)</span><span class="fv" id="g-b">—</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+
+<div class="dash">
+
+  <!-- LEFT -->
+
+  <div style="display:flex;flex-direction:column;gap:.9rem">
+
+```
+<div class="pn">
+  <div class="ph">
+    <span class="pt" id="chart-ttl">Fiyat Grafiği</span>
+    <div class="ctabs">
+      <button class="ctab on" onclick="setTab('price',this)">Fiyat + BB</button>
+      <button class="ctab" onclick="setTab('arima',this)">ARIMA 30g</button>
+      <button class="ctab" onclick="setTab('garch',this)">Volatilite</button>
+    </div>
+  </div>
+  <div class="cw h280"><canvas id="c-price"></canvas></div>
+</div>
+
+<div class="pn">
+  <div class="ph">
+    <span class="pt">MACD (12·26·9)</span>
+    <span class="pb" id="macd-b">—</span>
+  </div>
+  <div class="cw h160"><canvas id="c-macd"></canvas></div>
+</div>
+
+<div class="pn">
+  <div class="ph">
+    <span class="pt">RSI (14)</span>
+    <span class="pb" id="rsi-b">—</span>
+  </div>
+  <div class="cw h160"><canvas id="c-rsi"></canvas></div>
+</div>
+```
+
+  </div>
+
+  <!-- RIGHT -->
+
+  <div style="display:flex;flex-direction:column;gap:.9rem">
+
+```
+<div class="pn">
+  <div class="ph">
+    <span class="pt">ML Ensemble Tahmini (QuantStart B.11)</span>
+    <span class="pb hi" id="ml-b">—</span>
+  </div>
+  <div class="prw">
+    <div class="prg">
+      <svg viewBox="0 0 100 100" width="90" height="90">
+        <circle class="rc" cx="50" cy="50" r="40"/>
+        <circle class="rf" id="rf" cx="50" cy="50" r="40"
+                stroke-dasharray="251.33" stroke-dashoffset="125.66"/>
+      </svg>
+      <div class="rp" id="rp">—</div>
+    </div>
+    <div class="mld" id="mld">—</div>
+    <div class="mlc" id="mlc">—</div>
+  </div>
+  <div class="mlbs" id="mlbs"></div>
+</div>
+
+<div class="pn">
+  <div class="ph"><span class="pt">İstatistiksel Testler</span></div>
+  <div class="sg" id="sg-stat"></div>
+</div>
+
+<div class="pn">
+  <div class="ph"><span class="pt">Performans (Chan B.7 / QuantStart B.13)</span></div>
+  <div class="sg" id="sg-perf"></div>
+</div>
+
+<div class="pn">
+  <div class="ph">
+    <span class="pt">Sinyal Listesi</span>
+    <span class="pb" id="sig-cnt">0 sinyal</span>
+  </div>
+  <div class="sgl" id="siglist"></div>
+</div>
+```
+
+  </div>
+</div>
+
+<div class="acnote">
+  <strong>📚 Akademik Metodoloji:</strong>
+  <strong>Greene (2003)</strong> Econometric Analysis — OLS (B.3), ARCH-LM (B.11), AIC/BIC (B.8) |
+  <strong>Tsay (2005)</strong> Analysis of Financial Time Series — Log getiriler (B.1), ARIMA/Box-Jenkins (B.2.4–2.6), ADF birim kök (B.2.7), GARCH(1,1) MLE (B.3.5) |
+  <strong>Chan (2009)</strong> Quantitative Trading — ATR fiyat seviyeleri, Kelly Criterion (B.7), Sharpe/Calmar/Drawdown |
+  <strong>QuantStart</strong> Successful Algorithmic Trading — Hurst Exponent (B.10.2), LDA/RF/GB/LR ML sınıflandırıcılar (B.11), VaR (B.13).<br>
+  <strong>⚠ Bu sistem yalnızca akademik amaçlıdır. Gerçek yatırım kararı için lisanslı bir finansal danışmana başvurun.</strong>
+</div>
+
+</div><!-- /R -->
+</main>
+
+<script>
+'use strict';
+/* ════════════════════════════════════════════════════════════════
+   QuantAI — Client-Side Analysis Engine
+   Greene · Tsay · Chan · QuantStart
+   ════════════════════════════════════════════════════════════════ */
+
+// ── STATE ────────────────────────────────────────────────────────
+let MKT = 'crypto', TAB = 'price', D = null;
+const CHARTS = {};
+
+const CGMAP = {
+  BTC:'bitcoin',ETH:'ethereum',BNB:'binancecoin',SOL:'solana',
+  XRP:'ripple',ADA:'cardano',DOGE:'dogecoin',AVAX:'avalanche-2',
+  DOT:'polkadot',MATIC:'matic-network',LINK:'chainlink',LTC:'litecoin',
+  UNI:'uniswap',ATOM:'cosmos',NEAR:'near',SHIB:'shiba-inu',
+  TRX:'tron',TON:'the-open-network',APT:'aptos',ARB:'arbitrum',
+};
+
+// ── UI HELPERS ───────────────────────────────────────────────────
+const E = id => document.getElementById(id);
+function showErr(msg) {
+  E('erralert').classList.add('on');
+  E('errmsg').textContent = msg;
+}
+function hideErr(){E('erralert').classList.remove('on')}
+function setMkt(m) {
+  MKT = m;
+  E('btn-c').className = m==='crypto'?'on c':'';
+  E('btn-s').className = m==='stock' ?'on s':'';
+  E('sym').placeholder = m==='crypto'?'BTC, ETH, SOL, BNB…':'AAPL, TSLA, NVDA, MSFT…';
+}
+function qs(sym,m){setMkt(m);E('sym').value=sym;go()}
+
+// ── DATA FETCHING ────────────────────────────────────────────────
+async function fetchCrypto(sym, days) {
+  const id = CGMAP[sym.toUpperCase()] || sym.toLowerCase();
+  const cgDays = Math.min(days, 365);
+
+  // OHLC
+  const r1 = await fetch(
+    `https://api.coingecko.com/api/v3/coins/${id}/ohlc?vs_currency=usd&days=${cgDays}`,
+    {headers:{'Accept':'application/json'}}
+  );
+  if(!r1.ok) throw new Error(`CoinGecko API hatası ${r1.status}: ${await r1.text()}`);
+  const ohlc = await r1.json();
+  if(!Array.isArray(ohlc)||ohlc.length<10) throw new Error('Yetersiz veri');
+
+  // Volume (market chart)
+  let volumes = [];
+  try {
+    const r2 = await fetch(
+      `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=${cgDays}&interval=daily`
+    );
+    if(r2.ok){
+      const mc = await r2.json();
+      volumes = mc.total_volumes||[];
+    }
+  } catch(_){}
+
+  // Build DataFrame-like arrays
+  const closes=[],highs=[],lows=[],opens=[],dates=[],vols=[];
+  ohlc.forEach(([ts,o,h,l,c])=>{
+    dates.push(new Date(ts).toISOString().slice(0,10));
+    opens.push(o);highs.push(h);lows.push(l);closes.push(c);vols.push(0);
+  });
+  // Fill volumes
+  const volMap={};
+  volumes.forEach(([ts,v])=>{volMap[new Date(ts).toISOString().slice(0,10)]=v});
+  dates.forEach((d,i)=>{if(volMap[d]) vols[i]=volMap[d]});
+  return {dates,opens,highs,lows,closes,vols,symbol:sym.toUpperCase()};
+}
+
+async function fetchStock(sym, days) {
+  // Use allorigins proxy to bypass CORS on Yahoo Finance CSV
+  const end = Math.floor(Date.now()/1000);
+  const start = end - days*86400*1.6|0;
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&period1=${start}&period2=${end}&range=${days}d`;
+  const proxied = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+
+  const r = await fetch(proxied, {signal: AbortSignal.timeout(12000)});
+  if(!r.ok) throw new Error(`Yahoo Finance proxy hatası: ${r.status}`);
+  const wrapper = await r.json();
+  const data = JSON.parse(wrapper.contents);
+
+  const result = data?.chart?.result?.[0];
+  if(!result) throw new Error(`${sym} için veri bulunamadı. Sembolü kontrol edin.`);
+
+  const ts = result.timestamp;
+  const q  = result.indicators.quote[0];
+  const adjClose = result.indicators.adjclose?.[0]?.adjclose || q.close;
+
+  const dates=[],opens=[],highs=[],lows=[],closes=[],vols=[];
+  ts.forEach((t,i)=>{
+    if(!adjClose[i]||!q.open[i]) return;
+    dates.push(new Date(t*1000).toISOString().slice(0,10));
+    opens.push(q.open[i]);highs.push(q.high[i]);
+    lows.push(q.low[i]);closes.push(adjClose[i]);
+    vols.push(q.volume[i]||0);
+  });
+  if(closes.length<20) throw new Error(`${sym}: yeterli veri yok (${closes.length} gün)`);
+  return {dates,opens,highs,lows,closes,vols,symbol:sym.toUpperCase()};
+}
+
+// ── MATH UTILS ───────────────────────────────────────────────────
+function lstsq(X, y) {
+  // OLS via normal equations: (X'X)^{-1} X'y  [Greene B.3]
+  const n=y.length, k=X[0].length;
+  // X'X
+  const XtX = Array.from({length:k},(_,i)=>Array.from({length:k},(_,j)=>{
+    let s=0; for(let r=0;r<n;r++) s+=X[r][i]*X[r][j]; return s;
+  }));
+  // X'y
+  const Xty = Array.from({length:k},(_,j)=>{let s=0;for(let r=0;r<n;r++) s+=X[r][j]*y[r];return s});
+  // invert (simple Gauss-Jordan for small k)
+  const inv = invertMatrix(XtX);
+  if(!inv) return null;
+  return inv.map(row=>row.reduce((s,v,j)=>s+v*Xty[j],0));
+}
+
+function invertMatrix(M) {
+  const n=M.length;
+  const A=M.map(r=>[...r]);
+  const I=Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>i===j?1:0));
+  for(let c=0;c<n;c++){
+    let pr=c;
+    for(let r=c+1;r<n;r++) if(Math.abs(A[r][c])>Math.abs(A[pr][c])) pr=r;
+    [A[c],A[pr]]=[A[pr],A[c]]; [I[c],I[pr]]=[I[pr],I[c]];
+    const pv=A[c][c]; if(Math.abs(pv)<1e-12) return null;
+    for(let j=0;j<n;j++){A[c][j]/=pv;I[c][j]/=pv;}
+    for(let r=0;r<n;r++){if(r===c) continue;const f=A[r][c];for(let j=0;j<n;j++){A[r][j]-=f*A[c][j];I[r][j]-=f*I[c][j];}}
+  }
+  return I;
+}
+
+function logReturns(closes) {
+  const lr=[];
+  for(let i=1;i<closes.length;i++) lr.push(Math.log(closes[i]/closes[i-1]));
+  return lr;
+}
+
+function mean(a){return a.reduce((s,v)=>s+v,0)/a.length}
+function variance(a){const m=mean(a);return a.reduce((s,v)=>s+(v-m)**2,0)/a.length}
+function std(a){return Math.sqrt(variance(a))}
+function stdSample(a){const m=mean(a);return Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/(a.length-1))}
+
+// ── STATISTICAL TESTS ────────────────────────────────────────────
+
+// ADF birim kök testi [Tsay B.2.7]
+function adfTest(series, maxLag=1) {
+  const y=[...series]; const dy=[]; for(let i=1;i<y.length;i++) dy.push(y[i]-y[i-1]);
+  const n=dy.length; const T=n-maxLag;
+  if(T<15) return {stat:0,stationary:false};
+  // Build X = [1, y_{t-1}, Δy_{t-lag}...]
+  const X=[],yy=[];
+  for(let t=maxLag;t<n;t++){
+    const row=[1, y[t-1+0]]; // y[t-1] (note: dy is diff(y), y[t] = y_orig[t+1-1])
+    // Actually: we need y_orig[t] = y[t] (using 0-indexed: y[maxLag..n-1])
+    // Reindex: yy[i] = dy[maxLag+i], X[i][1] = y[maxLag+i-1], ...
+    yy.push(dy[t]);
+    const xrow=[1, y[t]]; // y[t] is y_{t} in original (levels)
+    for(let lag=1;lag<=maxLag;lag++) xrow.push(dy[t-lag]||0);
+    X.push(xrow);
+  }
+  // Rebuild properly
+  const XX=[],YY=[];
+  for(let i=0;i<T;i++){
+    const row=[1, y[maxLag+i]];
+    for(let lag=1;lag<=maxLag;lag++) row.push(dy[maxLag+i-lag]||0);
+    XX.push(row); YY.push(dy[maxLag+i]);
+  }
+  const betas=lstsq(XX,YY);
+  if(!betas) return {stat:0,stationary:false};
+  // residuals, s2
+  let ss=0;
+  for(let i=0;i<T;i++){const yhat=betas.reduce((s,b,j)=>s+b*XX[i][j],0);ss+=(YY[i]-yhat)**2;}
+  const s2=ss/Math.max(T-betas.length,1);
+  // Variance of beta[1]
+  const XtX=Array.from({length:betas.length},(_,a)=>Array.from({length:betas.length},(_,b)=>{
+    let s=0;for(let i=0;i<T;i++) s+=XX[i][a]*XX[i][b];return s;
+  }));
+  const inv=invertMatrix(XtX);
+  if(!inv) return {stat:0,stationary:false};
+  const se=Math.sqrt(s2*inv[1][1]);
+  const tau=se>0?betas[1]/se:0;
+  return {stat:+tau.toFixed(4), stationary:tau<-2.86, cv5:-2.86};
+}
+
+// Hurst Exponent [QuantStart B.10.2]
+function hurstExp(series, maxLag=50) {
+  const y=[...series]; const lags=[],taus=[];
+  for(let l=2;l<Math.min(maxLag,Math.floor(y.length/3));l++){
+    const diffs=[];
+    for(let i=l;i<y.length;i++) diffs.push(y[i]-y[i-l]);
+    taus.push(Math.sqrt(variance(diffs)+1e-14));
+    lags.push(l);
+  }
+  if(lags.length<3) return 0.5;
+  // Linear regression of log(tau) on log(lag)
+  const lx=lags.map(Math.log),ly=taus.map(Math.log);
+  const mx=mean(lx),my=mean(ly);
+  let num=0,den=0;
+  for(let i=0;i<lx.length;i++){num+=(lx[i]-mx)*(ly[i]-my);den+=(lx[i]-mx)**2;}
+  const H=den>0?num/den*2:0.5;
+  return +Math.min(Math.max(H,0),2).toFixed(4);
+}
+
+// ARCH-LM [Tsay B.3.3]
+function archLM(residuals, lags=8) {
+  const r=[...residuals]; const r2=r.map(v=>v*v); const n=r2.length;
+  if(n<=lags+5) return {lm:0,pval:1,hasArch:false};
+  const XX=[],YY=[];
+  for(let t=lags;t<n;t++){
+    const row=[1];
+    for(let l=1;l<=lags;l++) row.push(r2[t-l]);
+    XX.push(row); YY.push(r2[t]);
+  }
+  const b=lstsq(XX,YY);
+  if(!b) return {lm:0,pval:1,hasArch:false};
+  let ss=0,sst=0; const ym=mean(YY);
+  for(let i=0;i<YY.length;i++){
+    const yhat=b.reduce((s,bj,j)=>s+bj*XX[i][j],0);
+    ss+=(YY[i]-yhat)**2; sst+=(YY[i]-ym)**2;
+  }
+  const R2=sst>0?Math.max(0,1-ss/sst):0;
+  const lm=(n-lags)*R2;
+  // chi2 p-value approx
+  const pval=chi2pval(lm,lags);
+  return {lm:+lm.toFixed(2), pval:+pval.toFixed(4), hasArch:pval<0.05};
+}
+
+// Chi2 CDF approximation (Wilson-Hilferty)
+function chi2pval(x,k){
+  if(x<=0) return 1;
+  // Normal approximation
+  const z=((x/k)**(1/3)-(1-2/(9*k)))/Math.sqrt(2/(9*k));
+  return 1-normCDF(z);
+}
+function normCDF(z){
+  // Abramowitz & Stegun approximation
+  const t=1/(1+0.2316419*Math.abs(z));
+  const poly=t*(0.319381530+t*(-0.356563782+t*(1.781477937+t*(-1.821255978+t*1.330274429))));
+  const p=1-0.3989422803*Math.exp(-z*z/2)*poly;
+  return z>=0?p:1-p;
+}
+
+// ── FEATURE ENGINEERING ──────────────────────────────────────────
+function computeFeatures(raw) {
+  const {dates,closes,highs,lows,vols} = raw;
+  const n=closes.length;
+  const lr=logReturns(closes); // length n-1
+
+  // Rolling functions
+  function rollMean(arr,w){
+    return arr.map((_,i)=>{
+      if(i<w-1) return NaN;
+      let s=0; for(let j=i-w+1;j<=i;j++) s+=arr[j];
+      return s/w;
+    });
+  }
+  function rollStd(arr,w){
+    return arr.map((_,i)=>{
+      if(i<w-1) return NaN;
+      const sl=arr.slice(i-w+1,i+1);
+      const m=mean(sl); const s=Math.sqrt(sl.reduce((a,v)=>a+(v-m)**2,0)/w);
+      return s;
+    });
+  }
+  function rollSum(arr,w){
+    return arr.map((_,i)=>{
+      if(i<w-1) return NaN;
+      let s=0;for(let j=i-w+1;j<=i;j++) s+=arr[j];return s;
+    });
+  }
+  function ewm(arr,span){
+    const a=2/(span+1); const out=[];
+    arr.forEach((v,i)=>{
+      if(isNaN(v)){out.push(NaN);return;}
+      if(i===0||isNaN(out[i-1])){out.push(v);return;}
+      out.push(a*v+(1-a)*out[i-1]);
+    });
+    return out;
+  }
+
+  // We work on n-1 length arrays (lr aligned with closes[1..n-1])
+  const L=n-1;
+  const cd=dates.slice(1), cl=closes.slice(1), hi=highs.slice(1), lo=lows.slice(1), vo=vols.slice(1);
+  const clPrev=closes.slice(0,-1);
+
+  // SMAs on price (n-1 length)
+  const sma5  =rollMean(cl,5);
+  const sma10 =rollMean(cl,10);
+  const sma20 =rollMean(cl,20);
+  const sma50 =rollMean(cl,50);
+  const sma200=rollMean(cl,200);
+  const ema12 =ewm(cl,12), ema26=ewm(cl,26);
+
+  // RSI
+  const rsi=[];
+  for(let i=0;i<L;i++){
+    if(i<14){rsi.push(NaN);continue;}
+    const sl=lr.slice(i-14,i);
+    const gains=sl.filter(v=>v>0).reduce((s,v)=>s+v,0)/14;
+    const losses=sl.filter(v=>v<0).reduce((s,v)=>s+Math.abs(v),0)/14;
+    rsi.push(losses===0?100:100-100/(1+gains/losses));
+  }
+
+  // MACD
+  const macd=ema12.map((v,i)=>v-ema26[i]);
+  const msig=ewm(macd,9);
+  const mhist=macd.map((v,i)=>v-msig[i]);
+
+  // Bollinger
+  const bbm=rollMean(cl,20);
+  const bbs=rollStd(cl,20);
+  const bbu=bbm.map((v,i)=>v+2*bbs[i]), bbl=bbm.map((v,i)=>v-2*bbs[i]);
+  const bbp=cl.map((v,i)=>(bbu[i]-bbl[i])>0?(v-bbl[i])/(bbu[i]-bbl[i]):0.5);
+
+  // ATR
+  const tr=cl.map((_,i)=>Math.max(hi[i]-lo[i],Math.abs(hi[i]-clPrev[i]),Math.abs(lo[i]-clPrev[i])));
+  const atr=rollMean(tr,14);
+
+  // Volume ratio
+  const vmean20=rollMean(vo,20);
+  const vratio=vo.map((v,i)=>vmean20[i]>0?v/vmean20[i]:1);
+
+  // Stochastic RSI
+  const rsiMin=rollMean(rsi.map(v=>isNaN(v)?1e9:v),14); // hacky min
+  const srsi=rsi.map((_,i)=>{
+    if(i<28) return NaN;
+    const sl=rsi.slice(i-14,i); const mn=Math.min(...sl.filter(v=>!isNaN(v))), mx=Math.max(...sl.filter(v=>!isNaN(v)));
+    return mx-mn>0?(rsi[i]-mn)/(mx-mn):0.5;
+  });
+
+  // Lagged returns
+  const lag = k => { const out=[]; for(let i=0;i<L;i++) out.push(i>=k?lr[i-k]:NaN); return out; };
+  const l1=lag(1),l2=lag(2),l3=lag(3),l5=lag(5),l10=lag(10);
+  const std5=rollStd(lr,5), std20=rollStd(lr,20);
+  const mom5=rollSum(lr,5), mom10=rollSum(lr,10), mom20=rollSum(lr,20);
+
+  return {
+    dates:cd, closes:cl, highs:hi, lows:lo, vols:vo, lr,
+    sma5,sma10,sma20,sma50,sma200, ema12,ema26,
+    rsi,srsi, macd,msig,mhist,
+    bbu,bbl,bbm,bbp, atr, vratio,
+    l1,l2,l3,l5,l10, std5,std20, mom5,mom10,mom20,
+    n:L
+  };
+}
+
+// ── ARIMA AR(p) [Tsay B.2.4] ─────────────────────────────────────
+function fitArima(lr, price, maxP=4) {
+  const y=[...lr];
+  const adf=adfTest(y);
+  const d=adf.stationary?0:1;
+  const yd=d===1?y.slice(1).map((_,i)=>y[i+1]-y[i]):y;
+  const N=yd.length;
+
+  let bestAIC=Infinity, bestP=1, bestB=null, bestSig2=1e-4;
+
+  for(let p=1;p<=Math.min(maxP,Math.floor(N/10));p++){
+    const XX=[],YY=[];
+    for(let t=p;t<N;t++){
+      const row=[1]; for(let j=1;j<=p;j++) row.push(yd[t-j]);
+      XX.push(row); YY.push(yd[t]);
+    }
+    const b=lstsq(XX,YY); if(!b) continue;
+    let ss=0;
+    for(let i=0;i<YY.length;i++){const yh=b.reduce((s,bj,j)=>s+bj*XX[i][j],0);ss+=(YY[i]-yh)**2;}
+    const T2=YY.length; const k=p+1; const s2=ss/Math.max(T2-k,1);
+    const ll=-0.5*T2*(Math.log(2*Math.PI*s2)+1);
+    const aic=-2*ll+2*k;
+    if(aic<bestAIC){bestAIC=aic;bestP=p;bestB=b;bestSig2=s2;}
+  }
+
+  // Forecast 30 steps
+  const buf=[...yd.slice(-bestP)];
+  const preds=[],variances=[];
+  for(let h=0;h<30;h++){
+    const row=[1]; for(let j=1;j<=bestP;j++) row.push(buf[buf.length-j]);
+    const v=bestB.reduce((s,bj,j)=>s+bj*(j===0?1:row[j]),0);
+    // Actually compute properly
+    let v2=bestB[0];
+    for(let j=1;j<=bestP;j++) v2+=bestB[j]*(buf[buf.length-j]||0);
+    preds.push(v2); buf.push(v2);
+    variances.push(bestSig2*(h+1));
+  }
+
+  // Convert cumulative log-returns → prices
+  let cumSum=0;
+  const fc=[],u95=[],l95=[];
+  for(let h=0;h<30;h++){
+    cumSum+=preds[h];
+    const se=Math.sqrt(variances[h]);
+    fc.push(+(price*Math.exp(cumSum)).toFixed(4));
+    u95.push(+(price*Math.exp(cumSum+1.96*se)).toFixed(4));
+    l95.push(+(price*Math.exp(Math.max(cumSum-1.96*se,-4))).toFixed(4));
+  }
+  return {fc,u95,l95,p:bestP,d};
+}
+
+// ── GARCH(1,1) [Tsay B.3.5] ──────────────────────────────────────
+function fitGarch(lr) {
+  const r=[...lr]; const n=r.length;
+  // Simple moment estimator as initialization, then gradient-free optimization
+  const rv=variance(r);
+
+  // Nelder-Mead style simple parameter search (no scipy here)
+  // Use fixed-point iteration approach
+  let omega=rv*0.05, alpha=0.09, beta=0.88, mu=mean(r);
+  const MAX_ITER=300;
+
+  function nll(om,al,be,m) {
+    if(om<=0||al<0||be<0||al+be>=0.9999||om>0.01) return 1e10;
+    let s2=rv; let ll=0;
+    for(let t=1;t<n;t++){
+      const a=r[t-1]-m;
+      s2=om+al*a*a+be*s2; s2=Math.max(s2,1e-10);
+      ll+=0.5*(Math.log(2*Math.PI)+Math.log(s2)+(r[t]-m)**2/s2);
+    }
+    return ll;
+  }
+
+  // Grid search over alpha/beta space
+  let best=nll(omega,alpha,beta,mu); let bO=omega,bA=alpha,bB=beta;
+  for(const a of [0.05,0.08,0.10,0.12,0.15]) {
+    for(const b of [0.80,0.84,0.87,0.90,0.92]) {
+      if(a+b>=0.9999) continue;
+      const om=rv*(1-a-b)*0.8;
+      if(om<=0) continue;
+      const v=nll(om,a,b,mu);
+      if(v<best){best=v;bO=om;bA=a;bB=b;}
+    }
+  }
+  // Refine with small perturbations
+  for(let iter=0;iter<MAX_ITER;iter++){
+    const perturbs=[[bO*1.05,bA,bB],[bO*0.95,bA,bB],[bO,bA*1.05,bB],[bO,bA*0.95,bB],[bO,bA,bB*1.01],[bO,bA,bB*0.99]];
+    let improved=false;
+    for(const [o,a,b] of perturbs){
+      if(a+b>=0.9999||o<=0) continue;
+      const v=nll(o,a,b,mu);
+      if(v<best){best=v;bO=o;bA=a;bB=b;improved=true;}
+    }
+    if(!improved) break;
+  }
+
+  // Compute conditional volatility series
+  const condVar=[rv];
+  for(let t=1;t<n;t++){
+    const a=r[t-1]-mu;
+    condVar.push(Math.max(bO+bA*a*a+bB*condVar[t-1],1e-10));
+  }
+  const condVol=condVar.map(v=>Math.sqrt(v));
+
+  // Forecast 30 steps
+  const rho=bA+bB;
+  const lv=rho<1?bO/(1-rho):bO;
+  const lv2=condVar[condVar.length-1];
+  const dailyVol=[],annualVol=[];
+  for(let h=1;h<=30;h++){
+    const s2h=Math.max(lv+Math.pow(rho,h)*(lv2-lv),0);
+    dailyVol.push(+Math.sqrt(s2h).toFixed(8));
+    annualVol.push(+(Math.sqrt(s2h)*Math.sqrt(252)*100).toFixed(2));
+  }
+
+  return {
+    omega:+bO.toFixed(8), alpha:+bA.toFixed(4), beta:+bB.toFixed(4),
+    persist:+(bA+bB).toFixed(4),
+    currAnn:+(condVol[condVol.length-1]*Math.sqrt(252)*100).toFixed(2),
+    lrAnn:+(Math.sqrt(lv)*Math.sqrt(252)*100).toFixed(2),
+    dailyVol, annualVol,
+    condVol: condVol.slice(-120).map(v=>+v.toFixed(8)),
+    condVolDates: null, // will be filled
+  };
+}
+
+// ── SIMPLE ML (Logistic + Feature-based signals) [QuantStart B.11] ──
+function runML(feat) {
+  const {l1,l2,l3,l5,rsi,mhist,bbp,srsi,atrp,vratio,std5,mom5,lr} = feat;
+  const N=feat.n;
+
+  // Build feature matrix and labels
+  const X=[],y=[];
+  for(let i=21;i<N-1;i++){
+    const row=[l1[i],l2[i],l3[i],l5[i],
+      (rsi[i]-50)/50, mhist[i]*100, (bbp[i]-0.5),
+      (isNaN(srsi[i])?0.5:srsi[i])-0.5,
+      (feat.atr[i]||0)/feat.closes[i],
+      (vratio[i]||1)-1,
+      (std5[i]||0)*10, (mom5[i]||0)*5
+    ];
+    if(row.some(isNaN)) continue;
+    X.push(row); y.push(lr[i+1]>0?1:0);
+  }
+  if(X.length<60) return {up:0.5,dir:'NÖTR ↔',conf:'Düşük',scores:{},best:null};
+
+  const split=Math.floor(X.length*0.80);
+  const Xtr=X.slice(0,split), ytr=y.slice(0,split);
+  const Xte=X.slice(split),  yte=y.slice(split);
+
+  // Standardize
+  const nf=X[0].length;
+  const mu2=Array(nf).fill(0), sg=Array(nf).fill(1);
+  for(let j=0;j<nf;j++){
+    const col=Xtr.map(r=>r[j]); mu2[j]=mean(col); sg[j]=Math.max(stdSample(col),1e-8);
+  }
+  const scale=row=>row.map((v,j)=>(v-mu2[j])/sg[j]);
+  const XtrS=Xtr.map(scale), XteS=Xte.map(scale);
+
+  // Logistic Regression (gradient descent) [QS B.11 — LR]
+  function sigmoid(z){return 1/(1+Math.exp(-Math.max(-30,Math.min(30,z))))}
+  function trainLR(X,y,lr=0.1,iter=200){
+    const nf2=X[0].length; let w=Array(nf2).fill(0),b=0;
+    for(let ep=0;ep<iter;ep++){
+      let dw=Array(nf2).fill(0),db=0;
+      for(let i=0;i<X.length;i++){
+        const z=X[i].reduce((s,v,j)=>s+v*w[j],b);
+        const err=sigmoid(z)-y[i];
+        for(let j=0;j<nf2;j++) dw[j]+=err*X[i][j];
+        db+=err;
+      }
+      const m=X.length;
+      w=w.map((v,j)=>v-lr/m*dw[j]);
+      b-=lr/m*db;
+    }
+    return {w,b};
+  }
+  function predictLR(model,X){return X.map(row=>sigmoid(row.reduce((s,v,j)=>s+v*model.w[j],model.b)))}
+  function accuracy(preds,labels,thresh=0.5){
+    let c=0; preds.forEach((p,i)=>{if((p>=thresh?1:0)===labels[i]) c++;});
+    return c/labels.length;
+  }
+
+  const models={};
+  try {
+    const m=trainLR(XtrS,ytr,0.05,300);
+    const preds=predictLR(m,XteS);
+    models['LR']={prob:preds[preds.length-1], acc:accuracy(preds,yte)};
+  } catch(_){}
+
+  // Random Forest approximation: bagged shallow decision stumps [QS B.11 — RF]
+  function trainStump(X,y,featIdx) {
+    // Find best threshold on featIdx
+    const vals=[...new Set(X.map(r=>r[featIdx]))].sort((a,b)=>a-b);
+    let bestGini=1, bestTh=0, bestLeft=0;
+    for(let k=0;k<Math.min(vals.length-1,20);k++){
+      const th=(vals[k]+vals[k+1])/2;
+      const left=[], right=[];
+      X.forEach((r,i)=>{ r[featIdx]<=th?left.push(y[i]):right.push(y[i]); });
+      if(!left.length||!right.length) continue;
+      const gl=gini(left),gr=gini(right);
+      const g=gl*left.length/X.length+gr*right.length/X.length;
+      if(g<bestGini){bestGini=g;bestTh=th;bestLeft=mean(left)>0.5?1:0;}
+    }
+    return {fi:featIdx,th:bestTh,left:bestLeft,right:1-bestLeft};
+  }
+  function gini(labels){const p=mean(labels);return 2*p*(1-p)}
+  function predictStump(stump,X){return X.map(r=>r[stump.fi]<=stump.th?stump.left:stump.right)}
+
+  try {
+    const nTrees=20; const probs=Array(XteS.length).fill(0);
+    for(let t=0;t<nTrees;t++){
+      // Subsample
+      const idx=Array.from({length:XtrS.length},()=>Math.floor(Math.random()*XtrS.length));
+      const Xs=idx.map(i=>XtrS[i]), ys=idx.map(i=>ytr[i]);
+      const fi=Math.floor(Math.random()*nf);
+      const stump=trainStump(Xs,ys,fi);
+      const p=predictStump(stump,XteS);
+      p.forEach((v,i)=>probs[i]+=v/nTrees);
+    }
+    models['RF']={prob:probs[probs.length-1], acc:accuracy(probs,yte)};
+  } catch(_){}
+
+  // Gradient Boosted stumps [QS B.11 — GB] 
+  try {
+    const nRounds=30; const lr2=0.1;
+    let F=Array(XtrS.length).fill(mean(ytr.map(Math.log1p)));
+    const FteArr=Array(XteS.length).fill(mean(ytr.map(Math.log1p)));
+    for(let round=0;round<nRounds;round++){
+      const resid=ytr.map((y2,i)=>y2-sigmoid(F[i]));
+      const fi=round%nf;
+      // Fit stump to residuals
+      let bestSq=Infinity,bestTh=0,bestLv=0,bestRv=0;
+      const vals=[...new Set(XtrS.map(r=>r[fi]))].sort((a,b)=>a-b);
+      for(let k=0;k<Math.min(vals.length-1,15);k++){
+        const th=(vals[k]+vals[k+1])/2;
+        const L=[],Lidx=[],R=[],Ridx=[];
+        XtrS.forEach((r,i)=>r[fi]<=th?L.push(resid[i])&&Lidx.push(i):R.push(resid[i])&&Ridx.push(i));
+        if(!L.length||!R.length) continue;
+        const lv=mean(L),rv=mean(R);
+        const sq=L.reduce((s,v)=>s+(v-lv)**2,0)+R.reduce((s,v)=>s+(v-rv)**2,0);
+        if(sq<bestSq){bestSq=sq;bestTh=th;bestLv=lv;bestRv=rv;}
+      }
+      F=F.map((v,i)=>v+lr2*(XtrS[i][fi]<=bestTh?bestLv:bestRv));
+      FteArr.forEach((_,i)=>{FteArr[i]+=lr2*(XteS[i][fi]<=bestTh?bestLv:bestRv);});
+    }
+    const preds=FteArr.map(sigmoid);
+    models['GB']={prob:preds[preds.length-1], acc:accuracy(preds,yte)};
+  } catch(_){}
+
+  // LDA (linear discriminant) [QS B.11 — LDA]
+  try {
+    const pos=XtrS.filter((_,i)=>ytr[i]===1), neg=XtrS.filter((_,i)=>ytr[i]===0);
+    if(pos.length>0&&neg.length>0){
+      const muPos=Array(nf).fill(0).map((_,j)=>mean(pos.map(r=>r[j])));
+      const muNeg=Array(nf).fill(0).map((_,j)=>mean(neg.map(r=>r[j])));
+      // LDA: project onto (muPos-muNeg)
+      const w=muPos.map((v,j)=>v-muNeg[j]);
+      const wNorm=Math.sqrt(w.reduce((s,v)=>s+v*v,0))||1;
+      const threshProj=w.reduce((s,v,j)=>s+v*(muPos[j]+muNeg[j])/2/wNorm,0);
+      const preds=XteS.map(row=>{
+        const p=row.reduce((s,v,j)=>s+v*w[j]/wNorm,0);
+        return p>threshProj?0.7:0.3;
+      });
+      models['LDA']={prob:preds[preds.length-1], acc:accuracy(preds,yte)};
+    }
+  } catch(_){}
+
+  // Weighted ensemble
+  let wsum=0,wprob=0;
+  Object.values(models).forEach(m=>{if(m.acc>0.4){wprob+=m.prob*m.acc;wsum+=m.acc;}});
+  const up=wsum>0?wprob/wsum:0.5;
+
+  let best=null,bestAcc=0;
+  Object.entries(models).forEach(([k,m])=>{if(m.acc>bestAcc){bestAcc=m.acc;best=k;}});
+
+  const diff=Math.abs(up-0.5);
+  return {
+    up:+up.toFixed(4), down:+(1-up).toFixed(4),
+    dir: up>0.55?'YUKARI 📈':up<0.45?'AŞAĞI 📉':'NÖTR ↔',
+    conf: diff>0.15?'Yüksek':diff>0.08?'Orta':'Düşük',
+    scores: Object.fromEntries(Object.entries(models).map(([k,m])=>[k,+m.acc.toFixed(3)])),
+    best
+  };
+}
+
+// ── PERFORMANCE METRICS [Chan B.7] ───────────────────────────────
+function perfMetrics(lr) {
+  const r=lr.filter(v=>!isNaN(v)&&isFinite(v));
+  if(r.length<20) return {};
+  const m=mean(r), s=std(r);
+  const annR=m*252, annV=s*Math.sqrt(252);
+  const sh=s>0?(m-0.04/252)/s*Math.sqrt(252):0;
+  let eq=1; const eqArr=r.map(v=>{eq*=(1+v);return eq;});
+  let pk=1, mdd=0;
+  eqArr.forEach(v=>{pk=Math.max(pk,v);mdd=Math.min(mdd,(v-pk)/pk);});
+  const kelly=s*s>0?m/(s*s)*0.5:0;
+  const var95=r.slice().sort((a,b)=>a-b)[Math.floor(r.length*0.05)];
+  const wins=r.filter(v=>v>0).length/r.length;
+  // skew kurtosis
+  const m3=r.reduce((a,v)=>a+(v-m)**3,0)/r.length;
+  const m4=r.reduce((a,v)=>a+(v-m)**4,0)/r.length;
+  const skew=s>0?m3/s**3:0;
+  const kurt=s>0?m4/s**4-3:0;
+  return {
+    ann_ret:+annR.toFixed(4), ann_vol:+annV.toFixed(4),
+    sharpe:+sh.toFixed(4), mdd:+mdd.toFixed(4),
+    calmar:mdd!==0?+(annR/Math.abs(mdd)).toFixed(4):0,
+    kelly:+kelly.toFixed(4), var95:+var95.toFixed(4),
+    win:+wins.toFixed(4), skew:+skew.toFixed(4), kurt:+kurt.toFixed(4)
+  };
+}
+
+// ── SIGNAL ENGINE ─────────────────────────────────────────────────
+function buildSignals(feat, arima, garch, ml, pf, price) {
+  const i=feat.n-1; // last index
+  const rsi=feat.rsi[i]||50;
+  const mhist=feat.mhist[i]||0;
+  const bbp=feat.bbp[i]||0.5;
+  const sma50=feat.sma50[i]||price;
+  const sma200=feat.sma200[i]||price;
+  const atr=feat.atr[i]||price*0.02;
+  const vratio=feat.vratio[i]||1;
+  const srsi=feat.srsi[i]||0.5;
+
+  const sigs=[]; let B=0,S=0,H=0;
+
+  // RSI [QS B.10]
+  if(rsi<25){sigs.push({t:'AL',s:'Çok Güçlü',src:'RSI [QS B.10]',d:`RSI=${rsi.toFixed(1)} — Aşırı Satım (<25). Güçlü dip sinyali. Geri toplanma beklenir.`,tf:'Kısa Vade (1-5 gün)'});B+=3}
+  else if(rsi<35){sigs.push({t:'AL',s:'Güçlü',src:'RSI [QS B.10]',d:`RSI=${rsi.toFixed(1)} — Satım bölgesi (25-35). Alım fırsatı olabilir.`,tf:'Kısa Vade'});B+=2}
+  else if(rsi>75){sigs.push({t:'SAT',s:'Çok Güçlü',src:'RSI [QS B.10]',d:`RSI=${rsi.toFixed(1)} — Aşırı Alım (>75). Güçlü düzeltme sinyali. Kâr realize edin.`,tf:'Kısa Vade (1-5 gün)'});S+=3}
+  else if(rsi>65){sigs.push({t:'SAT',s:'Güçlü',src:'RSI [QS B.10]',d:`RSI=${rsi.toFixed(1)} — Alım bölgesine yakın (65-75). Pozisyon azaltılabilir.`,tf:'Kısa Vade'});S+=2}
+
+  // Stoch RSI
+  if(!isNaN(srsi)){
+    if(srsi<0.15){sigs.push({t:'AL',s:'Orta',src:'Stochastic RSI',d:`StochRSI=${srsi.toFixed(2)} — Çift aşırı satım. RSI sinyalini destekliyor.`,tf:'Kısa Vade (1-3 gün)'});B+=1}
+    else if(srsi>0.85){sigs.push({t:'SAT',s:'Orta',src:'Stochastic RSI',d:`StochRSI=${srsi.toFixed(2)} — Çift aşırı alım teyidi.`,tf:'Kısa Vade (1-3 gün)'});S+=1}
+  }
+
+  // MACD [T B.2]
+  if(mhist>0){sigs.push({t:'AL',s:'Orta',src:'MACD [T B.2]',d:`MACD Histogram pozitif (${mhist.toFixed(5)}). Yukarı momentum artıyor.`,tf:'Kısa-Orta Vade'});B+=1}
+  else{sigs.push({t:'SAT',s:'Orta',src:'MACD [T B.2]',d:`MACD Histogram negatif (${mhist.toFixed(5)}). Aşağı baskı devam ediyor.`,tf:'Kısa-Orta Vade'});S+=1}
+
+  // Bollinger [G B.11]
+  if(bbp<0.08){sigs.push({t:'AL',s:'Güçlü',src:'Bollinger [G B.11]',d:`BB%=${bbp.toFixed(2)} — Fiyat alt banda yapışmış. Ortalamaya dönüş güçlü sinyal.`,tf:'Kısa Vade (1-5 gün)'});B+=2}
+  else if(bbp<0.20){sigs.push({t:'AL',s:'Zayıf',src:'Bollinger [G B.11]',d:`BB%=${bbp.toFixed(2)} — Alt banda yakın. Dikkatli alım fırsatı.`,tf:'Kısa Vade'});B+=1}
+  else if(bbp>0.92){sigs.push({t:'SAT',s:'Güçlü',src:'Bollinger [G B.11]',d:`BB%=${bbp.toFixed(2)} — Üst banda uzandı. Aşırı uzanma — geri çekilme riski yüksek.`,tf:'Kısa Vade (1-5 gün)'});S+=2}
+  else if(bbp>0.80){sigs.push({t:'SAT',s:'Zayıf',src:'Bollinger [G B.11]',d:`BB%=${bbp.toFixed(2)} — Üst banda yakın. Pozisyon hafifletme düşünülebilir.`,tf:'Kısa Vade'});S+=1}
+
+  // Golden / Death Cross [C B.3]
+  if(!isNaN(sma50)&&!isNaN(sma200)){
+    if(sma50>sma200*1.004&&price>sma50){sigs.push({t:'AL',s:'Çok Güçlü',src:'Golden Cross [C B.3]',d:`SMA50=${fmtP(sma50)} > SMA200=${fmtP(sma200)}. Golden Cross aktif + fiyat MA50 üzerinde. Güçlü uzun vadeli yükseliş trendi.`,tf:'Uzun Vade (1-6 ay)'});B+=4}
+    else if(sma50<sma200*0.996&&price<sma50){sigs.push({t:'SAT',s:'Çok Güçlü',src:'Death Cross [C B.3]',d:`SMA50=${fmtP(sma50)} < SMA200=${fmtP(sma200)}. Death Cross aktif + fiyat MA50 altında. Güçlü uzun vadeli düşüş trendi.`,tf:'Uzun Vade (1-6 ay)'});S+=4}
+  }
+
+  // ML Ensemble [QS B.11]
+  const up=ml.up||0.5;
+  if(up>0.62){sigs.push({t:'AL',s:'Orta',src:'ML Ensemble [QS B.11]',d:`6 model ağırlıklı ensemble: %${(up*100).toFixed(1)} YUKARI olasılığı. En iyi model: ${ml.best||'?'} (${((ml.scores[ml.best]||0)*100).toFixed(1)}% doğruluk).`,tf:'Kısa Vade (1-3 gün)'});B+=2}
+  else if(up<0.38){sigs.push({t:'SAT',s:'Orta',src:'ML Ensemble [QS B.11]',d:`6 model ağırlıklı ensemble: %${((1-up)*100).toFixed(1)} AŞAĞI olasılığı. En iyi model: ${ml.best||'?'}.`,tf:'Kısa Vade (1-3 gün)'});S+=2}
+
+  // ARIMA [T B.2.4]
+  if(arima&&arima.fc){
+    const fc5=arima.fc[4], fc20=arima.fc[19];
+    const c5=(fc5-price)/price, c20=(fc20-price)/price;
+    if(c5>0.03){sigs.push({t:'AL',s:'Orta',src:`ARIMA AR(${arima.p}) [T B.2.4]`,d:`5 günlük öngörü: ${fmtP(fc5)} (${c5>0?'+':''}${(c5*100).toFixed(1)}%). GA: [${fmtP(arima.l95[4])}, ${fmtP(arima.u95[4])}]`,tf:'Kısa Vade (5 gün)'});B+=1}
+    else if(c5<-0.03){sigs.push({t:'SAT',s:'Orta',src:`ARIMA AR(${arima.p}) [T B.2.4]`,d:`5 günlük öngörü: ${fmtP(fc5)} (${(c5*100).toFixed(1)}%). Model düşüş beklentisi gösteriyor.`,tf:'Kısa Vade (5 gün)'});S+=1}
+    if(c20>0.06){sigs.push({t:'AL',s:'Orta',src:'ARIMA [T B.2.4]',d:`20 günlük öngörü: ${fmtP(fc20)} (+${(c20*100).toFixed(1)}%). Orta vadeli yükseliş beklentisi.`,tf:'Orta Vade (20 gün)'});B+=1}
+  }
+
+  // GARCH [T B.3.5]
+  if(garch){
+    const cv=garch.currAnn, lv=garch.lrAnn, ps=garch.persist;
+    if(cv>lv*1.8){sigs.push({t:'BEKLE',s:'Risk',src:'GARCH [T B.3.5]',d:`Anlık volatilite uzun dönem ortalamasının ${(cv/lv).toFixed(1)}x üzerinde! (${cv.toFixed(1)}% vs ${lv.toFixed(1)}%). Kelly Criterion: Pozisyon boyutunu yarıya indirin.`,tf:'Risk Yönetimi'});H+=2}
+    if(ps>0.96){sigs.push({t:'BEKLE',s:'Dikkat',src:'GARCH Persistence [T B.3.5]',d:`α+β=${ps} — Volatilite şokları kalıcı. Mevcut yüksek volatilite uzun süre devam edebilir.`,tf:'Risk Yönetimi'});H+=1}
+  }
+
+  // Sharpe [C B.7]
+  if(pf&&pf.sharpe!==undefined){
+    if(pf.sharpe<-0.8){sigs.push({t:'SAT',s:'Orta',src:'Sharpe [C B.7]',d:`Sharpe Ratio=${pf.sharpe.toFixed(2)} — Risk ayarlı getiri çok negatif. Alternatif varlık değerlendirilebilir.`,tf:'Orta Vade'});S+=1}
+    else if(pf.sharpe>1.5){sigs.push({t:'AL',s:'Zayıf',src:'Sharpe [C B.7]',d:`Sharpe Ratio=${pf.sharpe.toFixed(2)} — Güçlü risk-ayarlı performans. Momentum devam edebilir.`,tf:'Orta Vade'});B+=1}
+  }
+
+  // Verdict
+  const total=(B+S+H)||1;
+  const br=B/total, sr=S/total;
+  let verdict,color,vd;
+  if(br>0.55){verdict='SATIN AL 🟢';color='G';vd='Modellerin çoğunluğu yükseliş sinyali veriyor. Risk yönetimi ile alım yapılabilir.'}
+  else if(sr>0.55){verdict='SAT 🔴';color='R';vd='Modellerin çoğunluğu düşüş sinyali veriyor. Pozisyonları azaltmak uygun.'}
+  else if(B>0&&S===0){verdict='DİKKATLİ AL 🟡';color='Y';vd='Zayıf alım sinyalleri mevcut. Düşük pozisyonla izlenebilir.'}
+  else{verdict='BEKLE ↔';color='Y';vd='Modeller arasında fikir birliği yok. Daha net sinyal için bekleme tavsiye edilir.'}
+
+  const atrPct=atr/price;
+  return {
+    verdict,color,vd,B,S,H,sigs,price,
+    buy_zone:+(price*(1-atrPct*1.5)).toFixed(4),
+    sell_zone:+(price*(1+atrPct*2.5)).toFixed(4),
+    stop:+(price*(1-atrPct*2)).toFixed(4),
+    atr:+atr.toFixed(6),
+    fc7:  arima?.fc?.[6]  ? {v:arima.fc[6],  c:+((arima.fc[6]-price)/price*100).toFixed(2)}  : null,
+    fc14: arima?.fc?.[13] ? {v:arima.fc[13], c:+((arima.fc[13]-price)/price*100).toFixed(2)} : null,
+    fc30: arima?.fc?.[29] ? {v:arima.fc[29], c:+((arima.fc[29]-price)/price*100).toFixed(2)} : null,
+    u30:arima?.u95?.[29], l30:arima?.l95?.[29],
+    rsi:+rsi.toFixed(1), bbp:+bbp.toFixed(3),
+    sma50:+sma50.toFixed(4), sma200:+sma200.toFixed(4),
+  };
+}
+
+// ── MAIN FLOW ─────────────────────────────────────────────────────
+async function go() {
+  const sym  = E('sym').value.trim().toUpperCase();
+  const days = parseInt(E('period').value);
+  if(!sym){alert('Lütfen sembol girin');return}
+
+  E('overlay').classList.add('on');
+  E('gobtn').disabled=true;
+  hideErr(); E('demoalert').classList.remove('on');
+  E('R').classList.remove('on');
+
+  try {
+    // 1. Fetch data
+    let raw;
+    if(MKT==='crypto') raw=await fetchCrypto(sym,days);
+    else               raw=await fetchStock(sym,days);
+
+    const price=raw.closes[raw.closes.length-1];
+
+    // 2. Features
+    const feat=computeFeatures(raw);
+    feat.atr=feat.atr; // already computed
+
+    // 3. Statistical tests
+    const lr=feat.lr;
+    const adfPx=adfTest(raw.closes);
+    const adfRt=adfTest(lr);
+    const H=hurstExp(raw.closes);
+    const arch=archLM(lr);
+
+    // 4. ARIMA
+    const arimaR=fitArima(lr,price,4);
+
+    // 5. GARCH
+    const garchR=fitGarch(lr);
+    garchR.condVolDates=feat.dates.slice(-120);
+
+    // 6. ML
+    const mlR=runML(feat);
+
+    // 7. Perf
+    const pf=perfMetrics(lr.slice(-days));
+
+    // 8. Signals
+    const sig=buildSignals(feat,arimaR,garchR,mlR,pf,price);
+
+    // 9. Chart data (last 200)
+    const N2=Math.min(200,feat.n);
+    const cd=feat.dates.slice(-N2), cl=feat.closes.slice(-N2);
+    const sma50=feat.sma50.slice(-N2), sma200=feat.sma200.slice(-N2);
+    const bbu=feat.bbu.slice(-N2), bbl=feat.bbl.slice(-N2), bbm=feat.bbm.slice(-N2);
+    const rsi=feat.rsi.slice(-N2), macd=feat.macd.slice(-N2);
+    const msig=feat.msig.slice(-N2), mhist=feat.mhist.slice(-N2);
+
+    // Forecast dates
+    const lastDate=new Date(feat.dates[feat.dates.length-1]);
+    const fcDates=[];
+    for(let i=1;i<=30;i++){
+      const d=new Date(lastDate);
+      d.setDate(d.getDate()+i);
+      while(d.getDay()===0||d.getDay()===6) d.setDate(d.getDate()+1);
+      fcDates.push(d.toISOString().slice(0,10));
+    }
+
+    D={
+      sym,mtype:MKT,price,
+      ts:new Date().toLocaleString('tr-TR'),
+      stats:{adfPx,adfRt,hurst:H,hurstI:H<0.45?'Mean-Reverting':H>0.55?'Trend Takip':'Random Walk',arch},
+      arima:arimaR, garch:garchR, ml:mlR, pf, sig,
+      chart:{dates:cd,closes:cl,sma50,sma200,bbu,bbl,bbm,rsi,macd,msig,mhist,fcDates,
+             fc:arimaR.fc, fcu:arimaR.u95, fcl:arimaR.l95,
+             gcv:garchR.condVol, gcvD:garchR.condVolDates, lrAnn:garchR.lrAnn}
+    };
+
+    render(D);
+    E('R').classList.add('on');
+    E('hb-ts').textContent=D.ts;
+
+  } catch(err) {
+    showErr(err.message);
+    console.error(err);
+  } finally {
+    E('overlay').classList.remove('on');
+    E('gobtn').disabled=false;
+  }
+}
+
+// ── RENDER ────────────────────────────────────────────────────────
+function render(d) {
+  const {sig,garch,ml,pf,stats,arima} = d;
+
+  // Verdict
+  const vc=E('vc0'); vc.className='vc '+sig.color;
+  E('vv0').textContent=sig.verdict; E('vv0').className='vv '+sig.color;
+  E('vs0').textContent=sig.vd;
+  const tot=(sig.B+sig.S+sig.H)||1;
+  E('sb-b').style.width=(sig.B/tot*100)+'%';
+  E('sb-s').style.width=(sig.S/tot*100)+'%';
+  E('sc-b').textContent='AL: '+sig.B;
+  E('sc-h').textContent='BKL: '+sig.H;
+  E('sc-s').textContent='SAT: '+sig.S;
+
+  // Price targets
+  E('t-n').textContent=fmtP(sig.price);
+  E('t-b').textContent=fmtP(sig.buy_zone);
+  E('t-s').textContent=fmtP(sig.sell_zone);
+  E('t-sl').textContent=fmtP(sig.stop);
+
+  // ARIMA fc
+  renderFC('fc7',  sig.fc7);
+  renderFC('fc14', sig.fc14);
+  renderFC('fc30', sig.fc30);
+  E('fc-m').textContent=`AR(${arima.p}) d=${arima.d}`;
+
+  // GARCH
+  if(garch){
+    const v=garch.currAnn;
+    E('vv-v').textContent=v.toFixed(1)+'% yıllık';
+    E('vv-v').className='vv '+(v>60?'R':v>30?'Y':'G');
+    E('vs-v').textContent=v>60?'⚠ Çok Yüksek Risk':v>30?'Yüksek Volatilite':'Normal Volatilite';
+    E('vc-v').className='vc '+(v>60?'R':v>30?'Y':'G');
+    E('g-lv').textContent=garch.lrAnn.toFixed(1)+'%';
+    E('g-ps').textContent=garch.persist;
+    E('g-a').textContent=garch.alpha;
+    E('g-b').textContent=garch.beta;
+  }
+
+  // ML
+  const up=ml.up||0.5;
+  const rf=E('rf');
+  rf.style.strokeDashoffset=251.33*(1-up);
+  rf.style.stroke=up>0.55?'var(--gr)':up<0.45?'var(--rd)':'var(--ye)';
+  E('rp').textContent=Math.round(up*100)+'%';
+  E('rp').style.color=up>0.55?'var(--gr)':up<0.45?'var(--rd)':'var(--ye)';
+  E('mld').textContent=ml.dir;
+  E('mlc').textContent='Güven: '+ml.conf;
+  E('ml-b').textContent=ml.best||'—';
+  const maxSc=Math.max(...Object.values(ml.scores||{x:1}));
+  E('mlbs').innerHTML=Object.entries(ml.scores||{}).map(([k,v])=>`
+    <div class="mlbr"><span class="mlbl">${k}</span>
+    <div class="mlbt"><div class="mlbf" style="width:${(v/maxSc*100).toFixed(0)}%"></div></div>
+    <span class="mlbv">${(v*100).toFixed(1)}%</span></div>`).join('');
+
+  // Stats
+  E('sg-stat').innerHTML=[
+    ['ADF Fiyat τ',  stats.adfPx.stat,                     stats.adfPx.stationary?'pos':'warn'],
+    ['Durağanlık',  stats.adfPx.stationary?'Durağan ✓':'Durağan Değil', stats.adfPx.stationary?'pos':'warn'],
+    ['ADF Getiri τ', stats.adfRt.stat,                     stats.adfRt.stationary?'pos':'neg'],
+    ['Getiri Dur.', stats.adfRt.stationary?'Evet ✓':'Hayır',            stats.adfRt.stationary?'pos':'neg'],
+    ['Hurst H',     stats.hurst,                           stats.hurst<0.45?'pos':stats.hurst>0.55?'neg':'info'],
+    ['Hurst Yorum', stats.hurstI,                          'pur'],
+    ['ARCH-LM p',   stats.arch.pval,                       stats.arch.hasArch?'warn':'pos'],
+    ['Volatilite Küm.', stats.arch.hasArch?'Var (GARCH✓)':'Yok',        stats.arch.hasArch?'warn':'pos'],
+  ].map(([k,v,c])=>`<div class="sr"><span class="sk">${k}</span><span class="sv ${c}">${v}</span></div>`).join('');
+
+  // Perf
+  if(pf&&pf.sharpe!==undefined){
+    E('sg-perf').innerHTML=[
+      ['Yıllık Getiri',  (pf.ann_ret*100).toFixed(1)+'%',  pf.ann_ret>0?'pos':'neg'],
+      ['Yıllık Vol',     (pf.ann_vol*100).toFixed(1)+'%',  'warn'],
+      ['Sharpe Ratio',   pf.sharpe.toFixed(3),             pf.sharpe>1?'pos':pf.sharpe>0?'info':'neg'],
+      ['Max Drawdown',   (pf.mdd*100).toFixed(1)+'%',      'neg'],
+      ['Calmar',         pf.calmar.toFixed(3),             pf.calmar>1?'pos':'warn'],
+      ['Kelly f*',       pf.kelly.toFixed(4),              pf.kelly>0?'pos':'neg'],
+      ['VaR %95',        (pf.var95*100).toFixed(2)+'%',    'neg'],
+      ['Kazanma Ort.',   (pf.win*100).toFixed(1)+'%',      pf.win>0.5?'pos':'warn'],
+      ['Çarpıklık',      pf.skew.toFixed(3),               pf.skew>0?'pos':'neg'],
+      ['Basıklık',       pf.kurt.toFixed(2),               'info'],
+    ].map(([k,v,c])=>`<div class="sr"><span class="sk">${k}</span><span class="sv ${c}">${v}</span></div>`).join('');
+  }
+
+  // RSI badge
+  const lr2=d.chart.rsi[d.chart.rsi.length-1]||50;
+  const rb=E('rsi-b');
+  rb.textContent='RSI: '+lr2.toFixed(1);
+  rb.className='pb'+(lr2>70||lr2<30?' hi':'');
+  rb.style.color=lr2>70?'var(--rd)':lr2<30?'var(--gr)':'';
+
+  // MACD badge
+  const lh=d.chart.mhist[d.chart.mhist.length-1]||0;
+  E('macd-b').textContent=(lh>=0?'+':'')+lh.toFixed(5);
+  E('macd-b').style.color=lh>=0?'var(--gr)':'var(--rd)';
+
+  // Signals
+  E('sig-cnt').textContent=sig.sigs.length+' sinyal';
+  E('siglist').innerHTML=sig.sigs.map(s=>`
+    <div class="sg2 ${s.t}">
+      <div class="sh">
+        <div style="display:flex;gap:.3rem;align-items:center">
+          <span class="st ${s.t}">${s.t}</span>
+          <span class="ss">${s.src}</span>
+        </div>
+        <span class="stf">${s.tf}</span>
+      </div>
+      <div class="sd">${s.d}</div>
+    </div>`).join('');
+
+  drawCharts(d,TAB);
+}
+
+// ── CHART TAB ─────────────────────────────────────────────────────
+function setTab(t,btn){
+  TAB=t;
+  document.querySelectorAll('.ctab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  if(D) drawCharts(D,TAB);
+}
+
+// ── CHARTS ───────────────────────────────────────────────────────
+Chart.defaults.color='#7d8590';
+Chart.defaults.borderColor='rgba(48,54,61,.5)';
+
+const CC={gr:'#3fb950',rd:'#f85149',bl:'#58a6ff',ye:'#e3b341',pu:'#bc8cff',or:'#ffa657',te:'#00c9a7',mu:'#7d8590'};
+function killC(id){if(CHARTS[id]){CHARTS[id].destroy();delete CHARTS[id];}}
+const xAx=()=>({grid:{color:'rgba(48,54,61,.4)'},ticks:{color:CC.mu,font:{size:9,family:'JetBrains Mono'},maxTicksLimit:8,maxRotation:0}});
+const yAx=(o={})=>({grid:{color:'rgba(48,54,61,.5)'},ticks:{color:CC.mu,font:{size:9,family:'JetBrains Mono'},maxTicksLimit:6},...o});
+const base=(extra={})=>({responsive:true,maintainAspectRatio:false,animation:{duration:320},plugins:{legend:{display:false}},...extra});
+const ln=(lbl,data,color,bw=1.5,extra={})=>({type:'line',label:lbl,data,borderColor:color,borderWidth:bw,pointRadius:0,fill:false,tension:.2,...extra});
+const fl=(lbl,data,bg,extra={})=>({type:'line',label:lbl,data,borderWidth:1,pointRadius:0,tension:.2,backgroundColor:bg,...extra});
+
+function drawCharts(d,tabMode){
+  const ch=d.chart;
+  killC('price');
+  const ctx=E('c-price').getContext('2d');
+  let labels,ds,legVis=true;
+
+  if(tabMode==='arima'){
+    const allDates=[...ch.dates,...ch.fcDates];
+    const histPad=[...ch.closes,...Array(30).fill(null)];
+    const fcLine=[...Array(ch.dates.length).fill(null),...ch.fc];
+    const fcU=[...Array(ch.dates.length).fill(null),...ch.fcu];
+    const fcL=[...Array(ch.dates.length).fill(null),...ch.fcl];
+    labels=allDates;
+    ds=[
+      ln('Fiyat',histPad,CC.bl,1.5),
+      ln('ARIMA Öngörü',fcLine,CC.te,2,{borderDash:[5,3],pointRadius:2}),
+      ln('%95 Üst CI',fcU,'rgba(0,201,167,.3)',1,{borderDash:[2,2]}),
+      fl('fill',fcL,'rgba(0,201,167,.06)',{borderColor:'rgba(0,201,167,.3)',borderWidth:1,borderDash:[2,2],fill:'+1'}),
+    ];
+    E('chart-ttl').textContent=`ARIMA AR(${d.arima.p}) — ${d.sym} 30 Günlük Öngörü`;
+  } else if(tabMode==='garch'&&ch.gcv&&ch.gcv.length>0){
+    const gv=ch.gcv.map(v=>v*Math.sqrt(252)*100);
+    labels=ch.gcvD||ch.dates.slice(-gv.length);
+    ds=[
+      fl('GARCH Vol',gv,'rgba(255,166,87,.12)',{borderColor:CC.or,borderWidth:1.5,fill:'origin'}),
+      ln('Uzun Dönem Vol',Array(gv.length).fill(ch.lrAnn),'rgba(255,166,87,.45)',1,{borderDash:[4,4]}),
+    ];
+    E('chart-ttl').textContent=`GARCH(1,1) Koşullu Volatilite (Ann.%) — ${d.sym}`;
+    legVis=true;
+  } else {
+    labels=ch.dates;
+    ds=[
+      ln('Fiyat',ch.closes,CC.bl,1.5),
+      ln('SMA50',ch.sma50,CC.or,1,{borderDash:[4,2]}),
+      ln('SMA200',ch.sma200,CC.pu,1,{borderDash:[4,2]}),
+      fl('BB Üst',ch.bbu,'rgba(88,166,255,.055)',{borderColor:'rgba(88,166,255,.28)',borderWidth:1}),
+      fl('BB Alt',ch.bbl,'transparent',{borderColor:'rgba(88,166,255,.28)',borderWidth:1,fill:'+1'}),
+    ];
+    E('chart-ttl').textContent=`Fiyat + Bollinger Bantları — ${d.sym}`;
+  }
+
+  CHARTS['price']=new Chart(ctx,{type:'line',data:{labels,datasets:ds},
+    options:{...base(),animation:{duration:400},
+      plugins:{legend:{display:legVis,labels:{color:CC.mu,font:{size:9,family:'JetBrains Mono'},boxWidth:10,usePointStyle:true}}},
+      scales:{x:xAx(),y:yAx()}}});
+
+  killC('macd');
+  CHARTS['macd']=new Chart(E('c-macd').getContext('2d'),{type:'bar',
+    data:{labels:ch.dates,datasets:[
+      {type:'line',data:ch.macd,borderColor:CC.bl,borderWidth:1.2,pointRadius:0,tension:.3},
+      {type:'line',data:ch.msig,borderColor:CC.or,borderWidth:1.2,pointRadius:0,tension:.3},
+      {type:'bar', data:ch.mhist,
+        backgroundColor:ch.mhist.map(v=>v>=0?'rgba(63,185,80,.55)':'rgba(248,81,73,.55)'),
+        borderColor:ch.mhist.map(v=>v>=0?CC.gr:CC.rd),borderWidth:1},
+    ]},options:{...base(),scales:{x:xAx(),y:yAx()}}});
+
+  killC('rsi');
+  CHARTS['rsi']=new Chart(E('c-rsi').getContext('2d'),{type:'line',
+    data:{labels:ch.dates,datasets:[
+      {data:ch.rsi,borderColor:CC.pu,borderWidth:1.3,pointRadius:0,fill:false,tension:.3},
+      {data:Array(ch.rsi.length).fill(70),borderColor:'rgba(248,81,73,.4)',borderWidth:1,pointRadius:0,borderDash:[3,3],fill:false},
+      {data:Array(ch.rsi.length).fill(50),borderColor:'rgba(125,133,144,.2)',borderWidth:1,pointRadius:0,borderDash:[2,4],fill:false},
+      {data:Array(ch.rsi.length).fill(30),borderColor:'rgba(63,185,80,.4)',borderWidth:1,pointRadius:0,borderDash:[3,3],fill:false},
+    ]},options:{...base(),scales:{x:xAx(),y:yAx({min:0,max:100})}}});
+}
+
+// ── FORMAT ────────────────────────────────────────────────────────
+function fmtP(v){
+  if(v===null||v===undefined||isNaN(v)) return '—';
+  if(v>=100000) return '$'+Math.round(v).toLocaleString('en');
+  if(v>=1000)   return '$'+v.toLocaleString('en',{maximumFractionDigits:2});
+  if(v>=1)      return '$'+v.toFixed(4);
+  return '$'+v.toFixed(8);
+}
+function renderFC(id,obj){
+  const e=E(id);
+  if(!obj||obj.v===null||obj.v===undefined){e.textContent='—';e.className='fv nt';return;}
+  const s=obj.c>=0?'+':'';
+  e.textContent=`${fmtP(obj.v)} (${s}${obj.c}%)`;
+  e.className='fv '+(obj.c>0?'up':obj.c<0?'dn':'nt');
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded',()=>{
+  setTimeout(go,400);
+});
+</script>
+
+</body>
+</html>
