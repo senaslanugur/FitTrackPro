@@ -1,0 +1,2193 @@
+<!DOCTYPE html>
+
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Volman Kripto Tarayıcı</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   DESIGN SYSTEM
+═══════════════════════════════════════ */
+:root {
+  /* Colors */
+  --bg-base:       #0d1117;
+  --bg-surface:    #161b22;
+  --bg-elevated:   #1c2230;
+  --bg-hover:      #21293a;
+  --border:        #2d3748;
+  --border-light:  #374151;
+
+/* Semantic */
+–bull:          #22c55e;
+–bull-dim:      rgba(34,197,94,0.12);
+–bull-border:   rgba(34,197,94,0.3);
+–bear:          #ef4444;
+–bear-dim:      rgba(239,68,68,0.12);
+–bear-border:   rgba(239,68,68,0.3);
+–neutral:       #f59e0b;
+–neutral-dim:   rgba(245,158,11,0.12);
+–accent:        #3b82f6;
+–accent-dim:    rgba(59,130,246,0.12);
+
+/* Text */
+–text-primary:  #f0f6fc;
+–text-secondary:#8b949e;
+–text-tertiary: #484f58;
+
+/* Shadows */
+–shadow-sm:     0 1px 3px rgba(0,0,0,0.4);
+–shadow-md:     0 4px 16px rgba(0,0,0,0.5);
+–shadow-lg:     0 8px 32px rgba(0,0,0,0.6);
+
+/* Sizes */
+–header-h:      56px;
+–sidebar-w:     300px;
+–radius:        8px;
+–radius-lg:     12px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+font-family: ‘Inter’, -apple-system, sans-serif;
+background: var(–bg-base);
+color: var(–text-primary);
+font-size: 14px;
+line-height: 1.5;
+-webkit-font-smoothing: antialiased;
+}
+
+/* ── TYPOGRAPHY ── */
+.mono { font-family: ‘JetBrains Mono’, monospace; }
+.text-xs  { font-size: 11px; }
+.text-sm  { font-size: 12px; }
+.text-md  { font-size: 14px; }
+.text-lg  { font-size: 16px; }
+.text-xl  { font-size: 18px; }
+.text-2xl { font-size: 22px; }
+.text-muted { color: var(–text-secondary); }
+.text-faint { color: var(–text-tertiary); }
+.weight-5 { font-weight: 500; }
+.weight-6 { font-weight: 600; }
+.weight-7 { font-weight: 700; }
+.bull-text  { color: var(–bull); }
+.bear-text  { color: var(–bear); }
+.accent-text { color: var(–accent); }
+.neutral-text { color: var(–neutral); }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(–border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(–border-light); }
+
+/* ══════════════════════════════════════
+LAYOUT
+══════════════════════════════════════ */
+#app-header {
+position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+height: var(–header-h);
+background: var(–bg-surface);
+border-bottom: 1px solid var(–border);
+display: flex; align-items: center;
+padding: 0 20px;
+gap: 16px;
+}
+
+.logo-area { display: flex; align-items: center; gap: 10px; }
+.logo-icon {
+width: 28px; height: 28px; border-radius: 6px;
+background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+display: flex; align-items: center; justify-content: center;
+font-size: 14px; flex-shrink: 0;
+}
+.logo-text { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+.logo-sub { font-size: 11px; color: var(–text-secondary); font-weight: 400; }
+
+.header-divider { width: 1px; height: 24px; background: var(–border); margin: 0 4px; }
+
+.live-indicator {
+display: flex; align-items: center; gap: 5px;
+font-size: 11px; font-weight: 500; color: var(–bull); letter-spacing: 0.5px;
+}
+.live-dot {
+width: 6px; height: 6px; border-radius: 50%; background: var(–bull);
+animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
+.header-market { display: flex; align-items: center; gap: 20px; margin-left: auto; }
+.hm-item { display: flex; align-items: center; gap: 6px; }
+.hm-label { font-size: 11px; color: var(–text-secondary); }
+.hm-val { font-size: 13px; font-weight: 600; font-family: ‘JetBrains Mono’, monospace; }
+.hm-chg { font-size: 11px; font-weight: 500; }
+
+.header-time { font-size: 11px; color: var(–text-secondary); font-family: ‘JetBrains Mono’, monospace; }
+
+/* ── BODY LAYOUT ── */
+.app-body {
+display: grid;
+grid-template-columns: var(–sidebar-w) 1fr;
+margin-top: var(–header-h);
+min-height: calc(100vh - var(–header-h));
+}
+
+/* ══════════════════════════════════════
+SIDEBAR
+══════════════════════════════════════ */
+.sidebar {
+background: var(–bg-surface);
+border-right: 1px solid var(–border);
+position: sticky; top: var(–header-h);
+height: calc(100vh - var(–header-h));
+overflow-y: auto;
+display: flex; flex-direction: column;
+}
+
+.sb-section {
+padding: 16px 16px 0;
+border-bottom: 1px solid var(–border);
+padding-bottom: 16px;
+}
+.sb-section:last-child { border-bottom: none; flex: 1; padding-bottom: 20px; }
+
+.sb-label {
+font-size: 10px; font-weight: 600; letter-spacing: 1px;
+color: var(–text-tertiary); text-transform: uppercase;
+margin-bottom: 10px;
+}
+
+/* SCAN BUTTON */
+.scan-btn {
+width: 100%; padding: 11px 16px;
+background: var(–accent);
+border: none; border-radius: var(–radius);
+color: white; font-family: ‘Inter’, sans-serif;
+font-size: 14px; font-weight: 600; cursor: pointer;
+display: flex; align-items: center; justify-content: center; gap: 8px;
+transition: all 0.15s; letter-spacing: -0.2px;
+}
+.scan-btn:hover:not(:disabled) { background: #2563eb; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59,130,246,0.3); }
+.scan-btn:active:not(:disabled) { transform: translateY(0); }
+.scan-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* SETUP CHIPS */
+.setup-grid {
+display: grid; grid-template-columns: 1fr 1fr;
+gap: 5px;
+}
+.setup-chip {
+padding: 7px 8px; border-radius: 6px;
+border: 1px solid var(–border);
+background: var(–bg-elevated);
+cursor: pointer; transition: all 0.12s;
+display: flex; align-items: center; gap: 6px;
+user-select: none;
+}
+.setup-chip:hover { border-color: var(–border-light); background: var(–bg-hover); }
+.setup-chip.active { border-color: var(–accent); background: var(–accent-dim); }
+.setup-chip-code { font-size: 11px; font-weight: 700; font-family: ‘JetBrains Mono’, monospace; color: var(–text-primary); }
+.setup-chip-name { font-size: 10px; color: var(–text-secondary); }
+.setup-chip-count {
+margin-left: auto; font-size: 10px; font-weight: 600;
+font-family: ‘JetBrains Mono’, monospace;
+color: var(–text-secondary);
+}
+.setup-chip.active .setup-chip-count { color: var(–accent); }
+
+/* DIRECTION TOGGLE */
+.dir-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.dir-btn {
+padding: 8px; border-radius: 6px;
+border: 1px solid var(–border); background: var(–bg-elevated);
+font-family: ‘Inter’, sans-serif; font-size: 12px; font-weight: 600;
+cursor: pointer; transition: all 0.12s; color: var(–text-secondary);
+display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+.dir-btn:hover { border-color: var(–border-light); background: var(–bg-hover); }
+.dir-btn.active-long { border-color: var(–bull-border); background: var(–bull-dim); color: var(–bull); }
+.dir-btn.active-short { border-color: var(–bear-border); background: var(–bear-dim); color: var(–bear); }
+
+/* TIMEFRAME */
+.tf-row { display: flex; gap: 4px; }
+.tf-btn {
+flex: 1; padding: 7px 4px; border-radius: 5px;
+border: 1px solid var(–border); background: var(–bg-elevated);
+font-family: ‘JetBrains Mono’, monospace; font-size: 12px; font-weight: 500;
+cursor: pointer; color: var(–text-secondary); transition: all 0.12s;
+}
+.tf-btn:hover { border-color: var(–border-light); background: var(–bg-hover); color: var(–text-primary); }
+.tf-btn.active { border-color: var(–accent); background: var(–accent-dim); color: var(–accent); }
+
+/* SELECT + RANGE */
+.sb-select {
+width: 100%; padding: 8px 10px;
+background: var(–bg-elevated); border: 1px solid var(–border);
+border-radius: var(–radius); color: var(–text-primary);
+font-family: ‘Inter’, sans-serif; font-size: 13px; outline: none; cursor: pointer;
+-webkit-appearance: none; appearance: none;
+background-image: url(“data:image/svg+xml,%3Csvg xmlns=‘http://www.w3.org/2000/svg’ width=‘10’ height=‘6’ fill=‘none’%3E%3Cpath d=‘M1 1l4 4 4-4’ stroke=’%238b949e’ stroke-width=‘1.5’ stroke-linecap=‘round’/%3E%3C/svg%3E”);
+background-repeat: no-repeat; background-position: right 10px center;
+padding-right: 30px;
+}
+.sb-select:focus { border-color: var(–accent); }
+
+.score-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.score-range { width: 100%; accent-color: var(–accent); cursor: pointer; }
+
+/* VOLMAN TIP */
+.volman-tip {
+background: var(–bg-elevated); border: 1px solid var(–border);
+border-left: 3px solid var(–accent);
+border-radius: var(–radius); padding: 10px 12px;
+}
+.tip-title { font-size: 11px; font-weight: 600; color: var(–accent); margin-bottom: 5px; letter-spacing: 0.3px; }
+.tip-body { font-size: 11px; color: var(–text-secondary); line-height: 1.6; }
+
+/* ══════════════════════════════════════
+MAIN CONTENT
+══════════════════════════════════════ */
+.main-content { padding: 20px; overflow-y: auto; }
+
+/* MARKET BAR */
+.market-bar {
+display: grid; grid-template-columns: repeat(5, 1fr);
+gap: 10px; margin-bottom: 20px;
+}
+.mbar-card {
+background: var(–bg-surface); border: 1px solid var(–border);
+border-radius: var(–radius-lg); padding: 14px 16px;
+}
+.mbar-label { font-size: 10px; font-weight: 600; color: var(–text-secondary); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; }
+.mbar-val { font-size: 20px; font-weight: 700; font-family: ‘JetBrains Mono’, monospace; line-height: 1; }
+.mbar-sub { font-size: 11px; color: var(–text-secondary); margin-top: 4px; }
+
+/* RESULTS HEADER */
+.results-header {
+display: flex; align-items: center; justify-content: space-between;
+margin-bottom: 14px;
+}
+.results-title { font-size: 15px; font-weight: 600; }
+.results-count { font-size: 12px; color: var(–text-secondary); }
+.sort-bar { display: flex; gap: 4px; }
+.sort-btn {
+padding: 5px 10px; border-radius: 5px;
+border: 1px solid var(–border); background: transparent;
+font-family: ‘Inter’, sans-serif; font-size: 11px; font-weight: 500;
+color: var(–text-secondary); cursor: pointer; transition: all 0.12s;
+}
+.sort-btn:hover { border-color: var(–border-light); color: var(–text-primary); }
+.sort-btn.active { border-color: var(–accent); background: var(–accent-dim); color: var(–accent); }
+
+/* SIGNALS GRID */
+.signals-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+gap: 12px;
+}
+
+/* ── SIGNAL CARD ── */
+.sig-card {
+background: var(–bg-surface);
+border: 1px solid var(–border);
+border-radius: var(–radius-lg);
+cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s;
+overflow: hidden;
+animation: fadeUp 0.25s ease both;
+}
+@keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+.sig-card:hover { border-color: var(–border-light); box-shadow: var(–shadow-md); }
+.sig-card.long-card { border-left: 2px solid var(–bull); }
+.sig-card.short-card { border-left: 2px solid var(–bear); }
+.sig-card.long-card:hover { border-color: var(–bull-border); box-shadow: 0 4px 16px rgba(34,197,94,0.08); }
+.sig-card.short-card:hover { border-color: var(–bear-border); box-shadow: 0 4px 16px rgba(239,68,68,0.08); }
+
+/* Card Top Row */
+.card-top {
+padding: 14px 16px 12px;
+display: flex; align-items: center; justify-content: space-between;
+}
+.card-coin { display: flex; align-items: center; gap: 10px; }
+.coin-avatar {
+width: 38px; height: 38px; border-radius: 10px;
+display: flex; align-items: center; justify-content: center;
+font-size: 12px; font-weight: 700; letter-spacing: -0.5px;
+flex-shrink: 0;
+}
+.coin-ticker { font-size: 16px; font-weight: 700; line-height: 1.2; }
+.coin-meta { font-size: 11px; color: var(–text-secondary); margin-top: 1px; }
+
+.card-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+
+/* Badges */
+.badge {
+display: inline-flex; align-items: center; padding: 3px 8px;
+border-radius: 5px; font-size: 11px; font-weight: 600;
+letter-spacing: 0.3px; font-family: ‘JetBrains Mono’, monospace;
+}
+.badge-setup { background: rgba(59,130,246,0.15); color: #93c5fd; border: 1px solid rgba(59,130,246,0.25); }
+.badge-long  { background: var(–bull-dim); color: var(–bull); border: 1px solid var(–bull-border); }
+.badge-short { background: var(–bear-dim); color: var(–bear); border: 1px solid var(–bear-border); }
+
+/* Price Levels */
+.card-levels {
+display: grid; grid-template-columns: 1fr 1fr 1fr;
+gap: 1px; background: var(–border); margin: 0;
+border-top: 1px solid var(–border); border-bottom: 1px solid var(–border);
+}
+.level-cell {
+background: var(–bg-surface); padding: 10px 12px; text-align: center;
+}
+.level-label { font-size: 9px; font-weight: 600; color: var(–text-tertiary); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 4px; }
+.level-price { font-size: 13px; font-weight: 600; font-family: ‘JetBrains Mono’, monospace; line-height: 1; }
+.level-pct { font-size: 10px; margin-top: 2px; }
+.level-entry .level-price { color: var(–text-primary); }
+.level-target .level-price { color: var(–bull); }
+.level-stop .level-price { color: var(–bear); }
+
+/* Card Metrics */
+.card-metrics {
+padding: 10px 16px 12px;
+display: flex; align-items: center; gap: 0;
+}
+.card-metric {
+flex: 1; text-align: center;
+padding: 0 4px;
+border-right: 1px solid var(–border);
+}
+.card-metric:last-child { border-right: none; }
+.cm-label { font-size: 9px; font-weight: 600; color: var(–text-tertiary); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; }
+.cm-val { font-size: 12px; font-weight: 600; font-family: ‘JetBrains Mono’, monospace; }
+
+/* Confidence Bar */
+.conf-wrap { padding: 0 16px 12px; }
+.conf-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
+.conf-label { font-size: 10px; color: var(–text-secondary); font-weight: 500; }
+.conf-val { font-size: 11px; font-weight: 700; font-family: ‘JetBrains Mono’, monospace; }
+.conf-track { height: 3px; background: var(–bg-elevated); border-radius: 2px; }
+.conf-fill { height: 3px; border-radius: 2px; transition: width 0.5s ease; }
+.conf-high   .conf-fill { background: var(–bull); }
+.conf-medium .conf-fill { background: var(–neutral); }
+.conf-low    .conf-fill { background: var(–bear); }
+
+/* EMA Tag */
+.ema-tag {
+display: inline-flex; align-items: center; gap: 4px;
+font-size: 10px; font-weight: 500;
+}
+.ema-arrow { font-size: 11px; }
+
+/* ══════════════════════════════════════
+LOADING OVERLAY
+══════════════════════════════════════ */
+#loading-overlay {
+position: fixed; inset: 0; z-index: 999;
+background: rgba(13,17,23,0.95);
+display: none; align-items: center; justify-content: center;
+flex-direction: column; gap: 20px;
+}
+#loading-overlay.visible { display: flex; }
+.loader-ring {
+width: 44px; height: 44px; border-radius: 50%;
+border: 3px solid var(–border);
+border-top-color: var(–accent);
+animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loader-text { font-size: 15px; font-weight: 600; color: var(–text-primary); }
+.loader-sub  { font-size: 12px; color: var(–text-secondary); max-width: 300px; text-align: center; }
+.loader-progress { width: 220px; height: 2px; background: var(–border); border-radius: 1px; overflow: hidden; }
+.loader-fill { height: 100%; background: var(–accent); border-radius: 1px; transition: width 0.3s; width: 0%; }
+
+/* ══════════════════════════════════════
+MODAL
+══════════════════════════════════════ */
+.modal-bg {
+position: fixed; inset: 0; z-index: 200;
+background: rgba(0,0,0,0.7);
+backdrop-filter: blur(6px);
+display: none; align-items: center; justify-content: center;
+padding: 16px;
+}
+.modal-bg.open { display: flex; }
+.modal-box {
+background: var(–bg-surface); border: 1px solid var(–border);
+border-radius: 14px; max-width: 720px; width: 100%;
+max-height: 90vh; overflow-y: auto;
+box-shadow: var(–shadow-lg);
+}
+.modal-head {
+padding: 20px 24px; border-bottom: 1px solid var(–border);
+display: flex; align-items: center; justify-content: space-between;
+position: sticky; top: 0; background: var(–bg-surface); z-index: 2;
+border-radius: 14px 14px 0 0;
+}
+.modal-close-btn {
+width: 30px; height: 30px; border-radius: 7px;
+border: 1px solid var(–border); background: transparent;
+color: var(–text-secondary); cursor: pointer; font-size: 16px;
+display: flex; align-items: center; justify-content: center;
+transition: all 0.12s;
+}
+.modal-close-btn:hover { border-color: var(–bear-border); color: var(–bear); }
+
+.modal-body { padding: 24px; }
+.modal-section { margin-bottom: 24px; }
+.modal-section-title {
+font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+color: var(–text-secondary); text-transform: uppercase;
+margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(–border);
+}
+
+.modal-levels-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.modal-level {
+background: var(–bg-elevated); border-radius: var(–radius);
+padding: 14px; text-align: center;
+}
+.modal-level-label { font-size: 10px; font-weight: 600; color: var(–text-secondary); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; }
+.modal-level-price { font-size: 19px; font-weight: 700; font-family: ‘JetBrains Mono’, monospace; }
+.modal-level-sub { font-size: 11px; color: var(–text-secondary); margin-top: 3px; }
+
+.modal-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.modal-stat { background: var(–bg-elevated); border-radius: var(–radius); padding: 12px; text-align: center; }
+.modal-stat-label { font-size: 10px; font-weight: 600; color: var(–text-secondary); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 5px; }
+.modal-stat-val { font-size: 16px; font-weight: 700; font-family: ‘JetBrains Mono’, monospace; }
+
+.modal-explain {
+background: var(–bg-elevated); border-radius: var(–radius);
+padding: 14px 16px; font-size: 13px; color: var(–text-secondary); line-height: 1.7;
+}
+
+.conds-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cond-item {
+display: flex; align-items: flex-start; gap: 8px;
+padding: 9px 11px; background: var(–bg-elevated);
+border-radius: 7px; font-size: 12px; color: var(–text-secondary);
+}
+.cond-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+
+/* ══════════════════════════════════════
+EMPTY STATE
+══════════════════════════════════════ */
+.empty-state {
+display: none; flex-direction: column; align-items: center;
+padding: 80px 20px; text-align: center;
+}
+.empty-state.visible { display: flex; }
+.empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+.empty-title { font-size: 17px; font-weight: 600; color: var(–text-secondary); margin-bottom: 8px; }
+.empty-sub { font-size: 13px; color: var(–text-tertiary); max-width: 280px; }
+
+/* ══════════════════════════════════════
+TOAST
+══════════════════════════════════════ */
+.toast-area {
+position: fixed; top: calc(var(–header-h) + 12px); right: 16px;
+z-index: 500; display: flex; flex-direction: column; gap: 8px;
+}
+.toast-item {
+background: var(–bg-elevated); border: 1px solid var(–border);
+border-radius: var(–radius); padding: 10px 14px;
+font-size: 13px; min-width: 220px;
+transform: translateX(110%); transition: transform 0.25s ease;
+box-shadow: var(–shadow-md);
+}
+.toast-item.show { transform: translateX(0); }
+.toast-item.ok   { border-left: 3px solid var(–bull); }
+.toast-item.err  { border-left: 3px solid var(–bear); }
+.toast-item.info { border-left: 3px solid var(–accent); }
+
+/* ══════════════════════════════════════
+DISCLAIMER BANNER
+══════════════════════════════════════ */
+.disclaimer {
+background: var(–neutral-dim); border: 1px solid rgba(245,158,11,0.2);
+border-radius: var(–radius); padding: 10px 14px;
+font-size: 11px; color: #d97706; margin-bottom: 16px;
+display: flex; gap: 8px; align-items: flex-start;
+}
+.disc-icon { font-size: 14px; flex-shrink: 0; }
+
+/* ══════════════════════════════════════
+RESPONSIVE
+══════════════════════════════════════ */
+@media (max-width: 960px) {
+.app-body { grid-template-columns: 1fr; }
+.sidebar { position: relative; top: 0; height: auto; }
+.market-bar { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 640px) {
+.market-bar { grid-template-columns: 1fr 1fr; }
+.signals-grid { grid-template-columns: 1fr; }
+.conds-grid { grid-template-columns: 1fr; }
+.modal-levels-grid { grid-template-columns: 1fr 1fr; }
+.modal-stats-grid { grid-template-columns: 1fr 1fr; }
+.header-market { display: none; }
+}
+</style>
+
+</head>
+<body>
+
+<!-- LOADING -->
+
+<div id="loading-overlay">
+  <div class="loader-ring"></div>
+  <div class="loader-text" id="loadText">Piyasalar Taranıyor</div>
+  <div class="loader-sub" id="loadSub">Binance API'ye bağlanılıyor...</div>
+  <div class="loader-progress"><div class="loader-fill" id="loadFill"></div></div>
+</div>
+
+<!-- TOASTS -->
+
+<div class="toast-area" id="toastArea"></div>
+
+<!-- MODAL -->
+
+<div class="modal-bg" id="modalBg" onclick="handleModalBgClick(event)">
+  <div class="modal-box" id="modalBox">
+    <div class="modal-head">
+      <div>
+        <div style="font-size:17px;font-weight:700;" id="m-title"></div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:3px;" id="m-sub"></div>
+      </div>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+```
+  <div class="modal-section">
+    <div class="modal-section-title">Fiyat Seviyeleri — Volman 10-Pip Sistemi</div>
+    <div class="modal-levels-grid">
+      <div class="modal-level">
+        <div class="modal-level-label">Giriş</div>
+        <div class="modal-level-price" id="m-entry" style="color:var(--text-primary)"></div>
+        <div class="modal-level-sub">Kırılım noktası</div>
+      </div>
+      <div class="modal-level" style="border: 1px solid var(--bull-border);">
+        <div class="modal-level-label" style="color:var(--bull)">🎯 Hedef</div>
+        <div class="modal-level-price" id="m-target" style="color:var(--bull)"></div>
+        <div class="modal-level-sub" id="m-target-pct"></div>
+      </div>
+      <div class="modal-level" style="border: 1px solid var(--bear-border);">
+        <div class="modal-level-label" style="color:var(--bear)">🛑 Stop</div>
+        <div class="modal-level-price" id="m-stop" style="color:var(--bear)"></div>
+        <div class="modal-level-sub" id="m-stop-pct"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-section">
+    <div class="modal-section-title">İstatistikler</div>
+    <div class="modal-stats-grid">
+      <div class="modal-stat">
+        <div class="modal-stat-label">R/R Oranı</div>
+        <div class="modal-stat-val" id="m-rr" style="color:var(--neutral)"></div>
+      </div>
+      <div class="modal-stat">
+        <div class="modal-stat-label">Güven Skoru</div>
+        <div class="modal-stat-val" id="m-score" style="color:var(--accent)"></div>
+      </div>
+      <div class="modal-stat">
+        <div class="modal-stat-label">20 EMA Durumu</div>
+        <div class="modal-stat-val" id="m-ema" style="font-size:13px;"></div>
+      </div>
+      <div class="modal-stat">
+        <div class="modal-stat-label">ATR (Volatilite)</div>
+        <div class="modal-stat-val" id="m-atr" style="color:var(--text-primary)"></div>
+      </div>
+      <div class="modal-stat">
+        <div class="modal-stat-label">24s Değişim</div>
+        <div class="modal-stat-val" id="m-chg"></div>
+      </div>
+      <div class="modal-stat">
+        <div class="modal-stat-label">Zaman Dilimi</div>
+        <div class="modal-stat-val" id="m-tf" style="color:var(--text-secondary)"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-section">
+    <div class="modal-section-title">Setup Açıklaması</div>
+    <div class="modal-explain" id="m-explain"></div>
+  </div>
+
+  <div class="modal-section">
+    <div class="modal-section-title">Kontrol Listesi (Volman Koşulları)</div>
+    <div class="conds-grid" id="m-conds"></div>
+  </div>
+
+  <div class="modal-section" style="margin-bottom:0;">
+    <div class="modal-section-title">Analist Notu</div>
+    <div class="modal-explain" id="m-note" style="color:var(--text-primary);"></div>
+  </div>
+
+</div>
+```
+
+  </div>
+</div>
+
+<!-- ════ HEADER ════ -->
+
+<header id="app-header">
+  <div class="logo-area">
+    <div class="logo-icon">📈</div>
+    <div>
+      <div class="logo-text">Volman Kripto</div>
+      <div class="logo-sub">Price Action Scanner</div>
+    </div>
+  </div>
+
+  <div class="header-divider"></div>
+  <div class="live-indicator">
+    <div class="live-dot"></div>
+    <span>CANLI</span>
+  </div>
+
+  <div class="header-market">
+    <div class="hm-item">
+      <div class="hm-label">BTC</div>
+      <div class="hm-val mono" id="h-btc">—</div>
+      <div class="hm-chg" id="h-btc-c">—</div>
+    </div>
+    <div class="hm-item">
+      <div class="hm-label">ETH</div>
+      <div class="hm-val mono" id="h-eth">—</div>
+      <div class="hm-chg" id="h-eth-c">—</div>
+    </div>
+    <div class="header-divider"></div>
+    <div class="header-time mono" id="h-time">—</div>
+  </div>
+</header>
+
+<!-- ════ BODY ════ -->
+
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+
+  <aside class="sidebar">
+
+```
+<div class="sb-section">
+  <div class="sb-label">Tarama</div>
+  <button class="scan-btn" id="scanBtn" onclick="startScan()">
+    <span>🔍</span><span id="scanBtnTxt">Taramayı Başlat</span>
+  </button>
+</div>
+
+<div class="sb-section">
+  <div class="sb-label">Coin Listesi</div>
+  <select class="sb-select" id="coinList">
+    <option value="top20">Top 20 Coin</option>
+    <option value="top40" selected>Top 40 Coin</option>
+    <option value="defi">DeFi Tokenleri</option>
+    <option value="layer1">Layer 1'ler</option>
+  </select>
+</div>
+
+<div class="sb-section">
+  <div class="sb-label">Zaman Dilimi</div>
+  <div class="tf-row">
+    <button class="tf-btn" data-tf="1m" onclick="setTf('1m',this)">1m</button>
+    <button class="tf-btn" data-tf="3m" onclick="setTf('3m',this)">3m</button>
+    <button class="tf-btn active" data-tf="5m" onclick="setTf('5m',this)">5m</button>
+    <button class="tf-btn" data-tf="15m" onclick="setTf('15m',this)">15m</button>
+    <button class="tf-btn" data-tf="1h" onclick="setTf('1h',this)">1h</button>
+  </div>
+</div>
+
+<div class="sb-section">
+  <div class="sb-label">Yön Filtresi</div>
+  <div class="dir-toggle">
+    <button class="dir-btn active-long" id="btnLong" onclick="toggleDir('long')">▲ Long</button>
+    <button class="dir-btn active-short" id="btnShort" onclick="toggleDir('short')">▼ Short</button>
+  </div>
+</div>
+
+<div class="sb-section">
+  <div class="sb-label">Volman Setup'ları</div>
+  <div class="setup-grid" id="setupGrid">
+    <!-- filled by JS -->
+  </div>
+</div>
+
+<div class="sb-section">
+  <div class="sb-label">Minimum Güven Skoru</div>
+  <div class="score-row">
+    <span style="font-size:12px;color:var(--text-secondary);">Eşik değeri</span>
+    <span class="mono text-sm weight-6 accent-text" id="scoreDisp">55%</span>
+  </div>
+  <input type="range" class="score-range" id="scoreSlider" min="0" max="90" step="5" value="55"
+    oninput="document.getElementById('scoreDisp').textContent=this.value+'%'; applyFilters()">
+</div>
+
+<div class="sb-section">
+  <div class="volman-tip">
+    <div class="tip-title">📖 Volman Prensibi</div>
+    <div class="tip-body">
+      Bob Volman'ın "Forex Price Action Scalping" kitabına dayalı 7 setup: 20 EMA yönü, pullback yapısı, kırılım kalitesi ve baskı birikimi birlikte değerlendirilir. Hedef ve stop her ikisi de ATR bazlı ~10 pip eşdeğeridir.
+    </div>
+  </div>
+</div>
+```
+
+  </aside>
+
+  <!-- MAIN -->
+
+  <main class="main-content">
+
+```
+<!-- DISCLAIMER -->
+<div class="disclaimer">
+  <span class="disc-icon">⚠️</span>
+  <span>Bu araç yalnızca eğitim amaçlıdır. Volman Price Action prensiplerinin kripto piyasasına uyarlamasıdır. Yatırım tavsiyesi değildir. Kripto piyasaları yüksek risk içerir. Her zaman kendi analizinizi yapın.</span>
+</div>
+
+<!-- MARKET BAR -->
+<div class="market-bar">
+  <div class="mbar-card">
+    <div class="mbar-label">Toplam Sinyal</div>
+    <div class="mbar-val accent-text" id="s-total">—</div>
+    <div class="mbar-sub" id="s-scan-info">Henüz taranmadı</div>
+  </div>
+  <div class="mbar-card">
+    <div class="mbar-label">Long Sinyal</div>
+    <div class="mbar-val bull-text" id="s-long">—</div>
+    <div class="mbar-sub">Yükseliş sinyali</div>
+  </div>
+  <div class="mbar-card">
+    <div class="mbar-label">Short Sinyal</div>
+    <div class="mbar-val bear-text" id="s-short">—</div>
+    <div class="mbar-sub">Düşüş sinyali</div>
+  </div>
+  <div class="mbar-card">
+    <div class="mbar-label">Ort. Güven</div>
+    <div class="mbar-val neutral-text" id="s-conf">—</div>
+    <div class="mbar-sub">Filtreli sinyaller</div>
+  </div>
+  <div class="mbar-card">
+    <div class="mbar-label">Son Tarama</div>
+    <div class="mbar-val" id="s-lasttime" style="font-size:14px;">—</div>
+    <div class="mbar-sub" id="s-status">Hazır</div>
+  </div>
+</div>
+
+<!-- RESULTS HEADER -->
+<div class="results-header">
+  <div>
+    <span class="results-title">Sinyaller</span>
+    <span class="results-count" id="resultCount" style="margin-left:8px;"></span>
+  </div>
+  <div class="sort-bar">
+    <button class="sort-btn active" onclick="setSortBy('score',this)">Güven ↓</button>
+    <button class="sort-btn" onclick="setSortBy('setup',this)">Setup</button>
+    <button class="sort-btn" onclick="setSortBy('dir',this)">Yön</button>
+    <button class="sort-btn" onclick="setSortBy('name',this)">İsim</button>
+  </div>
+</div>
+
+<!-- SIGNALS -->
+<div class="signals-grid" id="signalsGrid"></div>
+<div class="empty-state visible" id="emptyState">
+  <div class="empty-icon">📡</div>
+  <div class="empty-title">Sinyal bulunamadı</div>
+  <div class="empty-sub">Sol panelden "Taramayı Başlat" butonuna tıklayın. Filtrelerinizi kontrol edin.</div>
+</div>
+```
+
+  </main>
+</div>
+
+<script>
+"use strict";
+// ═══════════════════════════════════════════════════════
+//  VOLMAN SETUP DEFINITIONS (Kitap Chapter 6–13 bazlı)
+// ═══════════════════════════════════════════════════════
+const SETUPS = {
+  DD: {
+    code: 'DD', name: 'Double Doji Break',
+    color: '#93c5fd',
+    description:
+      'İki veya daha fazla doji (ufak gövdeli) bar fiyatı sıkıştırır. Bu baskı birikiminin ardından kırılım gerçekleşir. ' +
+      'Volman\'a göre en iyi koşul: bar çifti 20 EMA yakınında, pullback sonunda, trend yönüne yakın konumlanmış olmalı. ' +
+      'Doji barları trend barlarına kıyasla belirgin biçimde küçük olmalı (compression). ' +
+      'Sinyal barı: en yüksek high\'ı olan bar (long için) veya en düşük low\'u olan bar (short için).',
+    conditions: [
+      { text: '2+ ardışık doji/küçük bar mevcut', key: 'hasDoji' },
+      { text: 'Barlar 20 EMA yakınında (<1.5 ATR)', key: 'nearEma' },
+      { text: '20 EMA trend yönüne slope', key: 'emaSloped' },
+      { text: 'Pullback tamamlanmış görünüyor', key: 'pullbackDone' },
+      { text: 'Doji barları trend barlarından küçük', key: 'compressed' },
+    ],
+    bestIn: 'Trend pullback sonları',
+    marketType: 'trend'
+  },
+  FB: {
+    code: 'FB', name: 'First Break',
+    color: '#86efac',
+    description:
+      'Güçlü ve tek yönlü bir spike hareketi ("fishhook") sonrasında ilk pullback\'in kırıldığı noktadır. ' +
+      'Volman koşulları: trend belirgin ve agresif olmalı, pullback ilk kez gerçekleşmeli, 40–60% retracement yapmalı, ' +
+      '20 EMA\'ya dokunmalı. Pullback barları trend barlarına kıyasla temiz ve tek yönlü olmalı. ' +
+      'Kırılım barı pullback\'in ilk barını dışarı çıkarır.',
+    conditions: [
+      { text: 'Güçlü spike/agresif trend mevcut', key: 'strongTrend' },
+      { text: 'İlk pullback (first retracement)', key: 'firstPullback' },
+      { text: '20 EMA\'ya pullback ulaştı', key: 'emaTouch' },
+      { text: '40–60% retracement tamamlandı', key: 'retracement' },
+      { text: 'Pullback barları tek yönlü ve temiz', key: 'cleanPullback' },
+    ],
+    bestIn: 'Spike → ilk pullback',
+    marketType: 'trend'
+  },
+  SB: {
+    code: 'SB', name: 'Second Break',
+    color: '#6ee7b7',
+    description:
+      'FB kaçırıldığında veya başarısız olduğunda kullanılan ikinci kırılım. ' +
+      'Klasik double bottom (long) veya double top (short) formasyonu oluşturur. ' +
+      'İlk kırılım seviyesi yeniden test edilir ve aynı noktadan tekrar kırılım gerçekleşir. ' +
+      'Volman\'a göre SB, double bottom/top yapısı sayesinde FB\'den daha güvenilir bir onay verir.',
+    conditions: [
+      { text: 'İlk kırılım seviyesi tespit edildi', key: 'firstBreak' },
+      { text: 'Fiyat geri pullback yaptı', key: 'pullbackOccurred' },
+      { text: 'Double bottom/top formasyonu', key: 'doublePattern' },
+      { text: 'İkinci test aynı seviyeyi test etti', key: 'secondTest' },
+      { text: 'EMA trend desteği mevcut', key: 'emaSupport' },
+    ],
+    bestIn: 'FB sonrası consolidation',
+    marketType: 'trend'
+  },
+  BB: {
+    code: 'BB', name: 'Block Break',
+    color: '#fde68a',
+    description:
+      'Fiyat 2–5 bar boyunca dar bir blok (yatay konsolidasyon) oluşturur, ardından kırılım gerçekleşir. ' +
+      'Volman\'a göre BB hem trend hem de range ortamlarında çalışır. ' +
+      'Blok, kırılım öncesi baskı birikimini (pre-breakout tension) temsil eder. ' +
+      'Blok barları net high/low sınırlarına sahip olmalı. Kırılım barı gövdeli kapanış yapmalı.',
+    conditions: [
+      { text: '2–5 bar dar yatay blok', key: 'blockFormed' },
+      { text: 'Blok sınırları net tanımlı', key: 'clearBounds' },
+      { text: 'Kırılım barı blok dışına kapandı', key: 'breakoutClose' },
+      { text: 'Hedef yolunda büyük engel yok', key: 'clearPath' },
+      { text: 'EMA blok yakınında veya destek', key: 'emaSupport' },
+    ],
+    bestIn: 'Her piyasa koşulunda',
+    marketType: 'all'
+  },
+  RB: {
+    code: 'RB', name: 'Range Break',
+    color: '#c4b5fd',
+    description:
+      'Belirgin yatay range\'in kırılması. Range: en az 2 tavan + 2 taban dokunuşu olan yatay fiyat bandı. ' +
+      'Volman\'a göre range genişliği ATR\'nin 1–5 katı arasında olmalı. ' +
+      'Kırılım barı range dışına kapanmalı (close outside). ' +
+      'Round number seviyeleri (X.X00, X.X50) direnci artırır, bu seviyelere yakın RB daha güçlüdür.',
+    conditions: [
+      { text: 'Net range oluşumu (8+ bar)', key: 'rangeFormed' },
+      { text: '2+ tavan + 2+ taban dokunuşu', key: 'multiTouch' },
+      { text: 'Kırılım close range dışında', key: 'closeOutside' },
+      { text: 'Range sıkışma baskısı birikti', key: 'tension' },
+      { text: 'ATR bazlı range boyutu uygun', key: 'rangeSize' },
+    ],
+    bestIn: 'Konsolidasyon → trend geçişi',
+    marketType: 'range'
+  },
+  IRB: {
+    code: 'IRB', name: 'Inside Range Break',
+    color: '#f9a8d4',
+    description:
+      'Daha geniş bir range\'in içindeki daha küçük iç range\'in kırılmasıdır. ' +
+      'Geniş range desteği/direnci ile iç range kırılımı birleştiğinde yüksek olasılıklı yön sinyali üretir. ' +
+      'Volman\'a göre iç range, dış range\'in içinde tamamen yer almalı (highs < outer high, lows > outer low).',
+    conditions: [
+      { text: 'Dış (ana) range mevcut', key: 'outerRange' },
+      { text: 'İç range tamamen dışarıda', key: 'innerInside' },
+      { text: 'İç range kırılımı gerçekleşti', key: 'innerBreak' },
+      { text: 'İç range yönsel baskı içeriyor', key: 'pressure' },
+      { text: '20 EMA iç range yakınında', key: 'emaNear' },
+    ],
+    bestIn: 'Range içi consolidation',
+    marketType: 'range'
+  },
+  ARB: {
+    code: 'ARB', name: 'Advanced Range Break',
+    color: '#fdba74',
+    description:
+      'Range kırılımı sonrası fiyat barrier bölgesine geri çekilir (pullback) ve orada sinyal barı oluşturur. ' +
+      'Bu ARB setup\'ı RB\'nin en güvenilir versiyonudur. ' +
+      'Volman\'a göre barrier zone\'da oluşan doji/küçük bar "sinyal barı"dır. ' +
+      'Barrier (eski direnç/destek) şimdi destek/direnç olarak çalışıyor.',
+    conditions: [
+      { text: 'Önceki range kırılımı gerçekleşti', key: 'prevBreak' },
+      { text: 'Barrier zone\'a pullback yapıldı', key: 'barrierPullback' },
+      { text: 'Barrier\'da sinyal barı oluştu', key: 'signalBar' },
+      { text: 'Barrier eski direnç/destek seviyesi', key: 'barrierLevel' },
+      { text: 'EMA kırılım yönünü destekliyor', key: 'emaConfirms' },
+    ],
+    bestIn: 'Kırılım sonrası barrier retesti',
+    marketType: 'range'
+  }
+};
+
+// ═══════════════════════════════════════════════════════
+//  COIN LISTS
+// ═══════════════════════════════════════════════════════
+const COIN_LISTS = {
+  top20: ['BTC','ETH','BNB','SOL','XRP','ADA','AVAX','DOGE','DOT','MATIC',
+           'LINK','UNI','ATOM','LTC','ETC','NEAR','APT','OP','ARB','FIL'],
+  top40: ['BTC','ETH','BNB','SOL','XRP','ADA','AVAX','DOGE','DOT','MATIC',
+           'LINK','UNI','ATOM','LTC','ETC','NEAR','APT','OP','ARB','FIL',
+           'HBAR','ICP','VET','ALGO','GRT','SAND','MANA','CHZ','ENJ','BAT',
+           'AAVE','CRV','COMP','MKR','SNX','LDO','FTM','RUNE','INJ','TRX'],
+  defi:  ['UNI','AAVE','COMP','MKR','CRV','SNX','LDO','RPL','GMX','DYDX',
+           'PERP','BAL','ZRX','SUSHI','YFI','FXS','FRAX','CVX','ANGLE','ORCA'],
+  layer1:['BTC','ETH','SOL','ADA','AVAX','DOT','ATOM','NEAR','FTM','ALGO',
+           'HBAR','ICP','FLOW','EGLD','ONE','CELO','ROSE','KLAY','QTUM','ZIL']
+};
+
+// ═══════════════════════════════════════════════════════
+//  COIN VISUAL DATA
+// ═══════════════════════════════════════════════════════
+const COIN_BG = {
+  BTC:'#f59e0b22', ETH:'#6366f122', BNB:'#eab30822', SOL:'#a855f722',
+  XRP:'#0ea5e922', ADA:'#3b82f622', AVAX:'#ef444422', DOGE:'#f59e0b22',
+  DOT:'#ec489922', MATIC:'#8b5cf622', LINK:'#3b82f622', UNI:'#ec489922',
+  DEF:'#22c55e22'
+};
+const COIN_COLOR = {
+  BTC:'#f59e0b', ETH:'#818cf8', BNB:'#eab308', SOL:'#a855f7',
+  XRP:'#38bdf8', ADA:'#60a5fa', AVAX:'#f87171', DOGE:'#fbbf24',
+  DOT:'#f472b6', MATIC:'#a78bfa', LINK:'#60a5fa', UNI:'#f472b6',
+  DEF:'#22c55e'
+};
+function getCoinStyle(sym) {
+  return { bg: COIN_BG[sym] || '#ffffff08', color: COIN_COLOR[sym] || '#94a3b8' };
+}
+
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+let allSignals = [];
+let filteredSignals = [];
+let activeSetups = new Set(Object.keys(SETUPS));
+let dirFilter = { long: true, short: true };
+let currentTf = '5m';
+let sortBy = 'score';
+
+// ═══════════════════════════════════════════════════════
+//  UI INIT
+// ═══════════════════════════════════════════════════════
+function initUI() {
+  // Setup chips
+  const grid = document.getElementById('setupGrid');
+  grid.innerHTML = '';
+  Object.values(SETUPS).forEach(s => {
+    const chip = document.createElement('div');
+    chip.className = 'setup-chip active';
+    chip.dataset.setup = s.code;
+    chip.innerHTML = `
+      <span class="setup-chip-code" style="color:${s.color}">${s.code}</span>
+      <span class="setup-chip-name">${s.name.split(' ').slice(0,2).join(' ')}</span>
+      <span class="setup-chip-count" id="cnt-${s.code}">0</span>
+    `;
+    chip.addEventListener('click', () => toggleSetup(s.code, chip));
+    grid.appendChild(chip);
+  });
+
+  // Clock
+  updateClock();
+  setInterval(updateClock, 30000);
+
+  // Market prices
+  fetchMarketPrices();
+  setInterval(fetchMarketPrices, 30000);
+
+  // Show empty
+  document.getElementById('emptyState').classList.add('visible');
+}
+
+function updateClock() {
+  document.getElementById('h-time').textContent = new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+}
+
+async function fetchMarketPrices() {
+  try {
+    const [r1, r2] = await Promise.all([
+      fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT'),
+      fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=ETHUSDT')
+    ]);
+    const b = await r1.json(), e = await r2.json();
+    const bp = parseFloat(b.lastPrice), bc = parseFloat(b.priceChangePercent);
+    const ep = parseFloat(e.lastPrice), ec = parseFloat(e.priceChangePercent);
+    document.getElementById('h-btc').textContent = '$' + bp.toLocaleString('en-US',{maximumFractionDigits:0});
+    const bc_el = document.getElementById('h-btc-c');
+    bc_el.textContent = (bc>=0?'+':'')+bc.toFixed(2)+'%';
+    bc_el.className = 'hm-chg ' + (bc>=0?'bull-text':'bear-text');
+    document.getElementById('h-eth').textContent = '$' + ep.toLocaleString('en-US',{maximumFractionDigits:0});
+    const ec_el = document.getElementById('h-eth-c');
+    ec_el.textContent = (ec>=0?'+':'')+ec.toFixed(2)+'%';
+    ec_el.className = 'hm-chg ' + (ec>=0?'bull-text':'bear-text');
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════
+//  BINANCE API
+// ═══════════════════════════════════════════════════════
+async function fetchKlines(symbol, interval, limit = 60) {
+  try {
+    const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=${interval}&limit=${limit}`);
+    if (!res.ok) return null;
+    const raw = await res.json();
+    if (!Array.isArray(raw) || raw.length < 15) return null;
+    return raw.map(k => ({
+      t: k[0], o: +k[1], h: +k[2], l: +k[3], c: +k[4], v: +k[5]
+    }));
+  } catch { return null; }
+}
+
+// ═══════════════════════════════════════════════════════
+//  TECHNICAL INDICATORS
+// ═══════════════════════════════════════════════════════
+
+/**
+ * 20-bar EMA (Volman'ın tek indikatörü)
+ * Kitap: "20-bar exponential moving average"
+ */
+function calcEMA(closes, period = 20) {
+  if (closes.length < period) return closes.map(() => closes[0]);
+  const k = 2 / (period + 1);
+  const result = [];
+  // Seed: SMA of first `period` bars
+  let seed = 0;
+  for (let i = 0; i < period; i++) seed += closes[i];
+  seed /= period;
+  result.push(...Array(period).fill(null));
+  result[period - 1] = seed;
+  for (let i = period; i < closes.length; i++) {
+    result.push(closes[i] * k + result[result.length - 1] * (1 - k));
+  }
+  // Fill nulls with first valid
+  const first = result.find(v => v !== null);
+  return result.map(v => v === null ? first : v);
+}
+
+/**
+ * ATR — Average True Range
+ * Volatilite ölçümü; 10-pip hedef/stop için referans
+ */
+function calcATR(bars, period = 14) {
+  if (bars.length < 2) return bars[0].h - bars[0].l;
+  const trs = [];
+  for (let i = 1; i < bars.length; i++) {
+    trs.push(Math.max(
+      bars[i].h - bars[i].l,
+      Math.abs(bars[i].h - bars[i-1].c),
+      Math.abs(bars[i].l - bars[i-1].c)
+    ));
+  }
+  const slice = trs.slice(-Math.min(period, trs.length));
+  return slice.reduce((a,b) => a+b, 0) / slice.length;
+}
+
+/**
+ * EMA slope: yüzde değişim (trend tespiti için)
+ * Volman: "sloping up = bullish, sloping down = bearish, flat = caution"
+ */
+function emaSlope(emas, lookback = 5) {
+  const n = emas.length;
+  if (n < lookback + 1) return 0;
+  const old = emas[n - 1 - lookback];
+  const cur = emas[n - 1];
+  return (cur - old) / old; // fractional
+}
+
+/**
+ * Doji tespiti (Volman Ch.7)
+ * Kitap: "body/range < 0.30 threshold, ideally small compared to trend bars"
+ */
+function isDoji(bar, maxBodyRatio = 0.30) {
+  const body = Math.abs(bar.c - bar.o);
+  const range = bar.h - bar.l;
+  return range > 0 && body / range <= maxBodyRatio;
+}
+
+/**
+ * Bar gövde büyüklüğü
+ */
+function barBody(bar) { return Math.abs(bar.c - bar.o); }
+function barRange(bar) { return bar.h - bar.l; }
+
+/**
+ * Trend kalitesi
+ * Volman: "majority of bars close in trend direction, taller than average"
+ */
+function trendQuality(bars, dir) {
+  let aligned = 0;
+  for (const b of bars) {
+    if (dir === 'up' && b.c > b.o) aligned++;
+    if (dir === 'down' && b.c < b.o) aligned++;
+  }
+  return aligned / bars.length; // 0–1
+}
+
+/**
+ * Volman "pip" = ATR * 0.1 (10 birim hedef için ATR bazlı pip hesabı)
+ * Orijinal kitapta EUR/USD 1 pip = $10 (1 lot). Kriptoda ATR * 0.1 ≈ pip.
+ */
+function calcPipSize(atr) { return atr * 0.15; }
+
+// ═══════════════════════════════════════════════════════
+//  VOLMAN SETUP DETECTORS
+//  Her detektor: { valid, score, entry, conditions } döner
+// ═══════════════════════════════════════════════════════
+
+/**
+ * DD — Double Doji Break (Ch.7)
+ *
+ * Koşullar (kitaptan birebir):
+ * 1. Son 2–5 bar doji/küçük bar (body/range < 0.30)
+ * 2. 20 EMA yakınında (|price - ema| < 1.5 * ATR)
+ * 3. 20 EMA slope var (trend yönü belirgin)
+ * 4. Doji barları trend barlarından küçük (compression)
+ * 5. Pullback yapısı mevcut (son barlar trend karşısı)
+ */
+function detectDD(bars, emas, atr) {
+  const n = bars.length;
+  if (n < 15) return [];
+  const results = [];
+
+  for (let end = n - 2; end >= n - 6 && end >= 3; end--) {
+    // Collect doji run ending at `end`
+    let dojiStart = end;
+    while (dojiStart > 0 && isDoji(bars[dojiStart], 0.32) && (end - dojiStart) < 5) {
+      dojiStart--;
+    }
+    dojiStart++;
+    const dojiCount = end - dojiStart + 1;
+    if (dojiCount < 2) continue;
+
+    const dojiGroup = bars.slice(dojiStart, end + 1);
+    const groupHigh = Math.max(...dojiGroup.map(b => b.h));
+    const groupLow  = Math.min(...dojiGroup.map(b => b.l));
+    const groupMid  = (groupHigh + groupLow) / 2;
+    const ema = emas[end];
+    const slope = emaSlope(emas.slice(0, end + 1), Math.min(8, end));
+    const slopeAbs = Math.abs(slope);
+
+    // EMA proximity (key Volman condition)
+    const emaDist = Math.abs(groupMid - ema) / atr;
+    if (emaDist > 2.0) continue;
+
+    // Compression: doji bars smaller than surrounding trend bars
+    const trendBars = bars.slice(Math.max(0, dojiStart - 8), dojiStart);
+    if (trendBars.length < 3) continue;
+    const avgTrendRange = trendBars.reduce((s,b) => s + barRange(b), 0) / trendBars.length;
+    const avgDojiRange  = dojiGroup.reduce((s,b) => s + barRange(b), 0) / dojiGroup.length;
+    const compressed = avgDojiRange < avgTrendRange * 0.7;
+
+    // Trend bars quality before doji
+    const trendDir = slope > 0 ? 'up' : 'down';
+    const tq = trendQuality(trendBars, trendDir);
+
+    const conditions = {
+      hasDoji:      dojiCount >= 2,
+      nearEma:      emaDist < 1.5,
+      emaSloped:    slopeAbs > 0.0003,
+      pullbackDone: true, // verified below
+      compressed:   compressed
+    };
+
+    if (slope > 0.0003 && emaDist < 1.8) {
+      // Pullback check: last few bars (before doji) going counter-trend
+      const preDoji = bars.slice(Math.max(0, dojiStart - 4), dojiStart);
+      const pullback = preDoji.filter(b => b.c < b.o).length >= Math.floor(preDoji.length * 0.5);
+      conditions.pullbackDone = pullback;
+
+      const entry = groupHigh + atr * 0.05;
+      const score = scoreDD({ slope, emaDist, compressed, tq, dojiCount, conditions, atr });
+      if (score >= 40) {
+        results.push({ setup:'DD', dir:'long', entry, score, conditions, barIdx: end, groupHigh, groupLow });
+      }
+    }
+    if (slope < -0.0003 && emaDist < 1.8) {
+      const preDoji = bars.slice(Math.max(0, dojiStart - 4), dojiStart);
+      const pullback = preDoji.filter(b => b.c > b.o).length >= Math.floor(preDoji.length * 0.5);
+      conditions.pullbackDone = pullback;
+
+      const entry = groupLow - atr * 0.05;
+      const score = scoreDD({ slope, emaDist, compressed, tq, dojiCount, conditions, atr });
+      if (score >= 40) {
+        results.push({ setup:'DD', dir:'short', entry, score, conditions, barIdx: end, groupHigh, groupLow });
+      }
+    }
+  }
+  return results;
+}
+
+function scoreDD({ slope, emaDist, compressed, tq, dojiCount, conditions, atr }) {
+  let s = 45;
+  s += Math.min(15, Math.abs(slope) / 0.001 * 3);    // EMA slope strength
+  s += Math.max(0, (1.5 - emaDist) * 8);              // EMA proximity bonus
+  if (compressed) s += 12;                             // Compression (key Volman condition)
+  s += Math.min(8, tq * 10);                           // Trend quality
+  s += Math.min(6, (dojiCount - 1) * 3);               // More dojis = better
+  if (conditions.pullbackDone) s += 8;
+  if (!conditions.nearEma) s -= 15;
+  if (!conditions.emaSloped) s -= 20;
+  return clamp(Math.round(s), 20, 97);
+}
+
+/**
+ * FB — First Break (Ch.8)
+ *
+ * Koşullar (kitaptan):
+ * 1. Güçlü, agresif spike (uzun trend barları, hızlı hareket)
+ * 2. İlk pullback (en fazla biri)
+ * 3. Pullback 40–60% retracement yapmalı
+ * 4. 20 EMA\'ya dokunmak zorunda (veya yakın)
+ * 5. Pullback barları temiz ve tek yönlü
+ */
+function detectFB(bars, emas, atr) {
+  const n = bars.length;
+  if (n < 20) return [];
+  const results = [];
+
+  // Look for spike in last 5–15 bars
+  for (let spikeEnd = n - 4; spikeEnd >= n - 12 && spikeEnd >= 5; spikeEnd--) {
+    const lookback = 6;
+    const spikeBars = bars.slice(spikeEnd - lookback, spikeEnd);
+    const slopeH = emaSlope(emas.slice(0, spikeEnd + 1), lookback);
+
+    // Spike quality: majority close in one direction, bars taller than avg
+    const avgRange = calcATR(bars.slice(0, spikeEnd), 10);
+    const spikeAvgRange = spikeBars.reduce((s,b) => s + barRange(b), 0) / spikeBars.length;
+    const aggressiveBars = spikeAvgRange > avgRange * 1.1; // spike bars taller
+
+    const spikeDir = slopeH > 0 ? 'up' : 'down';
+    const spikeTq = trendQuality(spikeBars, spikeDir);
+    if (spikeTq < 0.55 || !aggressiveBars) continue;
+
+    // Spike high/low
+    const spikeHigh = Math.max(...spikeBars.map(b => b.h));
+    const spikeLow  = Math.min(...spikeBars.map(b => b.l));
+    const spikeSize = spikeHigh - spikeLow;
+    if (spikeSize < atr) continue;
+
+    // First pullback after spike
+    const pbBars = bars.slice(spikeEnd, n - 1);
+    if (pbBars.length < 2) continue;
+
+    const ema = emas[n - 2];
+
+    if (spikeDir === 'up') {
+      const pbLow = Math.min(...pbBars.map(b => b.l));
+      const retrace = (spikeHigh - pbLow) / spikeSize;
+      if (retrace < 0.30 || retrace > 0.75) continue;
+      const emaTouched = Math.abs(pbLow - ema) / atr < 1.2;
+      const pbTq = trendQuality(pbBars, 'down'); // pullback should be counter-trend
+      const cleanPb = pbTq > 0.5;
+
+      const conditions = {
+        strongTrend: aggressiveBars && spikeTq > 0.6,
+        firstPullback: true,
+        emaTouch: emaTouched,
+        retracement: retrace >= 0.35 && retrace <= 0.70,
+        cleanPullback: cleanPb
+      };
+
+      // Signal bar: highest high in pullback zone (for break above it)
+      const signalHigh = Math.max(...pbBars.map(b => b.h));
+      const entry = signalHigh + atr * 0.05;
+      const score = scoreFB({ spikeTq, aggressiveBars, retrace, emaTouched, cleanPb, conditions });
+      if (score >= 42) {
+        results.push({ setup:'FB', dir:'long', entry, score, conditions, barIdx: n - 2 });
+      }
+    }
+    if (spikeDir === 'down') {
+      const pbHigh = Math.max(...pbBars.map(b => b.h));
+      const retrace = (pbHigh - spikeLow) / spikeSize;
+      if (retrace < 0.30 || retrace > 0.75) continue;
+      const emaTouched = Math.abs(pbHigh - ema) / atr < 1.2;
+      const pbTq = trendQuality(pbBars, 'up');
+      const cleanPb = pbTq > 0.5;
+
+      const conditions = {
+        strongTrend: aggressiveBars && spikeTq > 0.6,
+        firstPullback: true,
+        emaTouch: emaTouched,
+        retracement: retrace >= 0.35 && retrace <= 0.70,
+        cleanPullback: cleanPb
+      };
+
+      const signalLow = Math.min(...pbBars.map(b => b.l));
+      const entry = signalLow - atr * 0.05;
+      const score = scoreFB({ spikeTq, aggressiveBars, retrace, emaTouched, cleanPb, conditions });
+      if (score >= 42) {
+        results.push({ setup:'FB', dir:'short', entry, score, conditions, barIdx: n - 2 });
+      }
+    }
+  }
+  return results;
+}
+
+function scoreFB({ spikeTq, aggressiveBars, retrace, emaTouched, cleanPb, conditions }) {
+  let s = 40;
+  s += Math.min(15, spikeTq * 18);
+  if (aggressiveBars) s += 10;
+  // 50% retracement is ideal
+  const rDiff = Math.abs(retrace - 0.50);
+  s += Math.max(0, 12 - rDiff * 30);
+  if (emaTouched) s += 12;
+  if (cleanPb) s += 8;
+  if (!conditions.retracement) s -= 15;
+  if (!conditions.strongTrend) s -= 20;
+  return clamp(Math.round(s), 20, 97);
+}
+
+/**
+ * SB — Second Break (Ch.9)
+ *
+ * Koşullar (kitaptan):
+ * Double bottom (long) veya double top (short)
+ * 1. İlk kırılım seviyesi belirlendi
+ * 2. Fiyat geri döndü
+ * 3. Aynı seviyeyi yeniden test etti (eşit veya yakın bottom/top)
+ * 4. İkinci kırılım gerçekleşti
+ */
+function detectSB(bars, emas, atr) {
+  const n = bars.length;
+  if (n < 20) return [];
+  const results = [];
+  const slopeVal = emaSlope(emas, Math.min(8, n - 1));
+
+  // Double Bottom detection (long)
+  if (slopeVal > -0.001) {
+    for (let i = n - 5; i >= n - 12 && i >= 5; i--) {
+      const low1 = Math.min(bars[i].l, bars[i-1].l);
+      // Look for another low 3-8 bars earlier
+      for (let j = i - 3; j >= i - 8 && j >= 1; j--) {
+        const low2 = Math.min(bars[j].l, bars[j-1].l);
+        const diff = Math.abs(low1 - low2) / atr;
+        if (diff > 0.6) continue; // too far apart
+
+        // Middle high (between two lows) — confirms W shape
+        const midHigh = Math.max(...bars.slice(j, i + 1).map(b => b.h));
+        const lastBar = bars[n - 1];
+
+        if (lastBar.c > midHigh && lastBar.c > lastBar.o) {
+          const entry = midHigh + atr * 0.05;
+          const conditions = {
+            firstBreak: true,
+            pullbackOccurred: true,
+            doublePattern: diff < 0.4,
+            secondTest: diff < 0.6,
+            emaSupport: slopeVal > -0.0005
+          };
+          const score = scoreSB({ diff, slopeVal, conditions, atr });
+          if (score >= 42) {
+            results.push({ setup:'SB', dir:'long', entry, score, conditions, barIdx: n - 1 });
+          }
+        }
+      }
+    }
+  }
+
+  // Double Top detection (short)
+  if (slopeVal < 0.001) {
+    for (let i = n - 5; i >= n - 12 && i >= 5; i--) {
+      const high1 = Math.max(bars[i].h, bars[i-1].h);
+      for (let j = i - 3; j >= i - 8 && j >= 1; j--) {
+        const high2 = Math.max(bars[j].h, bars[j-1].h);
+        const diff = Math.abs(high1 - high2) / atr;
+        if (diff > 0.6) continue;
+
+        const midLow = Math.min(...bars.slice(j, i + 1).map(b => b.l));
+        const lastBar = bars[n - 1];
+
+        if (lastBar.c < midLow && lastBar.c < lastBar.o) {
+          const entry = midLow - atr * 0.05;
+          const conditions = {
+            firstBreak: true,
+            pullbackOccurred: true,
+            doublePattern: diff < 0.4,
+            secondTest: diff < 0.6,
+            emaSupport: slopeVal < 0.0005
+          };
+          const score = scoreSB({ diff, slopeVal: -slopeVal, conditions, atr });
+          if (score >= 42) {
+            results.push({ setup:'SB', dir:'short', entry, score, conditions, barIdx: n - 1 });
+          }
+        }
+      }
+    }
+  }
+  return results;
+}
+
+function scoreSB({ diff, slopeVal, conditions, atr }) {
+  let s = 48;
+  s += Math.max(0, (0.6 - diff) * 20);   // closer double = better
+  s += Math.min(10, Math.abs(slopeVal) / 0.001 * 2);
+  if (conditions.doublePattern) s += 8;
+  if (conditions.emaSupport) s += 6;
+  if (!conditions.doublePattern) s -= 10;
+  return clamp(Math.round(s), 20, 97);
+}
+
+/**
+ * BB — Block Break (Ch.10)
+ *
+ * Koşullar (kitaptan):
+ * 1. 2–5 bar dar yatay blok (clustering)
+ * 2. Blok barları net high/low sınırlarına sahip
+ * 3. Kırılım barı blok high (long) veya low (short) dışına kapandı
+ * 4. Hedef yolunda büyük engel yok
+ */
+function detectBB(bars, emas, atr) {
+  const n = bars.length;
+  if (n < 10) return [];
+  const results = [];
+
+  // Scan for block formations
+  for (let blockEnd = n - 3; blockEnd >= n - 8 && blockEnd >= 3; blockEnd--) {
+    for (let blockLen = 2; blockLen <= 5; blockLen++) {
+      const blockStart = blockEnd - blockLen + 1;
+      if (blockStart < 1) break;
+
+      const blockBars = bars.slice(blockStart, blockEnd + 1);
+      const blockHigh = Math.max(...blockBars.map(b => b.h));
+      const blockLow  = Math.min(...blockBars.map(b => b.l));
+      const blockSize = blockHigh - blockLow;
+
+      // Block must be narrow relative to ATR
+      if (blockSize > atr * 1.8) continue;
+      if (blockSize < atr * 0.15) continue;
+
+      // All block bars should be within range (no outliers)
+      const allInBlock = blockBars.every(b => b.h <= blockHigh + atr*0.1 && b.l >= blockLow - atr*0.1);
+      if (!allInBlock) continue;
+
+      const breakBar = bars[blockEnd + 1];
+      if (!breakBar) continue;
+
+      const ema = emas[blockEnd + 1];
+      const slopeVal = emaSlope(emas.slice(0, blockEnd + 2), Math.min(6, blockEnd));
+
+      if (breakBar.c > blockHigh && breakBar.c > breakBar.o) {
+        const entry = blockHigh + atr * 0.05;
+        const conditions = {
+          blockFormed: blockLen >= 2,
+          clearBounds: true,
+          breakoutClose: true,
+          clearPath: true,
+          emaSupport: ema < entry
+        };
+        const score = scoreBB({ blockSize, atr, blockLen, slopeVal, conditions, breakBar });
+        if (score >= 40) {
+          results.push({ setup:'BB', dir:'long', entry, score, conditions, barIdx: blockEnd + 1, blockHigh, blockLow });
+        }
+      }
+      if (breakBar.c < blockLow && breakBar.c < breakBar.o) {
+        const entry = blockLow - atr * 0.05;
+        const conditions = {
+          blockFormed: blockLen >= 2,
+          clearBounds: true,
+          breakoutClose: true,
+          clearPath: true,
+          emaSupport: ema > entry
+        };
+        const score = scoreBB({ blockSize, atr, blockLen, slopeVal, conditions, breakBar });
+        if (score >= 40) {
+          results.push({ setup:'BB', dir:'short', entry, score, conditions, barIdx: blockEnd + 1, blockHigh, blockLow });
+        }
+      }
+    }
+  }
+  return results;
+}
+
+function scoreBB({ blockSize, atr, blockLen, slopeVal, conditions, breakBar }) {
+  let s = 50;
+  // Narrow block = better tension
+  const tightness = 1 - blockSize / (atr * 1.8);
+  s += tightness * 15;
+  // Good block length (3-4 is ideal)
+  if (blockLen >= 3 && blockLen <= 4) s += 8;
+  // Breakout bar body
+  const bbBodyRatio = barBody(breakBar) / barRange(breakBar);
+  s += Math.min(10, bbBodyRatio * 12);
+  // EMA slope alignment
+  s += Math.min(8, Math.abs(slopeVal) / 0.001 * 2);
+  if (conditions.emaSupport) s += 5;
+  if (!conditions.blockFormed) s -= 20;
+  return clamp(Math.round(s), 20, 97);
+}
+
+/**
+ * RB — Range Break (Ch.11)
+ *
+ * Koşullar (kitaptan):
+ * 1. Net range: ≥2 tavan + ≥2 taban dokunuşu
+ * 2. Range genişliği ATR'nin 1.0–5.0 katı
+ * 3. En az 8 bar süren range
+ * 4. Kırılım barı close outside range
+ */
+function detectRB(bars, emas, atr) {
+  const n = bars.length;
+  if (n < 20) return [];
+  const results = [];
+
+  const lookbackMin = 8, lookbackMax = 25;
+  for (let rangeLen = lookbackMin; rangeLen <= Math.min(lookbackMax, n - 3); rangeLen++) {
+    const rangeBars = bars.slice(n - rangeLen - 2, n - 2);
+    const rangeHigh = Math.max(...rangeBars.map(b => b.h));
+    const rangeLow  = Math.min(...rangeBars.map(b => b.l));
+    const rangeSz   = rangeHigh - rangeLow;
+
+    if (rangeSz < atr * 0.8 || rangeSz > atr * 6) continue;
+
+    // Count touches
+    const tolerance = atr * 0.25;
+    const topTouches = rangeBars.filter(b => b.h >= rangeHigh - tolerance).length;
+    const botTouches = rangeBars.filter(b => b.l <= rangeLow + tolerance).length;
+    if (topTouches < 2 && botTouches < 2) continue;
+
+    // No strong trend inside range
+    const slopeInside = emaSlope(emas.slice(n - rangeLen - 2, n - 2), Math.min(6, rangeLen - 1));
+    if (Math.abs(slopeInside) > 0.003) continue; // range should be sideways
+
+    const breakBar = bars[n - 1];
+    const slopeNow = emaSlope(emas, Math.min(6, n - 1));
+
+    if (breakBar.c > rangeHigh + tolerance * 0.5) {
+      const entry = rangeHigh + atr * 0.1;
+      const conditions = {
+        rangeFormed: rangeLen >= 8,
+        multiTouch: topTouches >= 2 || botTouches >= 2,
+        closeOutside: breakBar.c > rangeHigh,
+        tension: true,
+        rangeSize: rangeSz >= atr * 0.8 && rangeSz <= atr * 5
+      };
+      const score = scoreRB({ rangeLen, rangeSz, atr, topTouches, botTouches, slopeInside, conditions, breakBar });
+      if (score >= 42) {
+        results.push({ setup:'RB', dir:'long', entry, score, conditions, barIdx: n - 1, rangeHigh, rangeLow });
+      }
+    }
+    if (breakBar.c < rangeLow - tolerance * 0.5) {
+      const entry = rangeLow - atr * 0.1;
+      const conditions = {
+        rangeFormed: rangeLen >= 8,
+        multiTouch: topTouches >= 2 || botTouches >= 2,
+        closeOutside: breakBar.c < rangeLow,
+        tension: true,
+        rangeSize: rangeSz >= atr * 0.8 && rangeSz <= atr * 5
+      };
+      const score = scoreRB({ rangeLen, rangeSz, atr, topTouches, botTouches, slopeInside, conditions, breakBar });
+      if (score >= 42) {
+        results.push({ setup:'RB', dir:'short', entry, score, conditions, barIdx: n - 1, rangeHigh, rangeLow });
+      }
+    }
+  }
+
+  // Deduplicate: keep highest score per direction
+  const best = {};
+  for (const r of results) {
+    const k = r.dir;
+    if (!best[k] || r.score > best[k].score) best[k] = r;
+  }
+  return Object.values(best);
+}
+
+function scoreRB({ rangeLen, rangeSz, atr, topTouches, botTouches, slopeInside, conditions, breakBar }) {
+  let s = 45;
+  // Longer range = more reliable break
+  s += Math.min(12, (rangeLen - 8) * 1.2);
+  // More touches = better
+  s += Math.min(10, (topTouches + botTouches - 2) * 3);
+  // Sideways inside
+  s += Math.max(0, (0.003 - Math.abs(slopeInside)) * 1500);
+  // Breakout body
+  const bbBodyRatio = barBody(breakBar) / barRange(breakBar);
+  s += Math.min(8, bbBodyRatio * 10);
+  if (!conditions.multiTouch) s -= 15;
+  if (!conditions.rangeFormed) s -= 10;
+  return clamp(Math.round(s), 20, 97);
+}
+
+/**
+ * IRB — Inside Range Break (Ch.12)
+ *
+ * Koşullar:
+ * 1. Dış range mevcut (geniş)
+ * 2. İç range dış range içinde tam yer alıyor
+ * 3. İç range kırılımı gerçekleşti
+ */
+function detectIRB(bars, emas, atr) {
+  const n = bars.length;
+  if (n < 25) return [];
+  const results = [];
+
+  // Outer range: last 15–25 bars
+  const outerBars = bars.slice(n - 24, n - 8);
+  const outerHigh = Math.max(...outerBars.map(b => b.h));
+  const outerLow  = Math.min(...outerBars.map(b => b.l));
+  const outerSz   = outerHigh - outerLow;
+  if (outerSz < atr * 1.5) return [];
+
+  // Inner range: last 5–9 bars before current
+  for (let innerLen = 4; innerLen <= 8; innerLen++) {
+    const innerBars = bars.slice(n - innerLen - 2, n - 2);
+    const innerHigh = Math.max(...innerBars.map(b => b.h));
+    const innerLow  = Math.min(...innerBars.map(b => b.l));
+    const innerSz   = innerHigh - innerLow;
+
+    if (innerHigh >= outerHigh - atr * 0.2) continue;
+    if (innerLow  <= outerLow  + atr * 0.2) continue;
+    if (innerSz >= outerSz * 0.65) continue;
+    if (innerSz < atr * 0.3) continue;
+
+    const breakBar = bars[n - 1];
+    const slopeVal = emaSlope(emas, Math.min(6, n - 1));
+
+    if (breakBar.c > innerHigh && breakBar.c > breakBar.o) {
+      const entry = innerHigh + atr * 0.05;
+      const conditions = {
+        outerRange: true,
+        innerInside: true,
+        innerBreak: true,
+        pressure: innerSz < outerSz * 0.5,
+        emaNear: Math.abs(emas[n-1] - (innerHigh + innerLow)/2) / atr < 1.5
+      };
+      const score = scoreIRB({ innerLen, innerSz, outerSz, slopeVal, conditions, breakBar });
+      if (score >= 42) {
+        results.push({ setup:'IRB', dir:'long', entry, score, conditions, barIdx: n - 1, innerHigh, innerLow, outerHigh, outerLow });
+      }
+    }
+    if (breakBar.c < innerLow && breakBar.c < breakBar.o) {
+      const entry = innerLow - atr * 0.05;
+      const conditions = {
+        outerRange: true,
+        innerInside: true,
+        innerBreak: true,
+        pressure: innerSz < outerSz * 0.5,
+        emaNear: Math.abs(emas[n-1] - (innerHigh + innerLow)/2) / atr < 1.5
+      };
+      const score = scoreIRB({ innerLen, innerSz, outerSz, slopeVal, conditions, breakBar });
+      if (score >= 42) {
+        results.push({ setup:'IRB', dir:'short', entry, score, conditions, barIdx: n - 1, innerHigh, innerLow, outerHigh, outerLow });
+      }
+    }
+  }
+  const best = {};
+  for (const r of results) {
+    if (!best[r.dir] || r.score > best[r.dir].score) best[r.dir] = r;
+  }
+  return Object.values(best);
+}
+
+function scoreIRB({ innerLen, innerSz, outerSz, slopeVal, conditions, breakBar }) {
+  let s = 50;
+  const sizeRatio = 1 - innerSz / outerSz; // smaller inner = more tension
+  s += sizeRatio * 15;
+  if (innerLen >= 5) s += 5;
+  s += Math.min(8, Math.abs(slopeVal) / 0.001 * 1.5);
+  const bbBodyRatio = barBody(breakBar) / barRange(breakBar);
+  s += Math.min(8, bbBodyRatio * 10);
+  if (conditions.pressure) s += 5;
+  if (conditions.emaNear) s += 5;
+  if (!conditions.innerInside) s -= 20;
+  return clamp(Math.round(s), 20, 97);
+}
+
+/**
+ * ARB — Advanced Range Break (Ch.13)
+ *
+ * Koşullar (kitaptan):
+ * 1. Önceki range kırılımı (son 5–15 bar içinde)
+ * 2. Barrier zone\'a pullback (eski direnç şimdi destek)
+ * 3. Barrier\'da sinyal barı (doji/küçük bar)
+ * 4. Sinyal barı kırıldı
+ */
+function detectARB(bars, emas, atr) {
+  const n = bars.length;
+  if (n < 25) return [];
+  const results = [];
+
+  // Find prior range high/low (10–20 bars ago)
+  const priorBars = bars.slice(n - 22, n - 8);
+  const priorHigh = Math.max(...priorBars.map(b => b.h));
+  const priorLow  = Math.min(...priorBars.map(b => b.l));
+  const priorSz   = priorHigh - priorLow;
+  if (priorSz < atr * 0.8) return [];
+
+  // Upside break + pullback to prior high
+  const brokeUp = bars.slice(n - 10, n - 3).some(b => b.c > priorHigh);
+  // Downside break + pullback to prior low
+  const brokeDown = bars.slice(n - 10, n - 3).some(b => b.c < priorLow);
+
+  const pullbackZone = bars.slice(n - 5, n - 1);
+  const slopeVal = emaSlope(emas, Math.min(8, n - 1));
+
+  if (brokeUp) {
+    // Pulled back to prior high area
+    const inBarrier = pullbackZone.some(b =>
+      Math.abs(((b.h + b.l)/2) - priorHigh) / atr < 0.8
+    );
+    if (inBarrier) {
+      const signalBar = pullbackZone[pullbackZone.length - 1];
+      const isSignal = isDoji(signalBar, 0.40) || barRange(signalBar) < atr * 0.6;
+      if (isSignal) {
+        const entry = signalBar.h + atr * 0.05;
+        const conditions = {
+          prevBreak: true,
+          barrierPullback: inBarrier,
+          signalBar: isSignal,
+          barrierLevel: true,
+          emaConfirms: slopeVal > -0.001
+        };
+        const score = scoreARB({ inBarrier, isSignal, slopeVal, signalBar, atr, conditions });
+        if (score >= 42) {
+          results.push({ setup:'ARB', dir:'long', entry, score, conditions, barIdx: n - 2, barrierLevel: priorHigh });
+        }
+      }
+    }
+  }
+  if (brokeDown) {
+    const inBarrier = pullbackZone.some(b =>
+      Math.abs(((b.h + b.l)/2) - priorLow) / atr < 0.8
+    );
+    if (inBarrier) {
+      const signalBar = pullbackZone[pullbackZone.length - 1];
+      const isSignal = isDoji(signalBar, 0.40) || barRange(signalBar) < atr * 0.6;
+      if (isSignal) {
+        const entry = signalBar.l - atr * 0.05;
+        const conditions = {
+          prevBreak: true,
+          barrierPullback: inBarrier,
+          signalBar: isSignal,
+          barrierLevel: true,
+          emaConfirms: slopeVal < 0.001
+        };
+        const score = scoreARB({ inBarrier, isSignal, slopeVal, signalBar, atr, conditions });
+        if (score >= 42) {
+          results.push({ setup:'ARB', dir:'short', entry, score, conditions, barIdx: n - 2, barrierLevel: priorLow });
+        }
+      }
+    }
+  }
+  return results;
+}
+
+function scoreARB({ inBarrier, isSignal, slopeVal, signalBar, atr, conditions }) {
+  let s = 52;
+  if (inBarrier) s += 12;
+  if (isSignal) s += 10;
+  s += Math.min(10, Math.abs(slopeVal) / 0.001 * 2);
+  // Small signal bar = better
+  const smallSignal = barRange(signalBar) < atr * 0.4;
+  if (smallSignal) s += 8;
+  if (conditions.emaConfirms) s += 6;
+  if (!conditions.prevBreak) s -= 25;
+  if (!conditions.barrierPullback) s -= 15;
+  return clamp(Math.round(s), 20, 97);
+}
+
+// ═══════════════════════════════════════════════════════
+//  MAIN SCAN ORCHESTRATOR
+// ═══════════════════════════════════════════════════════
+async function startScan() {
+  const btn = document.getElementById('scanBtn');
+  btn.disabled = true;
+  document.getElementById('scanBtnTxt').textContent = 'Taranıyor...';
+
+  setLoading(true, 'Başlatılıyor', 'Binance API bağlantısı kuruluyor');
+  allSignals = [];
+
+  const listKey = document.getElementById('coinList').value;
+  const coins = COIN_LISTS[listKey];
+  const tf = currentTf;
+
+  await fetchMarketPrices();
+
+  const DETECTORS = [detectDD, detectFB, detectSB, detectBB, detectRB, detectIRB, detectARB];
+  let scanned = 0;
+
+  for (const coin of coins) {
+    const pct = Math.round((scanned / coins.length) * 100);
+    setLoading(true, `${coin} analiz ediliyor...`, `${scanned + 1} / ${coins.length} coin — ${pct}%`);
+    setLoadingProgress(pct);
+
+    const bars = await fetchKlines(coin, tf, 60);
+    if (!bars) { scanned++; continue; }
+
+    const closes = bars.map(b => b.c);
+    const emas   = calcEMA(closes, 20);
+    const atr    = calcATR(bars, 14);
+    const price  = bars[bars.length - 1].c;
+    const slope  = emaSlope(emas, Math.min(8, emas.length - 1));
+    const ema20  = emas[emas.length - 1];
+    const chg24h = ((price - bars[0].c) / bars[0].c * 100);
+
+    let coinSignals = [];
+    for (const det of DETECTORS) {
+      try {
+        const sigs = det(bars, emas, atr);
+        coinSignals.push(...sigs);
+      } catch(e) {}
+    }
+
+    // Sort by score, keep top 2 per coin (avoid duplicates)
+    coinSignals.sort((a,b) => b.score - a.score);
+    const seen = new Set();
+    for (const sig of coinSignals) {
+      const key = `${sig.dir}-${sig.setup}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      if (seen.size > 2) break;
+
+      const pip = calcPipSize(atr);
+      const target = sig.dir === 'long' ? sig.entry + pip * 10 : sig.entry - pip * 10;
+      const stop   = sig.dir === 'long' ? sig.entry - pip * 10 : sig.entry + pip * 10;
+      const rr     = Math.abs(target - sig.entry) / Math.abs(stop - sig.entry);
+
+      allSignals.push({
+        coin, price, ema: ema20, emaSlope: slope,
+        atr, chg24h, tf,
+        ...sig, target, stop, rr, pip,
+        barCount: bars.length
+      });
+    }
+
+    scanned++;
+    updateStatBar(scanned, coins.length);
+    await sleep(90);
+  }
+
+  updateSetupCounts();
+  applyFilters();
+  updateStats(scanned);
+  setLoading(false);
+
+  btn.disabled = false;
+  document.getElementById('scanBtnTxt').textContent = 'Yeniden Tara';
+  document.getElementById('s-lasttime').textContent = new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('s-status').textContent = `${scanned} coin tarandı`;
+  toast(`${allSignals.length} sinyal bulundu — ${scanned} coin tarandı`, 'ok');
+}
+
+// ═══════════════════════════════════════════════════════
+//  FILTER + RENDER
+// ═══════════════════════════════════════════════════════
+function applyFilters() {
+  const minScore = parseInt(document.getElementById('scoreSlider').value);
+
+  filteredSignals = allSignals.filter(s => {
+    if (!activeSetups.has(s.setup)) return false;
+    if (s.dir === 'long'  && !dirFilter.long)  return false;
+    if (s.dir === 'short' && !dirFilter.short) return false;
+    if (s.score < minScore) return false;
+    return true;
+  });
+
+  filteredSignals.sort((a,b) => {
+    if (sortBy === 'score') return b.score - a.score;
+    if (sortBy === 'setup') return a.setup.localeCompare(b.setup);
+    if (sortBy === 'dir')   return a.dir.localeCompare(b.dir);
+    if (sortBy === 'name')  return a.coin.localeCompare(b.coin);
+    return 0;
+  });
+
+  renderSignals();
+  updateStats();
+}
+
+function renderSignals() {
+  const grid  = document.getElementById('signalsGrid');
+  const empty = document.getElementById('emptyState');
+  grid.innerHTML = '';
+
+  if (filteredSignals.length === 0) {
+    empty.classList.add('visible');
+    return;
+  }
+  empty.classList.remove('visible');
+
+  filteredSignals.forEach((sig, i) => {
+    const card = buildCard(sig);
+    card.style.animationDelay = `${i * 30}ms`;
+    grid.appendChild(card);
+  });
+  document.getElementById('resultCount').textContent = `${filteredSignals.length} sonuç`;
+}
+
+function buildCard(sig) {
+  const div = document.createElement('div');
+  div.className = `sig-card ${sig.dir === 'long' ? 'long-card' : 'short-card'}`;
+
+  const cs = getCoinStyle(sig.coin);
+  const setupInfo = SETUPS[sig.setup];
+  const confClass = sig.score >= 75 ? 'conf-high' : sig.score >= 58 ? 'conf-medium' : 'conf-low';
+  const emaDir  = sig.emaSlope > 0.0003 ? '↗ Yükselen' : sig.emaSlope < -0.0003 ? '↘ Alçalan' : '→ Yatay';
+  const emaCls  = sig.emaSlope > 0.0003 ? 'bull-text' : sig.emaSlope < -0.0003 ? 'bear-text' : 'neutral-text';
+  const chgTxt  = (sig.chg24h >= 0 ? '+' : '') + sig.chg24h.toFixed(2) + '%';
+  const chgCls  = sig.chg24h >= 0 ? 'bull-text' : 'bear-text';
+  const targetPct = ((Math.abs(sig.target - sig.price) / sig.price) * 100).toFixed(2);
+  const stopPct   = ((Math.abs(sig.stop - sig.price) / sig.price) * 100).toFixed(2);
+
+  div.innerHTML = `
+    <div class="card-top">
+      <div class="card-coin">
+        <div class="coin-avatar" style="background:${cs.bg};color:${cs.color};">
+          ${sig.coin.substring(0,4)}
+        </div>
+        <div>
+          <div class="coin-ticker">${sig.coin}<span class="text-sm text-muted" style="font-weight:400;margin-left:4px;">/USDT</span></div>
+          <div class="coin-meta">${fmtPrice(sig.price)} · ${sig.tf}</div>
+        </div>
+      </div>
+      <div class="card-badges">
+        <span class="badge badge-setup" title="${setupInfo.name}">${sig.setup}</span>
+        <span class="badge ${sig.dir === 'long' ? 'badge-long' : 'badge-short'}">
+          ${sig.dir === 'long' ? '▲ LONG' : '▼ SHORT'}
+        </span>
+      </div>
+    </div>
+
+    <div class="card-levels">
+      <div class="level-cell level-entry">
+        <div class="level-label">Giriş</div>
+        <div class="level-price">${fmtPrice(sig.entry)}</div>
+        <div class="level-pct text-muted text-xs">kırılım noktası</div>
+      </div>
+      <div class="level-cell level-target">
+        <div class="level-label">🎯 Hedef</div>
+        <div class="level-price">${fmtPrice(sig.target)}</div>
+        <div class="level-pct bull-text text-xs">+${targetPct}%</div>
+      </div>
+      <div class="level-cell level-stop">
+        <div class="level-label">🛑 Stop</div>
+        <div class="level-price">${fmtPrice(sig.stop)}</div>
+        <div class="level-pct bear-text text-xs">-${stopPct}%</div>
+      </div>
+    </div>
+
+    <div class="card-metrics">
+      <div class="card-metric">
+        <div class="cm-label">R/R</div>
+        <div class="cm-val neutral-text">1:1</div>
+      </div>
+      <div class="card-metric">
+        <div class="cm-label">24s</div>
+        <div class="cm-val ${chgCls}">${chgTxt}</div>
+      </div>
+      <div class="card-metric">
+        <div class="cm-label">20 EMA</div>
+        <div class="cm-val text-sm ${emaCls}">${emaDir}</div>
+      </div>
+      <div class="card-metric">
+        <div class="cm-label">ATR</div>
+        <div class="cm-val text-muted">${fmtPrice(sig.atr)}</div>
+      </div>
+    </div>
+
+    <div class="conf-wrap ${confClass}">
+      <div class="conf-header">
+        <span class="conf-label">Güven Skoru</span>
+        <span class="conf-val ${sig.score>=75?'bull-text':sig.score>=58?'neutral-text':'bear-text'}">${sig.score}%</span>
+      </div>
+      <div class="conf-track">
+        <div class="conf-fill" style="width:${sig.score}%"></div>
+      </div>
+    </div>
+  `;
+
+  div.addEventListener('click', () => openModal(sig));
+  return div;
+}
+
+// ═══════════════════════════════════════════════════════
+//  MODAL
+// ═══════════════════════════════════════════════════════
+function openModal(sig) {
+  const info = SETUPS[sig.setup];
+  const emaDir  = sig.emaSlope > 0.0003 ? '↗ Yükselen' : sig.emaSlope < -0.0003 ? '↘ Alçalan' : '→ Yatay';
+  const emaCls  = sig.emaSlope > 0.0003 ? 'bull-text' : sig.emaSlope < -0.0003 ? 'bear-text' : 'neutral-text';
+  const targetPct = ((Math.abs(sig.target - sig.price) / sig.price) * 100).toFixed(3);
+  const stopPct   = ((Math.abs(sig.stop - sig.price) / sig.price) * 100).toFixed(3);
+  const chgTxt    = (sig.chg24h >= 0 ? '+' : '') + sig.chg24h.toFixed(2) + '%';
+
+  document.getElementById('m-title').innerHTML =
+    `${sig.coin}/USDT &nbsp;<span class="badge ${sig.dir==='long'?'badge-long':'badge-short'}">${sig.dir==='long'?'▲ LONG':'▼ SHORT'}</span>&nbsp;<span class="badge badge-setup">${sig.setup} · ${info.name}</span>`;
+  document.getElementById('m-sub').textContent = `${sig.tf} · ${fmtPrice(sig.price)} · Güven: ${sig.score}%`;
+
+  document.getElementById('m-entry').textContent = fmtPrice(sig.entry);
+  document.getElementById('m-target').textContent = fmtPrice(sig.target);
+  document.getElementById('m-target-pct').textContent = `+${targetPct}% hedef`;
+  document.getElementById('m-stop').textContent = fmtPrice(sig.stop);
+  document.getElementById('m-stop-pct').textContent = `-${stopPct}% risk`;
+
+  document.getElementById('m-rr').textContent = '1 : 1';
+  document.getElementById('m-score').textContent = sig.score + '%';
+  document.getElementById('m-ema').innerHTML = `<span class="${emaCls}">${emaDir}</span>`;
+  document.getElementById('m-atr').textContent = fmtPrice(sig.atr);
+  const chgEl = document.getElementById('m-chg');
+  chgEl.textContent = chgTxt;
+  chgEl.className = 'modal-stat-val ' + (sig.chg24h >= 0 ? 'bull-text' : 'bear-text');
+  document.getElementById('m-tf').textContent = sig.tf.toUpperCase();
+
+  document.getElementById('m-explain').textContent = info.description;
+
+  // Conditions
+  const condsEl = document.getElementById('m-conds');
+  condsEl.innerHTML = info.conditions.map(c => {
+    const met = sig.conditions && sig.conditions[c.key] === true;
+    const icon = met ? '✅' : '⬜';
+    return `<div class="cond-item"><span class="cond-icon">${icon}</span><span>${c.text}</span></div>`;
+  }).join('');
+
+  // Note
+  const condMet = info.conditions.filter(c => sig.conditions && sig.conditions[c.key]).length;
+  const condTotal = info.conditions.length;
+  document.getElementById('m-note').textContent =
+    `${info.name} setup'ı ${sig.coin}/USDT üzerinde ${sig.dir === 'long' ? 'yükseliş' : 'düşüş'} sinyali üretiyor. ` +
+    `${condMet}/${condTotal} Volman koşulu karşılandı. ` +
+    `Giriş: ${fmtPrice(sig.entry)} · Hedef: ${fmtPrice(sig.target)} (+${targetPct}%) · Stop: ${fmtPrice(sig.stop)} (-${stopPct}%). ` +
+    `Volman sistemine göre her iki tarafta da ATR bazlı 10 pip (~${fmtPrice(sig.pip * 10)}) mesafe. ` +
+    `Bu setup ${info.bestIn} ortamında en iyi sonucu verir. ` +
+    `20 EMA durumu: ${emaDir}. ` +
+    `Not: Risk/Getiri oranı 1:1 olup Volman kitabının temel sistemiyle uyumludur. Kayıp ve kazanç ihtimali eşit olduğunda yüksek güven skoru ve doğru koşul tespiti kenarı oluşturur.`;
+
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modalBg').classList.remove('open'); }
+function handleModalBgClick(e) { if (e.target === document.getElementById('modalBg')) closeModal(); }
+
+// ═══════════════════════════════════════════════════════
+//  STAT UPDATES
+// ═══════════════════════════════════════════════════════
+function updateStatBar(done, total) {
+  document.getElementById('s-total').textContent = allSignals.length;
+  document.getElementById('s-status').textContent = `${done}/${total} tarandı`;
+}
+
+function updateStats(scanned) {
+  const total  = filteredSignals.length;
+  const longs  = filteredSignals.filter(s => s.dir === 'long').length;
+  const shorts = filteredSignals.filter(s => s.dir === 'short').length;
+  const avgConf = total ? Math.round(filteredSignals.reduce((s,x) => s+x.score, 0) / total) : 0;
+
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-long').textContent  = longs;
+  document.getElementById('s-short').textContent = shorts;
+  document.getElementById('s-conf').textContent  = total ? avgConf + '%' : '—';
+  if (scanned !== undefined) {
+    document.getElementById('s-scan-info').textContent = `${scanned} coin tarandı`;
+  }
+  document.getElementById('resultCount').textContent = total ? `${total} sonuç` : '';
+}
+
+function updateSetupCounts() {
+  for (const code of Object.keys(SETUPS)) {
+    const cnt = allSignals.filter(s => s.setup === code).length;
+    const el = document.getElementById('cnt-' + code);
+    if (el) el.textContent = cnt;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  UI CONTROLS
+// ═══════════════════════════════════════════════════════
+function toggleSetup(code, chip) {
+  if (activeSetups.has(code)) {
+    activeSetups.delete(code);
+    chip.classList.remove('active');
+  } else {
+    activeSetups.add(code);
+    chip.classList.add('active');
+  }
+  applyFilters();
+}
+
+function toggleDir(dir) {
+  dirFilter[dir] = !dirFilter[dir];
+  const btn = document.getElementById(dir === 'long' ? 'btnLong' : 'btnShort');
+  btn.className = `dir-btn${dirFilter[dir] ? (dir==='long' ? ' active-long' : ' active-short') : ''}`;
+  applyFilters();
+}
+
+function setTf(tf, el) {
+  currentTf = tf;
+  document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function setSortBy(s, el) {
+  sortBy = s;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  applyFilters();
+}
+
+// ═══════════════════════════════════════════════════════
+//  LOADING + TOAST
+// ═══════════════════════════════════════════════════════
+function setLoading(v, title, sub) {
+  const el = document.getElementById('loading-overlay');
+  el.classList.toggle('visible', v);
+  if (title) document.getElementById('loadText').textContent = title;
+  if (sub)   document.getElementById('loadSub').textContent  = sub;
+}
+function setLoadingProgress(pct) {
+  document.getElementById('loadFill').style.width = pct + '%';
+}
+
+function toast(msg, type = 'info') {
+  const area = document.getElementById('toastArea');
+  const el = document.createElement('div');
+  el.className = `toast-item ${type}`;
+  el.textContent = msg;
+  area.appendChild(el);
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
+  setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, 4500);
+}
+
+// ═══════════════════════════════════════════════════════
+//  UTILITY
+// ═══════════════════════════════════════════════════════
+function fmtPrice(p) {
+  if (p == null) return '—';
+  if (p >= 10000) return '$' + p.toLocaleString('en-US', {maximumFractionDigits:1});
+  if (p >= 1000)  return '$' + p.toLocaleString('en-US', {maximumFractionDigits:2});
+  if (p >= 100)   return '$' + p.toFixed(3);
+  if (p >= 1)     return '$' + p.toFixed(4);
+  if (p >= 0.01)  return '$' + p.toFixed(5);
+  return '$' + p.toFixed(7);
+}
+
+function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ═══════════════════════════════════════════════════════
+//  KEYBOARD
+// ═══════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+// ═══════════════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', initUI);
+</script>
+
+</body>
+</html>
