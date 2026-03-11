@@ -1308,87 +1308,72 @@ background-color: #30363d; flex-shrink: 0;
 //  SETUP DEFINITIONS — Bob Volman kitabından birebir
 // ═══════════════════════════════════════════════════════════
 const SETUP_DEF = {
-  DD:{code:'DD', name:'Double Doji Break', color:'#58a6ff',
-    desc:'2+ ardışık doji (body/range<0.30) 20 EMA yakınında, trend pullback sonunda sıkışır. '+
-         'Doji barları çevrelerindeki trend barlarından belirgin biçimde küçük olmalı (compression). '+
-         'Sinyal barı: en yüksek high (long) veya en düşük low (short). Kırılım = giriş.',
+  DD:{ name:'Double Doji Break', color:'#58a6ff',
+    desc:'Trend içinde pullback sırasında 20 EMA yakınında 2+ doji. Dojiler çevrelerindeki trend barlarından belirgin şekilde küçük olmalı (compression). ~%40-60 retracement tamamlanmış.',
     conds:[
-      {k:'doji2',   t:'2+ ardışık doji/küçük bar'},
-      {k:'nearEma', t:'20 EMA yakınında (<1.5×ATR)'},
-      {k:'slope',   t:'20 EMA net slope var'},
-      {k:'compress',t:'Doji barları trend barlarından küçük'},
-      {k:'pullback',t:'Öncesinde pullback mevcut'},
+      {k:'doji2',   t:'En az 2 doji barı'},
+      {k:'nearEma', t:'20 EMA yakınında (≤2 ATR)'},
+      {k:'compress',t:'Doji barları sıkışmış (compression)'},
+      {k:'pullback', t:'Karşı trend rengi pullback'},
+      {k:'retracement',t:'%30-75 retracement'},
+      {k:'pathClear',t:'Hedef yolunda direnç yok'},
     ]},
-  FB:{code:'FB', name:'First Break', color:'#3fb950',
-    desc:'Güçlü agresif spike (fishhook) sonrası ilk pullback\'in kırılması. '+
-         'Koşullar (kitaptan): (1) Spike: uzun trend barları, hızlı tek yönlü hareket. '+
-         '(2) Pullback: agresif spike\'ın %40–60\'ını geri almalı, 20 EMA\'ya ulaşmalı. '+
-         '(3) Bu pullback ilk pullback olmalı. Kırılım barı: pullback\'in ilk barını aşan bar.',
+  FB:{ name:'First Break', color:'#3fb950',
+    desc:'Konsolidasyondan çıkan agresif tek yönlü spike sonrası ilk pullback. Pullback 20 EMA'ya ulaşmalı, tek yönlü olmalı. Spike içinde mini geri dönüş olmamalı.',
     conds:[
-      {k:'spike',   t:'Güçlü agresif spike tespit edildi'},
-      {k:'first',   t:'Trend\'in ilk pullback\'i'},
-      {k:'retrace', t:'%35–70 retracement tamamlandı'},
-      {k:'emarea',  t:'20 EMA bölgesine ulaştı'},
-      {k:'cleanpb', t:'Pullback barları tek yönlü'},
+      {k:'spike',    t:'Agresif tek yönlü spike'},
+      {k:'first',    t:'İlk pullback (daha önce yok)'},
+      {k:'retrace',  t:'%30-80 retracement'},
+      {k:'emarea',   t:'20 EMA'ya ulaşmış'},
+      {k:'cleanpb',  t:'Tek yönlü pullback barları'},
+      {k:'signalSize',t:'Küçük signal bar (≤1.3 ATR)'},
+      {k:'pathClear',t:'Hedef yolunda direnç yok'},
     ]},
-  SB:{code:'SB', name:'Second Break', color:'#6ee7b7',
-    desc:'FB kaçırıldığında veya başarısız olduğunda ikinci kırılım. '+
-         'Kitaba göre SB aslında iki ardışık FB gibidir. Double bottom (long) / double top (short) yapısı. '+
-         'İlk kırılım seviyesi test edilir, fiyat geri döner, aynı noktadan tekrar kırılım yapar. '+
-         'SB, daha güvenilir çünkü double bottom/top onayı sağlar.',
+  SB:{ name:'Second Break', color:'#d2a8ff',
+    desc:'İki ardışık FB → W (long) veya M (short) pattern. İlk atağın geri dönmesi, ikinci atağın mid-point'i kırması. Kitap: "two FBs following each other".',
     conds:[
-      {k:'firstFail', t:'İlk kırılım tespit edildi / kaçırıldı'},
-      {k:'secondThrust',t:'İkinci with-trend atağı'},
-      {k:'dblPattern',t:'Double bottom/top yapısı'},
-      {k:'emaarea',   t:'20 EMA bölgesinden geliyor'},
-      {k:'momentum',  t:'Kırılım barı güçlü kapanış'},
+      {k:'firstFail',    t:'İlk atağın geri dönmesi'},
+      {k:'secondThrust', t:'İkinci yönlü hamle'},
+      {k:'dblPattern',   t:'W/M pattern oluşumu'},
+      {k:'emaarea',      t:'20 EMA yakınında'},
+      {k:'momentum',     t:'Kırılım barı gövdeli'},
     ]},
-  BB:{code:'BB', name:'Block Break', color:'#fde68a',
-    desc:'2–5 bar dar yatay blok (pre-breakout tension). Tüm piyasa koşullarında çalışır. '+
-         'Blok barları net high/low sınırlarına sahip olmalı. '+
-         'Kırılım barı blok high (long) veya low (short) dışına kapanmalı (close outside). '+
-         'Volman: kırılım barı + blok = "sinyal barı grubu", entry barı bunları kırar.',
+  BB:{ name:'Block Break', color:'#ffa657',
+    desc:'2-6 bar dar yatay blok, her iki tarafta dokunuş. Pre-breakout tension. Kırılım barı close dışarıda, gövdeli. Trend içi, trend sonu veya ranging market'te görülür.',
     conds:[
-      {k:'block',    t:'2–5 bar dar yatay blok'},
-      {k:'bounds',   t:'Net high/low sınırları'},
-      {k:'closeOut', t:'Kırılım barı blok dışına kapandı'},
-      {k:'bodyClose',t:'Kırılım barı gövdeli kapanış'},
-      {k:'clearPath',t:'Hedef yolunda büyük engel yok'},
+      {k:'block',    t:'2-6 bar blok yapısı'},
+      {k:'bounds',   t:'Her iki tarafta dokunuş'},
+      {k:'tension',  t:'Pre-breakout tension (sıkışma)'},
+      {k:'closeOut', t:'Close blok dışında'},
+      {k:'bodyClose',t:'Kırılım barı gövdeli (>%35)'},
+      {k:'clearPath',t:'Hedef yolunda direnç yok'},
     ]},
-  RB:{code:'RB', name:'Range Break', color:'#c4b5fd',
-    desc:'Belirgin yatay range kırılması. Range: minimum 2 tavan + 2 taban dokunuşu, 8+ bar. '+
-         'Volman: range içinde büyük ölçüde yatay hareket olmalı (EMA düz). '+
-         'Kırılım barı close dışarıda olmalı. '+
-         'Round number seviyeleri (X.X00, X.X50) yakınındaki RB daha güçlüdür.',
+  RB:{ name:'Range Break', color:'#f0883e',
+    desc:'8+ bar yatay range, min 2 tavan + 2 taban dokunuşu. 20 EMA range içinde yatay. Pre-breakout squeeze. Kırılım barı close dışarıda, gövdeli.',
     conds:[
-      {k:'rangeFrmd', t:'Net range (8+ bar, 2+ tavan/taban)'},
-      {k:'sideways',  t:'Range içinde EMA düz/yatay'},
-      {k:'closeOut',  t:'Kırılım barı close range dışında'},
-      {k:'tension',   t:'Pre-breakout baskı birikimi'},
-      {k:'atrRange',  t:'ATR bazlı range boyutu uygun'},
+      {k:'rangeFrmd', t:'En az 8 bar range'},
+      {k:'sideways',  t:'EMA yatay (slope <0.003)'},
+      {k:'tension',   t:'Pre-breakout squeeze'},
+      {k:'closeOut',  t:'Close range dışında'},
+      {k:'atrRange',  t:'Range yeterli genişlikte'},
     ]},
-  IRB:{code:'IRB', name:'Inside Range Break', color:'#f9a8d4',
-    desc:'Geniş dış range içinde daha küçük iç range kırılması. '+
-         'İç range tamamen dış range içinde yer almalı (inner high < outer high, inner low > outer low). '+
-         'İç range kırılımı, dış range\'in destek/direncini güçlendirerek yüksek olasılıklı sinyal üretir.',
+  IRB:{ name:'Inside Range Break', color:'#79c0ff',
+    desc:'İç range tamamen dış range içinde. İç range sıklıkla BB veya DD içeriyor (cup-and-handle). Signal line birden fazla eşit dokunuş. 20 EMA iç range yakınında.',
     conds:[
-      {k:'outerRng',  t:'Dış (ana) range tespit edildi'},
-      {k:'innerIn',   t:'İç range tamamen dış içinde'},
-      {k:'innerBrk',  t:'İç range kırılımı gerçekleşti'},
-      {k:'sizeRatio', t:'İç range dış range\'in <%65\'i'},
-      {k:'emaNear',   t:'20 EMA iç range yakınında'},
+      {k:'outerRng',  t:'Dış range oluşmuş'},
+      {k:'innerIn',   t:'İç range tamamen dışın içinde'},
+      {k:'sizeRatio', t:'İç range <%65 dış range'},
+      {k:'emaNear',   t:'20 EMA inner range yakınında'},
+      {k:'innerBrk',  t:'İç range kırılımı gövdeli'},
     ]},
-  ARB:{code:'ARB', name:'Advanced Range Break', color:'#fdba74',
-    desc:'Range kırılımı sonrası barrier zone\'a pullback, orada doji/küçük sinyal barı. '+
-         'Volman: barrier = eski direnç şimdi destek (veya tersi). '+
-         'Barrier zone\'da biriken sinyal barı kırıldığında en güvenilir RB versiyonu. '+
-         'Barrier yakınındaki EMA squeeze bu setup\'ı daha da güçlendirir.',
+  ARB:{ name:'Advanced Range Break', color:'#ff7b72',
+    desc:'Tip1: Barrier'da hesitasyon cluster → kırılım. Tip2: Güçlü break → barrier zone'a pullback (ceiling test, false break değil) → signal bar → kırılım. "Test of last support/resistance".',
     conds:[
-      {k:'prevBreak',  t:'Önceki range kırılımı tespit edildi'},
-      {k:'barrierPb',  t:'Barrier zone\'a pullback yapıldı'},
-      {k:'signalBar',  t:'Barrier\'da doji/küçük sinyal barı'},
-      {k:'barrierOld', t:'Barrier eski direnç/destek seviyesi'},
-      {k:'emaConfirm', t:'20 EMA kırılım yönünü onaylıyor'},
+      {k:'prevBreak', t:'Önceki range kırılımı'},
+      {k:'barrierPb', t:'Barrier zone'a pullback'},
+      {k:'signalBar', t:'Signal bar oluşumu'},
+      {k:'barrierOld',t:'Barrier eski dirençten geliyor'},
+      {k:'emaConfirm',t:'EMA yön doğruluyor'},
     ]},
 };
 
@@ -1520,19 +1505,13 @@ async function fetchHeaderPrices() {
 // ═══════════════════════════════════════════════════════════
 //  BINANCE API
 // ═══════════════════════════════════════════════════════════
-// Volman: Her setup için yeterli bağlam lazım.
-// DD/FB: ~30 bar, RB: ~35 bar, IRB: ~30 bar, ARB: ~35 bar
-// En az 80 bar — ama 1h'de aşırı geçmişi çekmeyelim
-const TF_LIMIT = {
-  '1m': 100,  // 100 dk — spike+pullback+range için yeterli
-  '3m': 90,   // 4.5 saat
-  '5m': 80,   // 6.7 saat (Volman'ın ~1.5 saat önerisiyle uyumlu)
-  '15m': 70,  // 17 saat
-  '1h': 60,   // 60 saat (daha uzun vadeli bağlam)
-};
+
+
 
 async function fetchBars(sym, tf, limit) {
-  if (limit === undefined) limit = TF_LIMIT[tf] || 80;
+  // Bar sayısı: 1m=150, 3m=130, 5m=120, 15m=100, 1h=80
+  const _TF_L={'1m':150,'3m':130,'5m':120,'15m':100,'1h':80};
+  if (limit === undefined) limit = _TF_L[tf] || 80;
   try {
     const r = await fetch(`https://api.binance.com/api/v3/klines?symbol=${sym}USDT&interval=${tf}&limit=${limit}`);
     if (!r.ok) return null;
@@ -1543,20 +1522,32 @@ async function fetchBars(sym, tf, limit) {
 }
 
 // ═══════════════════════════════════════════════════════════
-//  INDICATORS
+//  BAR COUNTS — Kitap: "~1.5 saat bağlam yeterli"
+//  70-tick = ~120 bar/saat → 1.5h = ~180 bar
+//  Kripto timeframe uyarlaması:
+//  1m:  150 bar = 2.5 saat (setup bağlamı için yeterli)
+//  3m:  130 bar = 6.5 saat
+//  5m:  120 bar = 10 saat (RB/IRB için range tespiti)
+//  15m: 100 bar = 25 saat
+//  1h:   80 bar = 80 saat
+// ═══════════════════════════════════════════════════════════
+const TF_LIMIT = { '1m':150, '3m':130, '5m':120, '15m':100, '1h':80 };
+
+// ═══════════════════════════════════════════════════════════
+//  INDICATORS — Kitap Ch.6: Sadece 20 EMA
 // ═══════════════════════════════════════════════════════════
 
-/* 20-bar EMA — proper SMA seed (Volman'ın tek indikatörü) */
+/* 20-bar EMA: SMA seed → exponential */
 function ema20(bars) {
-  const closes = bars.map(b=>b.c), k = 2/21;
-  let e = closes.slice(0,20).reduce((s,v)=>s+v,0)/20;
+  const cl = bars.map(b=>b.c), k = 2/21;
+  let e = cl.slice(0,20).reduce((s,v)=>s+v,0)/20;
   const out = Array(20).fill(e);
-  for (let i=20;i<closes.length;i++) { e = closes[i]*k + e*(1-k); out.push(e); }
+  for (let i=20;i<cl.length;i++) { e=cl[i]*k+e*(1-k); out.push(e); }
   return out;
 }
 
-/* ATR — Average True Range */
-function atr(bars, p=14) {
+/* ATR — Average True Range (14 bar) */
+function calcATR(bars, p=14) {
   if (bars.length<2) return bars[0].h-bars[0].l;
   const trs=[];
   for(let i=1;i<bars.length;i++)
@@ -1565,410 +1556,835 @@ function atr(bars, p=14) {
   return sl.reduce((a,b)=>a+b,0)/sl.length;
 }
 
-/* EMA slope — trend direction indicator */
-function slope(emas, lb=6) {
+/* EMA slope (fraksiyonel) */
+function emaSlp(emas, lb=6) {
   const n=emas.length;
   return n<lb+1 ? 0 : (emas[n-1]-emas[n-1-lb])/emas[n-1-lb];
 }
 
-/* Doji — body/range ratio (Volman Ch.7: small body = market indecision) */
-function isDoji(b, thr=0.30) {
+/* Doji tespiti — Kitap: "body almost non-existent" */
+function isDoji(b, thr=0.33) {
   const body=Math.abs(b.c-b.o), rng=b.h-b.l;
-  return rng>0 && body/rng<=thr;
+  return rng>0.00000001 && body/rng<=thr;
 }
 
-/* Trend quality — % of bars closing in given direction */
+/* Bar yönü: +1=boğa, -1=ayı */
+function barDir(b) { return b.c>=b.o ? 1 : -1; }
+
+/* Trend kalitesi: verilen yönde kapanan bar yüzdesi */
 function trendQ(bars, dir) {
   let ok=0;
-  for (const b of bars) {
-    if(dir==='up'&&b.c>b.o) ok++;
-    if(dir==='dn'&&b.c<b.o) ok++;
-  }
+  for(const b of bars) { if(dir==='up'&&b.c>b.o) ok++; if(dir==='dn'&&b.c<b.o) ok++; }
   return bars.length>0 ? ok/bars.length : 0;
 }
 
-/* Pip size from ATR (Volman: 10 pip target & stop) */
-function pipSz(a) { return a*0.15; }
+/* Pip boyutu — Volman: 10 pip hedef ve stop
+   Kripto adaptasyonu: ATR tabanlı volatilite-normalize pip
+   pipSz = ATR * factor; pip*10 = hedef/stop mesafesi */
+function pipSz(A) { return A * 0.12; }
 
 /* Clamp */
 function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
 
+/* Path clearance — Kitap: "absence of immediate chart resistance"
+   Hedef yolunda clustering/direnç/destek var mı?
+   Evet ise trade riskli → skor düşer */
+function pathClear(bars, entry, target, A) {
+  const dir = target > entry ? 'up' : 'dn';
+  const lo = Math.min(entry, target);
+  const hi = Math.max(entry, target);
+  const recent = bars.slice(-20); // son 20 bar
+  let blocks = 0;
+  for (const b of recent) {
+    // Bu bar'ın gövdesi hedef yolunu kesiyor mu?
+    const bLo = Math.min(b.o, b.c);
+    const bHi = Math.max(b.o, b.c);
+    if (bHi > lo+A*0.5 && bLo < hi-A*0.5) blocks++;
+  }
+  return blocks < 6; // 6'dan az bar yolu kesiyor = temiz
+}
+
+/* Round number yakınlığı — Kitap: Volman XX.X00 ve XX.X50 seviyelerinden söz eder
+   Bu seviyeler kırılması zor direnç/destek oluşturur */
+function nearRoundNum(price, A) {
+  // En yakın .00 veya .50 seviyesi
+  const s = price.toString().replace(/[^0-9.]/g,'');
+  const p = parseFloat(s);
+  // 4 basamaklı sayı için round number: son 2 rakam 00 veya 50
+  const scaled = Math.round(p * 100) / 100;
+  const frac = (scaled % 1);
+  const distTo00 = Math.min(Math.abs(frac), Math.abs(1-frac));
+  const distTo50 = Math.abs(frac - 0.5);
+  const nearest = Math.min(distTo00, distTo50);
+  // ATR'nin %15'inden yakın mı?
+  return nearest < A * 0.15;
+}
+
+/* EMA waving (unfavorable) — Kitap: EMA sideways/dalgalı → olumsuz
+   EMA birkaç kez yön değiştiriyorsa sideways */
+function emaWaving(emas, lb=10) {
+  const n=emas.length;
+  if(n<lb+2) return false;
+  const slice = emas.slice(n-lb-1);
+  let turns=0;
+  for(let i=1;i<slice.length-1;i++){
+    const up1=slice[i]>slice[i-1], up2=slice[i+1]>slice[i];
+    if(up1!==up2) turns++;
+  }
+  return turns>=3; // 3+ yön değişimi = waving
+}
+
 // ═══════════════════════════════════════════════════════════
-//  SETUP DETECTORS — Kitap bölümleri bazında düzeltilmiş
+//  SETUP DETECTORS — Kitap bölümlerine göre yeniden yazıldı
 // ═══════════════════════════════════════════════════════════
 
 /*
+ * ────────────────────────────────────────────────────────
  * DD — Double Doji Break (Ch.7)
- * Kitap koşulları:
- * 1. 2+ ardışık doji (body/range < 0.30), tercihen 3–5 pip uzunlukta
- * 2. 20 EMA yakınında (EMA'nın 1.5×ATR içinde)
- * 3. 20 EMA belirgin slope var
- * 4. Doji barları çevrelerindeki trend barlarından küçük (compression)
- * 5. Doji grubundan önce pullback gelmiş
- * Giriş: groupHigh+epsilon (long) veya groupLow-epsilon (short)
+ * Kitap gereksinimleri:
+ * 1. 2+ doji — body/range < 0.33, "almost non-existent body"
+ * 2. 20 EMA yakınında (pullback'in EMA'ya ulaşmış olması)
+ * 3. Compression — doji barları çevresindeki trend barlarından BELIRGIN küçük
+ * 4. Önce trend, sonra pullback, sonra doji grubu
+ * 5. Pullback barları counter-trend renkli (boğa trendinde siyah pb barlar)
+ * 6. ~40-60% retracement tamamlanmış
+ * 7. Path clearance — hedef yolunda direnç yok
+ * Giriş: dojiların HIGH üstü (long) veya LOW altı (short)
+ * ────────────────────────────────────────────────────────
  */
 function detectDD(bars, emas, A) {
   const n=bars.length, res=[];
-  for (let end=n-2; end>=n-7 && end>=3; end--) {
-    // Collect consecutive doji run ending at `end`
+  if(n<25) return res;
+
+  // EMA waving = unfavorable
+  if(emaWaving(emas)) return res;
+
+  const sl = emaSlp(emas, Math.min(8,n-2));
+
+  for (let end=n-2; end>=n-9 && end>=5; end--) {
+    // Doji grubu tespiti
     let start=end;
-    while (start>1 && isDoji(bars[start],0.32) && end-start<5) start--;
+    while(start>2 && isDoji(bars[start],0.34) && end-start<6) start--;
     start++;
     const cnt=end-start+1;
-    if (cnt<2) continue;
+    if(cnt<2) continue;
+
     const grp=bars.slice(start,end+1);
-    const gH=Math.max(...grp.map(b=>b.h)), gL=Math.min(...grp.map(b=>b.l));
+    const gH=Math.max(...grp.map(b=>b.h));
+    const gL=Math.min(...grp.map(b=>b.l));
     const gMid=(gH+gL)/2;
-    const ema=emas[end], sl=slope(emas.slice(0,end+1),Math.min(7,end));
+    const ema=emas[end];
     const eDist=Math.abs(gMid-ema)/A;
-    if (eDist>2.2) continue;
 
-    // Compression: doji bars vs surrounding trend bars
-    const pre=bars.slice(Math.max(0,start-8),start);
-    if (pre.length<2) continue;
-    const avgPre=pre.reduce((s,b)=>s+(b.h-b.l),0)/pre.length;
+    if(eDist>2.0) continue; // EMA çok uzak
+
+    // Doji öncesi trend barları (son 10-12 bar: trend + pullback)
+    const preAll=bars.slice(Math.max(0,start-14),start);
+    if(preAll.length<4) continue;
+
+    // Compression: doji avg range < pre avg range * 0.70
     const avgGrp=grp.reduce((s,b)=>s+(b.h-b.l),0)/grp.length;
-    const compressed=avgGrp<avgPre*0.75;
+    const avgPre=preAll.reduce((s,b)=>s+(b.h-b.l),0)/preAll.length;
+    const compressed = avgGrp < avgPre*0.72;
+    if(!compressed) continue; // Kitap: compression zorunlu
 
-    // Pullback before doji group (counter-trend bars)
-    const pbBars=pre.slice(-4);
-    const slopeDir=sl>0?'dn':'up';
-    const hasPb=pbBars.length>0 && trendQ(pbBars,slopeDir)>=0.5;
+    // Trend tespiti (doji öncesi)
+    const trendBars=preAll.slice(0,Math.floor(preAll.length*0.5));
+    const pbBars   =preAll.slice(Math.floor(preAll.length*0.5));
 
-    if (sl>0.0003 && eDist<1.8) {
-      const conds={doji2:cnt>=2,nearEma:eDist<1.5,slope:Math.abs(sl)>0.0003,compress:compressed,pullback:hasPb};
-      const sc=scoreDD(sl,eDist,compressed,hasPb,cnt,trendQ(pre,'up'));
-      if(sc>=38) res.push({setup:'DD',dir:'long',entry:gH+A*0.04,score:sc,conds,barIdx:end});
+    if(sl > 0.0003) { // Long setup
+      // Pullback barları counter-trend (siyah = ayı rengi) olmalı
+      const pbCounterTrend = trendQ(pbBars,'dn') > 0.45;
+      // Retracement hesabı: trend high → pb low → doji mid
+      const tH=Math.max(...trendBars.map(b=>b.h));
+      const tL=Math.min(...trendBars.map(b=>b.l));
+      const pbL=Math.min(...pbBars.map(b=>b.l));
+      const swing=tH-tL;
+      const ret=swing>0?(tH-gMid)/swing:0;
+      const goodRet = ret>=0.30 && ret<=0.75;
+
+      // Path clearance
+      const entry=gH+A*0.05;
+      const target=entry+pipSz(A)*10;
+      const clear=pathClear(bars.slice(0,end+1),entry,target,A);
+
+      const conds={
+        doji2:cnt>=2, nearEma:eDist<1.5, slope:sl>0.0003,
+        compress:compressed, pullback:pbCounterTrend,
+        retracement:goodRet, pathClear:clear
+      };
+      const sc=scoreDD(sl,eDist,compressed,pbCounterTrend,goodRet,clear,cnt,trendQ(trendBars,'up'));
+      if(sc>=40) res.push({setup:'DD',dir:'long',entry,score:sc,conds,barIdx:end});
     }
-    if (sl<-0.0003 && eDist<1.8) {
-      const conds={doji2:cnt>=2,nearEma:eDist<1.5,slope:Math.abs(sl)>0.0003,compress:compressed,pullback:hasPb};
-      const sc=scoreDD(-sl,eDist,compressed,hasPb,cnt,trendQ(pre,'dn'));
-      if(sc>=38) res.push({setup:'DD',dir:'short',entry:gL-A*0.04,score:sc,conds,barIdx:end});
+    if(sl < -0.0003) { // Short setup
+      const pbCounterTrend = trendQ(pbBars,'up') > 0.45;
+      const tH=Math.max(...trendBars.map(b=>b.h));
+      const tL=Math.min(...trendBars.map(b=>b.l));
+      const pbH=Math.max(...pbBars.map(b=>b.h));
+      const swing=tH-tL;
+      const ret=swing>0?(gMid-tL)/swing:0;
+      const goodRet = ret>=0.30 && ret<=0.75;
+
+      const entry=gL-A*0.05;
+      const target=entry-pipSz(A)*10;
+      const clear=pathClear(bars.slice(0,end+1),entry,target,A);
+
+      const conds={
+        doji2:cnt>=2, nearEma:eDist<1.5, slope:Math.abs(sl)>0.0003,
+        compress:compressed, pullback:pbCounterTrend,
+        retracement:goodRet, pathClear:clear
+      };
+      const sc=scoreDD(-sl,eDist,compressed,pbCounterTrend,goodRet,clear,cnt,trendQ(trendBars,'dn'));
+      if(sc>=40) res.push({setup:'DD',dir:'short',entry,score:sc,conds,barIdx:end});
     }
   }
   return res;
 }
-function scoreDD(sl,eDist,comp,pb,cnt,tq) {
-  let s=42;
-  s+=Math.min(15,Math.abs(sl)/0.001*4);
-  s+=Math.max(0,(1.5-eDist)*8);
-  if(comp) s+=12;
-  if(pb)   s+=8;
-  s+=Math.min(6,(cnt-1)*3);
-  s+=Math.min(7,tq*9);
-  if(eDist>1.5) s-=12;
+
+function scoreDD(sl,eDist,comp,pb,ret,clear,cnt,tq) {
+  let s=40;
+  s+=Math.min(14, sl/0.0008*10);      // güçlü slope
+  s+=Math.max(0,(1.5-eDist)*9);       // EMA yakınlığı
+  if(comp) s+=12;                      // sıkışma zorunlu
+  if(pb)   s+=8;                       // counter-trend pb
+  if(ret)  s+=7;                       // iyi retracement
+  if(clear) s+=6; else s-=10;         // path clear kritik
+  s+=Math.min(5,(cnt-1)*2);           // doji sayısı
+  s+=Math.min(6,tq*8);                // trend kalitesi
   return clamp(Math.round(s),20,97);
 }
 
 /*
+ * ────────────────────────────────────────────────────────
  * FB — First Break (Ch.8)
- * Kitap koşulları (3 zorunlu):
- * 1. Güçlü agresif spike (bar'lar uzun, tek yönlü, spike'tan önce consolidation)
- * 2. Pullback: %40–60 retracement, 20 EMA'ya ulaşmış, tek yönlü barlar
+ * Kitap gereksinimleri (3 zorunlu):
+ * 1. Agresif spike: uzun tek yönlü barlar, consolidation'dan çıkmış
+ *    "very determined one-directional surge"
+ *    "bars should be longer than overall price action before it"
+ *    "no mini pullbacks within the spike"
+ * 2. Pullback: %40-60 retracement, 20 EMA'ya ulaşmış, tek yönlü
+ *    "not stop or falter before the 20ema is reached"
  * 3. İlk pullback olmalı
- * Signal bar: pullback'teki ilk bar ki trend yönünde kırılacak
+ * Signal bar: "not any taller than 7 pip" (çok büyük bar değil)
+ * ────────────────────────────────────────────────────────
  */
 function detectFB(bars, emas, A) {
   const n=bars.length, res=[];
-  for (let se=n-4; se>=n-12 && se>=6; se--) {
-    const lb=5;
-    const spBars=bars.slice(se-lb,se);
-    const sl=slope(emas.slice(0,se+1),Math.min(lb,se-1));
-    const avgA=atr(bars.slice(0,se),10);
+  if(n<20) return res;
+  if(emaWaving(emas)) return res;
+
+  const sl=emaSlp(emas,Math.min(10,n-2));
+
+  for(let se=n-4; se>=n-16 && se>=8; se--) {
+    const lb=5; // spike uzunluğu
+    const spBars=bars.slice(Math.max(0,se-lb),se);
+    if(spBars.length<3) continue;
+
+    const A_pre=calcATR(bars.slice(0,Math.max(1,se-lb)),10);
     const spAvgRng=spBars.reduce((s,b)=>s+(b.h-b.l),0)/spBars.length;
-    const aggressive=spAvgRng>avgA*1.05;
+
+    // Spike barları öncekilerden belirgin uzun olmalı
+    const aggressive = spAvgRng > A_pre*1.1;
+    if(!aggressive) continue;
+
     const spDir=sl>0?'up':'dn';
     const spTq=trendQ(spBars,spDir);
-    if(spTq<0.55||!aggressive) continue;
-    const spH=Math.max(...spBars.map(b=>b.h)), spL=Math.min(...spBars.map(b=>b.l));
+    if(spTq<0.60) continue; // en az %60 tek yönlü
+
+    // Spike içinde mini pullback olmamalı (kitap: "no mini pullbacks")
+    let miniPb=false;
+    if(spDir==='up') {
+      for(let i=1;i<spBars.length;i++)
+        if(spBars[i].l<spBars[i-1].l) { miniPb=true; break; }
+    } else {
+      for(let i=1;i<spBars.length;i++)
+        if(spBars[i].h>spBars[i-1].h) { miniPb=true; break; }
+    }
+    if(miniPb) continue;
+
+    const spH=Math.max(...spBars.map(b=>b.h));
+    const spL=Math.min(...spBars.map(b=>b.l));
     const spSz=spH-spL;
     if(spSz<A*0.8) continue;
+
     const pbBars=bars.slice(se,n-1);
     if(pbBars.length<2) continue;
     const ema=emas[n-2];
+
     if(spDir==='up') {
       const pbL=Math.min(...pbBars.map(b=>b.l));
       const ret=(spH-pbL)/spSz;
       if(ret<0.30||ret>0.80) continue;
-      const emaTch=Math.abs(pbL-ema)/A<1.5;
-      const cleanPb=trendQ(pbBars,'dn')>0.5;
-      const sigH=Math.max(...pbBars.map(b=>b.h));
-      const conds={spike:aggressive&&spTq>0.55,first:true,retrace:ret>=0.35&&ret<=0.72,emarea:emaTch,cleanpb:cleanPb};
-      const sc=scoreFB(spTq,aggressive,ret,emaTch,cleanPb);
-      if(sc>=40) res.push({setup:'FB',dir:'long',entry:sigH+A*0.04,score:sc,conds,barIdx:n-2});
-    }
-    if(spDir==='dn') {
+
+      const emaTch=pbL<=ema+A*0.8 && pbL>=ema-A*1.5;
+      const cleanPb=trendQ(pbBars,'dn')>0.50;
+
+      // Signal bar boyutu kontrolü (kitap: "not any taller than 7 pip")
+      const sigBar=pbBars[pbBars.length-1];
+      const sigTall=(sigBar.h-sigBar.l)<A*1.3;
+
+      const entry=Math.max(...pbBars.map(b=>b.h))+A*0.04;
+      const target=entry+pipSz(A)*10;
+      const clear=pathClear(bars.slice(0,n-1),entry,target,A);
+
+      const conds={spike:aggressive,first:true,retrace:ret>=0.35&&ret<=0.70,
+        emarea:emaTch,cleanpb:cleanPb,signalSize:sigTall,pathClear:clear};
+      const sc=scoreFB(spTq,spAvgRng/A_pre,ret,emaTch,cleanPb,sigTall,clear);
+      if(sc>=42) res.push({setup:'FB',dir:'long',entry,score:sc,conds,barIdx:n-2});
+
+    } else {
       const pbH=Math.max(...pbBars.map(b=>b.h));
       const ret=(pbH-spL)/spSz;
       if(ret<0.30||ret>0.80) continue;
-      const emaTch=Math.abs(pbH-ema)/A<1.5;
-      const cleanPb=trendQ(pbBars,'up')>0.5;
-      const sigL=Math.min(...pbBars.map(b=>b.l));
-      const conds={spike:aggressive&&spTq>0.55,first:true,retrace:ret>=0.35&&ret<=0.72,emarea:emaTch,cleanpb:cleanPb};
-      const sc=scoreFB(spTq,aggressive,ret,emaTch,cleanPb);
-      if(sc>=40) res.push({setup:'FB',dir:'short',entry:sigL-A*0.04,score:sc,conds,barIdx:n-2});
+
+      const emaTch=pbH>=ema-A*0.8 && pbH<=ema+A*1.5;
+      const cleanPb=trendQ(pbBars,'up')>0.50;
+
+      const sigBar=pbBars[pbBars.length-1];
+      const sigTall=(sigBar.h-sigBar.l)<A*1.3;
+
+      const entry=Math.min(...pbBars.map(b=>b.l))-A*0.04;
+      const target=entry-pipSz(A)*10;
+      const clear=pathClear(bars.slice(0,n-1),entry,target,A);
+
+      const conds={spike:aggressive,first:true,retrace:ret>=0.35&&ret<=0.70,
+        emarea:emaTch,cleanpb:cleanPb,signalSize:sigTall,pathClear:clear};
+      const sc=scoreFB(spTq,spAvgRng/A_pre,ret,emaTch,cleanPb,sigTall,clear);
+      if(sc>=42) res.push({setup:'FB',dir:'short',entry,score:sc,conds,barIdx:n-2});
     }
   }
   return res;
 }
-function scoreFB(spTq,agg,ret,emaTch,clean) {
+
+function scoreFB(spTq,spStr,ret,emaTch,clean,sigSz,clear) {
   let s=38;
-  s+=Math.min(15,spTq*18);
-  if(agg) s+=10;
-  s+=Math.max(0,12-Math.abs(ret-0.50)*28);
-  if(emaTch) s+=12;
-  if(clean) s+=8;
+  s+=Math.min(14,spTq*18);           // spike tek yönlülüğü
+  s+=Math.min(8,(spStr-1)*6);        // spike agresifliği
+  s+=Math.max(0,14-Math.abs(ret-0.50)*30); // ideal retracement ~50%
+  if(emaTch) s+=12;                  // EMA'ya ulaşmış
+  if(clean)  s+=8;                   // tek yönlü pullback
+  if(sigSz)  s+=5;                   // küçük signal bar
+  if(clear)  s+=5; else s-=8;       // path clear
   return clamp(Math.round(s),20,97);
 }
 
 /*
+ * ────────────────────────────────────────────────────────
  * SB — Second Break (Ch.9)
- * Kitap: "It is a pattern that could be seen as two FBs following each other"
- * Double bottom (long) or double top (short) yapısı
- * İki yakın seviyede bottom/top → aralarındaki mid high/low kırılır
+ * Kitap: "Two FBs following each other in relatively quick succession"
+ * = W pattern (long) veya M pattern (short)
+ * 1. İlk with-trend atağı (FB attempt) stalls → geri döner
+ * 2. Prices pull back BEYOND the first break level (second arch)
+ * 3. Second with-trend break → SB entry
+ * W-pattern: lows roughly equal, highs form mid-point
+ * M-pattern: highs roughly equal, lows form mid-point
+ * ────────────────────────────────────────────────────────
  */
 function detectSB(bars, emas, A) {
   const n=bars.length, res=[];
-  const sl=slope(emas,Math.min(8,n-1));
-  // Long: double bottom
-  if(sl>-0.0008) {
-    for(let i=n-4;i>=n-12&&i>=5;i--) {
-      const l1=Math.min(bars[i].l,bars[Math.max(0,i-1)].l);
-      for(let j=i-3;j>=i-9&&j>=1;j--) {
-        const l2=Math.min(bars[j].l,bars[Math.max(0,j-1)].l);
-        const diff=Math.abs(l1-l2)/A;
-        if(diff>0.7) continue;
-        const mid=bars.slice(j,i+1);
-        const midH=Math.max(...mid.map(b=>b.h));
-        const lb=bars[n-1];
-        if(lb.c>midH&&lb.c>lb.o) {
-          const conds={firstFail:true,secondThrust:true,dblPattern:diff<0.5,emaarea:sl>-0.0005,momentum:lb.c>lb.o&&(lb.c-lb.o)/(lb.h-lb.l)>0.4};
-          const sc=scoreSB(diff,sl,conds);
-          if(sc>=40) res.push({setup:'SB',dir:'long',entry:midH+A*0.04,score:sc,conds,barIdx:n-1});
+  if(n<20) return res;
+  if(emaWaving(emas)) return res;
+
+  const sl=emaSlp(emas,Math.min(8,n-2));
+
+  // Long: W-pattern (double bottom)
+  // Arıyoruz: low1 ← mid high ← low2 (≈low1) ← kırılım barı
+  if(sl > -0.0008) {
+    for(let l2=n-4; l2>=n-14 && l2>=4; l2--) {
+      const low2=Math.min(bars[l2].l, l2>0?bars[l2-1].l:bars[l2].l);
+      // Mid section (aralarında)
+      for(let mh=l2+2; mh<=n-3; mh++) {
+        const midHigh=bars[mh].h;
+        // Low1 aramak — l2'den önce
+        for(let l1=l2-2; l1>=l2-8 && l1>=1; l1--) {
+          const low1=Math.min(bars[l1].l, l1>0?bars[l1-1].l:bars[l1].l);
+          const diff=Math.abs(low1-low2)/A;
+          if(diff>0.9) continue; // İkisi birbirine yakın olmalı
+          const midSec=bars.slice(l1,l2+1);
+          if(midSec.length<3) continue;
+          const midHighVal=Math.max(...midSec.map(b=>b.h));
+          // Kırılım: son bar midHighVal'ı geçiyor mu?
+          const brk=bars[n-1];
+          if(brk.c>midHighVal && brk.c>brk.o && (brk.c-brk.o)/(brk.h-brk.l+0.000001)>0.40) {
+            const entry=midHighVal+A*0.04;
+            const target=entry+pipSz(A)*10;
+            const clear=pathClear(bars,entry,target,A);
+            const dblOk=diff<0.6; // iyi double bottom
+            const secondHigher=low2>=low1-A*0.3; // ikinci dip birinciden düşük değil
+            const conds={
+              firstFail:true, secondThrust:true, dblPattern:dblOk,
+              emaarea:Math.abs(emas[n-1]-(low1+low2)/2)/A<2,
+              momentum:(brk.c-brk.o)/(brk.h-brk.l+0.000001)>0.5
+            };
+            const sc=scoreSB(diff,sl,dblOk,secondHigher,clear);
+            if(sc>=42) res.push({setup:'SB',dir:'long',entry,score:sc,conds,barIdx:n-1});
+          }
         }
       }
     }
   }
-  // Short: double top
-  if(sl<0.0008) {
-    for(let i=n-4;i>=n-12&&i>=5;i--) {
-      const h1=Math.max(bars[i].h,bars[Math.max(0,i-1)].h);
-      for(let j=i-3;j>=i-9&&j>=1;j--) {
-        const h2=Math.max(bars[j].h,bars[Math.max(0,j-1)].h);
-        const diff=Math.abs(h1-h2)/A;
-        if(diff>0.7) continue;
-        const mid=bars.slice(j,i+1);
-        const midL=Math.min(...mid.map(b=>b.l));
-        const lb=bars[n-1];
-        if(lb.c<midL&&lb.c<lb.o) {
-          const conds={firstFail:true,secondThrust:true,dblPattern:diff<0.5,emaarea:sl<0.0005,momentum:lb.c<lb.o&&(lb.o-lb.c)/(lb.h-lb.l)>0.4};
-          const sc=scoreSB(diff,-sl,conds);
-          if(sc>=40) res.push({setup:'SB',dir:'short',entry:midL-A*0.04,score:sc,conds,barIdx:n-1});
+
+  // Short: M-pattern (double top)
+  if(sl < 0.0008) {
+    for(let h2=n-4; h2>=n-14 && h2>=4; h2--) {
+      const high2=Math.max(bars[h2].h, h2>0?bars[h2-1].h:bars[h2].h);
+      for(let ml=h2+2; ml<=n-3; ml++) {
+        for(let h1=h2-2; h1>=h2-8 && h1>=1; h1--) {
+          const high1=Math.max(bars[h1].h, h1>0?bars[h1-1].h:bars[h1].h);
+          const diff=Math.abs(high1-high2)/A;
+          if(diff>0.9) continue;
+          const midSec=bars.slice(h1,h2+1);
+          if(midSec.length<3) continue;
+          const midLowVal=Math.min(...midSec.map(b=>b.l));
+          const brk=bars[n-1];
+          if(brk.c<midLowVal && brk.c<brk.o && (brk.o-brk.c)/(brk.h-brk.l+0.000001)>0.40) {
+            const entry=midLowVal-A*0.04;
+            const target=entry-pipSz(A)*10;
+            const clear=pathClear(bars,entry,target,A);
+            const dblOk=diff<0.6;
+            const secondLower=high2<=high1+A*0.3;
+            const conds={
+              firstFail:true, secondThrust:true, dblPattern:dblOk,
+              emaarea:Math.abs(emas[n-1]-(high1+high2)/2)/A<2,
+              momentum:(brk.o-brk.c)/(brk.h-brk.l+0.000001)>0.5
+            };
+            const sc=scoreSB(diff,-sl,dblOk,secondLower,clear);
+            if(sc>=42) res.push({setup:'SB',dir:'short',entry,score:sc,conds,barIdx:n-1});
+          }
         }
       }
     }
   }
-  return res;
+
+  // En iyi iki sonuç (per dir)
+  const best={};
+  for(const r of res.sort((a,b)=>b.score-a.score)) {
+    if(!best[r.dir]) best[r.dir]=r;
+  }
+  return Object.values(best);
 }
-function scoreSB(diff,sl,conds) {
-  let s=46;
-  s+=Math.max(0,(0.7-diff)*20);
-  s+=Math.min(10,Math.abs(sl)/0.001*2);
-  if(conds.dblPattern) s+=8;
-  if(conds.momentum)   s+=6;
-  if(!conds.dblPattern) s-=12;
+
+function scoreSB(diff,sl,dbl,secondOk,clear) {
+  let s=44;
+  s+=Math.max(0,(0.9-diff)*18);  // dip/tepe yakınlığı
+  s+=Math.min(10,Math.abs(sl)/0.0006*6);
+  if(dbl)     s+=10;             // iyi double pattern
+  if(secondOk) s+=6;             // ikinci bar daha iyi pozisyon
+  if(clear)   s+=5; else s-=8;
+  if(!dbl)    s-=15;
   return clamp(Math.round(s),20,97);
 }
 
 /*
+ * ────────────────────────────────────────────────────────
  * BB — Block Break (Ch.10)
- * 2–5 bar dar yatay blok → kırılım
- * Kitap: "clustering price action" = pre-breakout tension
- * Kırılım barı close dışarıda + gövdeli olmalı
+ * Kitap: "cluster of price bars tightly grouped, narrow vertical span"
+ * "barriers made up of SEVERAL TOUCHES EACH"
+ * 3 yerde görünür: pullback sonu, yatay pullback trendde, ranging market
+ * Pre-breakout tension: küçük barlar sıkışmış halde
+ * ────────────────────────────────────────────────────────
  */
 function detectBB(bars, emas, A) {
   const n=bars.length, res=[];
-  for(let be=n-3;be>=n-8&&be>=3;be--) {
-    for(let bl=2;bl<=5;bl++) {
+  if(n<12) return res;
+
+  for(let be=n-3; be>=n-10 && be>=4; be--) {
+    for(let bl=2; bl<=6; bl++) {
       const bs=be-bl+1;
       if(bs<1) break;
       const blk=bars.slice(bs,be+1);
-      const bH=Math.max(...blk.map(b=>b.h)), bL=Math.min(...blk.map(b=>b.l));
+      const bH=Math.max(...blk.map(b=>b.h));
+      const bL=Math.min(...blk.map(b=>b.l));
       const bSz=bH-bL;
-      if(bSz>A*2.0||bSz<A*0.12) continue;
-      // All bars contained in block (no outlier)
-      const contained=blk.every(b=>b.h<=bH+A*0.12&&b.l>=bL-A*0.12);
+
+      // Block boyutu: çok geniş veya çok dar olmamalı
+      if(bSz>A*2.2||bSz<A*0.10) continue;
+
+      // Kitap: "barriers made up of several touches each"
+      const tol=A*0.18;
+      const topT=blk.filter(b=>b.h>=bH-tol).length;
+      const botT=blk.filter(b=>b.l<=bL+tol).length;
+      if(topT<1||botT<1) continue; // minimum 1 dokunuş her taraftan
+
+      // Tüm barlar blok içinde olmalı
+      const contained=blk.every(b=>b.h<=bH+A*0.10&&b.l>=bL-A*0.10);
       if(!contained) continue;
+
+      // Pre-breakout tension: son barlar sıkışmış mı?
+      const lastBars=blk.slice(-2);
+      const tension=lastBars.every(b=>(b.h-b.l)<avgBarRange(blk)*0.90);
+
       const brk=bars[be+1];
       if(!brk) continue;
-      const brkBody=Math.abs(brk.c-brk.o)/(brk.h-brk.l||1);
-      const sl=slope(emas.slice(0,be+2),Math.min(6,be));
-      if(brk.c>bH&&brk.c>brk.o) {
-        const conds={block:bl>=2,bounds:true,closeOut:true,bodyClose:brkBody>0.35,clearPath:true};
-        const sc=scoreBB(bSz,A,bl,sl,brkBody);
-        if(sc>=38) res.push({setup:'BB',dir:'long',entry:bH+A*0.04,score:sc,conds,barIdx:be+1,bH,bL});
+      const brkBodyR=Math.abs(brk.c-brk.o)/(brk.h-brk.l+0.000001);
+      const sl=emaSlp(emas.slice(0,be+2),Math.min(6,be));
+
+      if(brk.c>bH+tol*0.3 && brk.c>brk.o) {
+        const entry=bH+A*0.04;
+        const target=entry+pipSz(A)*10;
+        const clear=pathClear(bars.slice(0,be+2),entry,target,A);
+        const conds={block:bl>=2,bounds:topT>=1&&botT>=1,closeOut:brk.c>bH,
+          bodyClose:brkBodyR>0.35,clearPath:clear,tension};
+        const sc=scoreBB(bSz,A,bl,sl,brkBodyR,topT+botT,tension,clear);
+        if(sc>=40) res.push({setup:'BB',dir:'long',entry,score:sc,conds,barIdx:be+1,bH,bL});
       }
-      if(brk.c<bL&&brk.c<brk.o) {
-        const conds={block:bl>=2,bounds:true,closeOut:true,bodyClose:brkBody>0.35,clearPath:true};
-        const sc=scoreBB(bSz,A,bl,sl,brkBody);
-        if(sc>=38) res.push({setup:'BB',dir:'short',entry:bL-A*0.04,score:sc,conds,barIdx:be+1,bH,bL});
+      if(brk.c<bL-tol*0.3 && brk.c<brk.o) {
+        const entry=bL-A*0.04;
+        const target=entry-pipSz(A)*10;
+        const clear=pathClear(bars.slice(0,be+2),entry,target,A);
+        const conds={block:bl>=2,bounds:topT>=1&&botT>=1,closeOut:brk.c<bL,
+          bodyClose:brkBodyR>0.35,clearPath:clear,tension};
+        const sc=scoreBB(bSz,A,bl,sl,brkBodyR,topT+botT,tension,clear);
+        if(sc>=40) res.push({setup:'BB',dir:'short',entry,score:sc,conds,barIdx:be+1,bH,bL});
       }
     }
   }
-  return res;
+  // En iyi per dir
+  const best={};
+  for(const r of res.sort((a,b)=>b.score-a.score)) { if(!best[r.dir]) best[r.dir]=r; }
+  return Object.values(best);
 }
-function scoreBB(bSz,A,bl,sl,bodyR) {
-  let s=48;
-  s+=(1-bSz/(A*2.0))*15;    // tighter block = more tension
-  if(bl>=3&&bl<=4) s+=7;     // ideal block length
-  s+=Math.min(10,bodyR*13);  // strong breakout body
-  s+=Math.min(7,Math.abs(sl)/0.001*1.5);
+
+function avgBarRange(bars) {
+  return bars.reduce((s,b)=>s+(b.h-b.l),0)/Math.max(1,bars.length);
+}
+
+function scoreBB(bSz,A,bl,sl,bodyR,touches,tension,clear) {
+  let s=46;
+  s+=(1-bSz/(A*2.2))*14;        // dar blok = daha fazla tension
+  if(bl>=3&&bl<=4) s+=6;         // ideal bar sayısı
+  s+=Math.min(9,bodyR*12);       // kırılım gövdesi
+  s+=Math.min(6,touches*2);      // dokunuş sayısı
+  if(tension) s+=7;              // pre-breakout tension
+  s+=Math.min(6,Math.abs(sl)/0.0006*3);
+  if(clear) s+=4; else s-=8;
   if(bodyR<0.3) s-=12;
   return clamp(Math.round(s),20,97);
 }
 
 /*
+ * ────────────────────────────────────────────────────────
  * RB — Range Break (Ch.11)
- * 8+ bar, min 2 tavan + 2 taban dokunuşu
- * Range içi EMA düz/yatay
- * Kırılım barı close dışarıda
+ * Kitap: Net yatay range, min 2 tavan + 2 taban dokunuşu
+ * EMA range içinde yatay/düz
+ * Pre-breakout squeeze: barlar barrier'a yakın sıkışmış
+ * Kırılım barı close dışarıda + gövdeli
+ * False break / tease break tuzaklarını atla
+ * ────────────────────────────────────────────────────────
  */
 function detectRB(bars, emas, A) {
   const n=bars.length, res=[];
-  for(let rl=8;rl<=Math.min(25,n-3);rl++) {
-    const rb=bars.slice(n-rl-2,n-2);
-    const rH=Math.max(...rb.map(b=>b.h)), rL=Math.min(...rb.map(b=>b.l));
+  if(n<18) return res;
+
+  for(let rl=10; rl<=Math.min(50,n-5); rl++) {
+    const rStart=n-rl-3;
+    const rb=bars.slice(rStart,n-2);
+    if(rb.length<rl) continue;
+    const rH=Math.max(...rb.map(b=>b.h));
+    const rL=Math.min(...rb.map(b=>b.l));
     const rSz=rH-rL;
-    if(rSz<A*0.8||rSz>A*6.5) continue;
-    const tol=A*0.28;
+    if(rSz<A*0.7||rSz>A*8.0) continue;
+
+    // Min 2 tavan + 2 taban dokunuşu (kitap zorunluluğu)
+    const tol=A*0.25;
     const topT=rb.filter(b=>b.h>=rH-tol).length;
     const botT=rb.filter(b=>b.l<=rL+tol).length;
-    if(topT<2&&botT<2) continue;
-    // Range interior should be sideways (EMA flat)
-    const inSl=Math.abs(slope(emas.slice(n-rl-2,n-2),Math.min(6,rl-1)));
+    if(topT<2||botT<2) continue;
+
+    // EMA range içinde yatay olmalı
+    const rangeEmas=emas.slice(rStart,n-2);
+    const inSl=Math.abs(emaSlp(rangeEmas,Math.min(8,rangeEmas.length-1)));
     if(inSl>0.004) continue;
-    const brk=bars[n-1];
-    const brkBody=Math.abs(brk.c-brk.o)/(brk.h-brk.l||1);
-    if(brk.c>rH+tol*0.4) {
-      const conds={rangeFrmd:rl>=8,sideways:inSl<0.003,closeOut:brk.c>rH,tension:topT>=2||botT>=2,atrRange:rSz>=A*0.8};
-      const sc=scoreRB(rl,topT+botT,inSl,brkBody);
-      if(sc>=40) res.push({setup:'RB',dir:'long',entry:rH+A*0.10,score:sc,conds,barIdx:n-1,rH,rL});
+
+    // EMA range içinde mi? (kitap: EMA should be inside)
+    const emaInRange = rangeEmas.every(e=>e>=rL-A*0.5&&e<=rH+A*0.5);
+    if(!emaInRange) continue;
+
+    // Pre-breakout squeeze: son 3-5 barın range'e yakın sıkışması
+    const lastBars=rb.slice(-5);
+    const squeezeTop=lastBars.filter(b=>b.h>=rH-tol*1.5).length>=2;
+    const squeezeBot=lastBars.filter(b=>b.l<=rL+tol*1.5).length>=2;
+
+    const brk=bars[n-2];
+    const brkBodyR=Math.abs(brk.c-brk.o)/(brk.h-brk.l+0.000001);
+
+    // Upside break
+    if(brk.c>rH+tol*0.3 && brk.c>brk.o && squeezeTop) {
+      const entry=rH+A*0.08;
+      const target=entry+pipSz(A)*10;
+      const clear=pathClear(bars.slice(0,n-1),entry,target,A);
+      const conds={rangeFrmd:rl>=10,sideways:inSl<0.003,closeOut:brk.c>rH,
+        tension:squeezeTop,atrRange:rSz>=A*0.7};
+      const sc=scoreRB(rl,topT,botT,inSl,brkBodyR,squeezeTop,clear);
+      if(sc>=42) res.push({setup:'RB',dir:'long',entry,score:sc,conds,barIdx:n-2,rH,rL});
     }
-    if(brk.c<rL-tol*0.4) {
-      const conds={rangeFrmd:rl>=8,sideways:inSl<0.003,closeOut:brk.c<rL,tension:topT>=2||botT>=2,atrRange:rSz>=A*0.8};
-      const sc=scoreRB(rl,topT+botT,inSl,brkBody);
-      if(sc>=40) res.push({setup:'RB',dir:'short',entry:rL-A*0.10,score:sc,conds,barIdx:n-1,rH,rL});
+    // Downside break
+    if(brk.c<rL-tol*0.3 && brk.c<brk.o && squeezeBot) {
+      const entry=rL-A*0.08;
+      const target=entry-pipSz(A)*10;
+      const clear=pathClear(bars.slice(0,n-1),entry,target,A);
+      const conds={rangeFrmd:rl>=10,sideways:inSl<0.003,closeOut:brk.c<rL,
+        tension:squeezeBot,atrRange:rSz>=A*0.7};
+      const sc=scoreRB(rl,topT,botT,inSl,brkBodyR,squeezeBot,clear);
+      if(sc>=42) res.push({setup:'RB',dir:'short',entry,score:sc,conds,barIdx:n-2,rH,rL});
     }
   }
-  // keep best per direction
   const best={};
-  for(const r of res) { if(!best[r.dir]||r.score>best[r.dir].score) best[r.dir]=r; }
+  for(const r of res.sort((a,b)=>b.score-a.score)) { if(!best[r.dir]) best[r.dir]=r; }
   return Object.values(best);
 }
-function scoreRB(rl,touches,inSl,bodyR) {
+
+function scoreRB(rl,topT,botT,inSl,bodyR,squeeze,clear) {
   let s=44;
-  s+=Math.min(12,(rl-8)*1.2);
-  s+=Math.min(10,(touches-2)*3);
-  s+=Math.max(0,(0.004-inSl)*1500);
-  s+=Math.min(8,bodyR*10);
+  s+=Math.min(12,(rl-10)*0.8);          // uzun range
+  s+=Math.min(10,(topT+botT-4)*2.5);   // çok dokunuş
+  s+=Math.max(0,(0.004-inSl)*1800);    // yatay EMA
+  s+=Math.min(8,bodyR*10);             // güçlü kırılım
+  if(squeeze) s+=10;                   // pre-breakout squeeze kritik
+  if(clear) s+=5; else s-=8;
   return clamp(Math.round(s),20,97);
 }
 
 /*
+ * ────────────────────────────────────────────────────────
  * IRB — Inside Range Break (Ch.12)
- * Outer range (geniş) içinde inner range (dar) kırılması
- * inner high < outer high AND inner low > outer low
+ * Kitap: İç range TAMAMEN dış range içinde
+ * İç range: sıklıkla BB veya DD içeriyor
+ * Signal line: birden fazla eşit dokunuş
+ * 20 EMA iç range içinde veya yakınında
+ * Cup-and-handle: inner range = handle, kırılım = break
+ * ────────────────────────────────────────────────────────
  */
 function detectIRB(bars, emas, A) {
   const n=bars.length, res=[];
-  if(n<24) return res;
-  const ob=bars.slice(n-24,n-8);
-  const oH=Math.max(...ob.map(b=>b.h)), oL=Math.min(...ob.map(b=>b.l));
-  if(oH-oL<A*1.4) return res;
-  for(let il=4;il<=9;il++) {
-    const ib=bars.slice(n-il-2,n-2);
-    const iH=Math.max(...ib.map(b=>b.h)), iL=Math.min(...ib.map(b=>b.l));
-    const iSz=iH-iL, oSz=oH-oL;
-    if(iH>=oH-A*0.18||iL<=oL+A*0.18) continue;
-    if(iSz>=oSz*0.65||iSz<A*0.28) continue;
-    const brk=bars[n-1];
-    const sl=slope(emas,Math.min(6,n-1));
-    const brkBody=Math.abs(brk.c-brk.o)/(brk.h-brk.l||1);
-    const emaNear=Math.abs(emas[n-1]-(iH+iL)/2)/A<1.6;
-    if(brk.c>iH&&brk.c>brk.o) {
-      const conds={outerRng:true,innerIn:true,innerBrk:true,sizeRatio:iSz<oSz*0.55,emaNear};
-      const sc=scoreIRB(il,iSz,oSz,sl,brkBody);
-      if(sc>=40) res.push({setup:'IRB',dir:'long',entry:iH+A*0.04,score:sc,conds,barIdx:n-1,iH,iL,oH,oL});
-    }
-    if(brk.c<iL&&brk.c<brk.o) {
-      const conds={outerRng:true,innerIn:true,innerBrk:true,sizeRatio:iSz<oSz*0.55,emaNear};
-      const sc=scoreIRB(il,iSz,oSz,sl,brkBody);
-      if(sc>=40) res.push({setup:'IRB',dir:'short',entry:iL-A*0.04,score:sc,conds,barIdx:n-1,iH,iL,oH,oL});
+  if(n<30) return res;
+
+  // Outer range: son 20-40 bar
+  for(let oLen=18; oLen<=40; oLen+=4) {
+    const ob=bars.slice(n-oLen-5,n-5);
+    if(ob.length<12) continue;
+    const oH=Math.max(...ob.map(b=>b.h));
+    const oL=Math.min(...ob.map(b=>b.l));
+    const oSz=oH-oL;
+    if(oSz<A*1.2) continue;
+
+    // EMA outer range içinde yatay mı?
+    const oEmas=emas.slice(n-oLen-5,n-5);
+    const oSl=Math.abs(emaSlp(oEmas,Math.min(6,oEmas.length-1)));
+    if(oSl>0.005) continue;
+
+    // Inner range: son 4-12 bar (outer içinde tam)
+    for(let iLen=4;iLen<=12;iLen++) {
+      const ib=bars.slice(n-iLen-2,n-2);
+      if(ib.length<4) continue;
+      const iH=Math.max(...ib.map(b=>b.h));
+      const iL=Math.min(...ib.map(b=>b.l));
+      const iSz=iH-iL;
+
+      // İç range tamamen dış range içinde olmalı (kitap zorunluluğu)
+      const margin=A*0.20;
+      if(iH>=oH-margin||iL<=oL+margin) continue;
+      if(iSz>=oSz*0.65||iSz<A*0.15) continue;
+
+      // Signal line: iç range'de birden fazla dokunuş
+      const iTol=A*0.18;
+      const iTopT=ib.filter(b=>b.h>=iH-iTol).length;
+      const iBotT=ib.filter(b=>b.l<=iL+iTol).length;
+      if(iTopT<1||iBotT<1) continue;
+
+      // 20 EMA inner range yakınında mı?
+      const iEma=emas[n-3];
+      const emaNearInner=Math.abs(iEma-(iH+iL)/2)/A<1.8;
+
+      const brk=bars[n-2];
+      const brkBodyR=Math.abs(brk.c-brk.o)/(brk.h-brk.l+0.000001);
+      const sl=emaSlp(emas,Math.min(6,n-1));
+
+      if(brk.c>iH+iTol*0.3 && brk.c>brk.o) {
+        const entry=iH+A*0.04;
+        const target=entry+pipSz(A)*10;
+        const clear=pathClear(bars.slice(0,n-1),entry,target,A);
+        const conds={outerRng:true,innerIn:true,innerBrk:true,
+          sizeRatio:iSz<oSz*0.55,emaNear:emaNearInner};
+        const sc=scoreIRB(iLen,iSz,oSz,oSl,sl,brkBodyR,iTopT+iBotT,emaNearInner,clear);
+        if(sc>=42) res.push({setup:'IRB',dir:'long',entry,score:sc,conds,barIdx:n-2,iH,iL,oH,oL});
+      }
+      if(brk.c<iL-iTol*0.3 && brk.c<brk.o) {
+        const entry=iL-A*0.04;
+        const target=entry-pipSz(A)*10;
+        const clear=pathClear(bars.slice(0,n-1),entry,target,A);
+        const conds={outerRng:true,innerIn:true,innerBrk:true,
+          sizeRatio:iSz<oSz*0.55,emaNear:emaNearInner};
+        const sc=scoreIRB(iLen,iSz,oSz,oSl,sl,brkBodyR,iTopT+iBotT,emaNearInner,clear);
+        if(sc>=42) res.push({setup:'IRB',dir:'short',entry,score:sc,conds,barIdx:n-2,iH,iL,oH,oL});
+      }
     }
   }
   const best={};
-  for(const r of res) { if(!best[r.dir]||r.score>best[r.dir].score) best[r.dir]=r; }
+  for(const r of res.sort((a,b)=>b.score-a.score)) { if(!best[r.dir]) best[r.dir]=r; }
   return Object.values(best);
 }
-function scoreIRB(il,iSz,oSz,sl,bodyR) {
+
+function scoreIRB(iLen,iSz,oSz,oSl,sl,bodyR,touches,emaNear,clear) {
   let s=48;
-  s+=(1-iSz/oSz)*16;
-  if(il>=5) s+=5;
-  s+=Math.min(8,Math.abs(sl)/0.001*1.5);
-  s+=Math.min(8,bodyR*10);
+  s+=(1-iSz/oSz)*18;             // küçük inner range daha iyi
+  if(iLen>=5) s+=5;              // daha uzun inner range
+  s+=Math.min(6,touches*2);     // signal line dokunuşları
+  if(emaNear) s+=8;             // EMA yakın
+  s+=Math.max(0,(0.005-oSl)*1200); // dış range yatay
+  s+=Math.min(8,bodyR*10);     // kırılım gövdesi
+  if(clear) s+=5; else s-=8;
   return clamp(Math.round(s),20,97);
 }
 
 /*
+ * ────────────────────────────────────────────────────────
  * ARB — Advanced Range Break (Ch.13)
- * Önceki range kırılımı → barrier zone'a pullback → sinyal barı → kırılım
- * Barrier: eski direnç/destek artık destek/direnç olarak çalışıyor
+ * Kitap: İKİ tip ARB:
+ *
+ * Tip 1 (Hesitasyon): Range kırılımında barrier'da BB/cluster → kırılım
+ * = Barlar barrier seviyesinde toplanmış, kırılım gecikmiş
+ *
+ * Tip 2 (Pullback): Güçlü break → pullback → barrier zone TEST →
+ *   "test of last support/resistance" (ceiling test, NOT false break)
+ *   → reversal signal bar → kırılım
+ *
+ * Kritik: Fiyat barrier'ı geçip range içine girebilir (ceiling test)
+ * Bu FALSE BREAK değil — olağan davranış!
+ * Signal bar barrier zone'dan döndükten sonra beklenir.
+ * ────────────────────────────────────────────────────────
  */
 function detectARB(bars, emas, A) {
   const n=bars.length, res=[];
-  if(n<24) return res;
-  const prior=bars.slice(n-22,n-8);
-  const pH=Math.max(...prior.map(b=>b.h)), pL=Math.min(...prior.map(b=>b.l));
-  if(pH-pL<A*0.8) return res;
-  const recentBrk=bars.slice(n-10,n-3);
-  const brokeUp  =recentBrk.some(b=>b.c>pH);
-  const brokeDown=recentBrk.some(b=>b.c<pL);
-  const pb=bars.slice(n-5,n-1);
-  const sl=slope(emas,Math.min(8,n-1));
-  if(brokeUp) {
-    const inBar=pb.some(b=>Math.abs((b.h+b.l)/2-pH)/A<0.9);
-    if(inBar) {
-      const sig=pb[pb.length-1];
-      const isSig=isDoji(sig,0.40)||(sig.h-sig.l)<A*0.65;
-      if(isSig) {
-        const conds={prevBreak:true,barrierPb:inBar,signalBar:isSig,barrierOld:true,emaConfirm:sl>-0.001};
-        const sc=scoreARB(inBar,isSig,sl,sig,A);
-        if(sc>=40) res.push({setup:'ARB',dir:'long',entry:sig.h+A*0.04,score:sc,conds,barIdx:n-2,barrier:pH});
+  if(n<28) return res;
+
+  // Prior range: 20-40 bar önce
+  for(let prLen=16; prLen<=38; prLen+=4) {
+    const prStart=n-prLen-10;
+    const pr=bars.slice(prStart, n-10);
+    if(pr.length<12) continue;
+    const prH=Math.max(...pr.map(b=>b.h));
+    const prL=Math.min(...pr.map(b=>b.l));
+    const prSz=prH-prL;
+    if(prSz<A*0.8) continue;
+
+    // Prior range'de EMA yatay mı?
+    const prEmas=emas.slice(prStart,n-10);
+    const prSl=Math.abs(emaSlp(prEmas,Math.min(6,prEmas.length-1)));
+    if(prSl>0.005) continue;
+
+    // Kırılım tespiti: range'den sonra fiyat belirgin çıkış yaptı mı?
+    const postBrk=bars.slice(n-10,n-3);
+    const brokeUp  =postBrk.some(b=>b.c>prH+A*0.3);
+    const brokeDown=postBrk.some(b=>b.c<prL-A*0.3);
+
+    // ── TIP 1: Barrier'da hesitasyon (BB/cluster at barrier) ──
+    if(brokeUp) {
+      const clusterBars=postBrk.filter(b=>Math.abs((b.h+b.l)/2-prH)/A<0.8);
+      if(clusterBars.length>=2) {
+        const clH=Math.max(...clusterBars.map(b=>b.h));
+        const clL=Math.min(...clusterBars.map(b=>b.l));
+        const brk=bars[n-2];
+        const brkBodyR=Math.abs(brk.c-brk.o)/(brk.h-brk.l+0.000001);
+        if(brk.c>clH && brk.c>brk.o) {
+          const entry=clH+A*0.05;
+          const target=entry+pipSz(A)*10;
+          const clear=pathClear(bars.slice(0,n-1),entry,target,A);
+          const sl=emaSlp(emas,Math.min(8,n-1));
+          const conds={prevBreak:true,barrierPb:true,signalBar:brkBodyR>0.3,
+            barrierOld:true,emaConfirm:sl>-0.001};
+          const sc=scoreARB(true,brkBodyR,sl,clusterBars.length,clear);
+          if(sc>=42) res.push({setup:'ARB',dir:'long',entry,score:sc,conds,barIdx:n-2,barrier:prH,type:'hesitation'});
+        }
+      }
+    }
+    if(brokeDown) {
+      const clusterBars=postBrk.filter(b=>Math.abs((b.h+b.l)/2-prL)/A<0.8);
+      if(clusterBars.length>=2) {
+        const clH=Math.max(...clusterBars.map(b=>b.h));
+        const clL=Math.min(...clusterBars.map(b=>b.l));
+        const brk=bars[n-2];
+        const brkBodyR=Math.abs(brk.c-brk.o)/(brk.h-brk.l+0.000001);
+        if(brk.c<clL && brk.c<brk.o) {
+          const entry=clL-A*0.05;
+          const target=entry-pipSz(A)*10;
+          const clear=pathClear(bars.slice(0,n-1),entry,target,A);
+          const sl=emaSlp(emas,Math.min(8,n-1));
+          const conds={prevBreak:true,barrierPb:true,signalBar:brkBodyR>0.3,
+            barrierOld:true,emaConfirm:sl<0.001};
+          const sc=scoreARB(true,brkBodyR,sl,clusterBars.length,clear);
+          if(sc>=42) res.push({setup:'ARB',dir:'short',entry,score:sc,conds,barIdx:n-2,barrier:prL,type:'hesitation'});
+        }
+      }
+    }
+
+    // ── TIP 2: Güçlü break sonrası pullback (ceiling test) ──
+    // Kitap: fiyat barrier'ı geçip range içine girebilir (bu false break değil!)
+    // Sonra döner ve signal bar oluşturur
+    const recentPb=bars.slice(n-7,n-1);
+    const sl=emaSlp(emas,Math.min(8,n-1));
+
+    if(brokeUp) {
+      // Pullback: fiyat prH'a geri döndü mü?
+      const pbNearBarrier=recentPb.some(b=>{
+        const mid=(b.h+b.l)/2;
+        // Kitap: ceiling test — barrier'ı geçip biraz içeri girebilir
+        return mid>=prH-A*1.2 && mid<=prH+A*1.8;
+      });
+      if(pbNearBarrier) {
+        const sig=recentPb[recentPb.length-1];
+        // Signal bar: doji veya küçük bar (kitap: barrier zone'da reversal)
+        const isSig=isDoji(sig,0.42)||(sig.h-sig.l)<A*0.7;
+        // Son bar yukarı kırılım yapıyor mu?
+        const brk=bars[n-1];
+        if(isSig && brk.c>sig.h && brk.c>brk.o) {
+          const entry=sig.h+A*0.04;
+          const target=entry+pipSz(A)*10;
+          const clear=pathClear(bars.slice(0,n),entry,target,A);
+          const brkBodyR=Math.abs(brk.c-brk.o)/(brk.h-brk.l+0.000001);
+          const conds={prevBreak:true,barrierPb:pbNearBarrier,signalBar:isSig,
+            barrierOld:true,emaConfirm:sl>-0.001};
+          const sc=scoreARB(pbNearBarrier,brkBodyR,sl,2,clear);
+          if(sc>=42) res.push({setup:'ARB',dir:'long',entry,score:sc,conds,barIdx:n-1,barrier:prH,type:'pullback'});
+        }
+      }
+    }
+    if(brokeDown) {
+      const pbNearBarrier=recentPb.some(b=>{
+        const mid=(b.h+b.l)/2;
+        return mid<=prL+A*1.2 && mid>=prL-A*1.8;
+      });
+      if(pbNearBarrier) {
+        const sig=recentPb[recentPb.length-1];
+        const isSig=isDoji(sig,0.42)||(sig.h-sig.l)<A*0.7;
+        const brk=bars[n-1];
+        if(isSig && brk.c<sig.l && brk.c<brk.o) {
+          const entry=sig.l-A*0.04;
+          const target=entry-pipSz(A)*10;
+          const clear=pathClear(bars.slice(0,n),entry,target,A);
+          const brkBodyR=Math.abs(brk.c-brk.o)/(brk.h-brk.l+0.000001);
+          const conds={prevBreak:true,barrierPb:pbNearBarrier,signalBar:isSig,
+            barrierOld:true,emaConfirm:sl<0.001};
+          const sc=scoreARB(pbNearBarrier,brkBodyR,sl,2,clear);
+          if(sc>=42) res.push({setup:'ARB',dir:'short',entry,score:sc,conds,barIdx:n-1,barrier:prL,type:'pullback'});
+        }
       }
     }
   }
-  if(brokeDown) {
-    const inBar=pb.some(b=>Math.abs((b.h+b.l)/2-pL)/A<0.9);
-    if(inBar) {
-      const sig=pb[pb.length-1];
-      const isSig=isDoji(sig,0.40)||(sig.h-sig.l)<A*0.65;
-      if(isSig) {
-        const conds={prevBreak:true,barrierPb:inBar,signalBar:isSig,barrierOld:true,emaConfirm:sl<0.001};
-        const sc=scoreARB(inBar,isSig,-sl,sig,A);
-        if(sc>=40) res.push({setup:'ARB',dir:'short',entry:sig.l-A*0.04,score:sc,conds,barIdx:n-2,barrier:pL});
-      }
-    }
-  }
-  return res;
+
+  const best={};
+  for(const r of res.sort((a,b)=>b.score-a.score)) { if(!best[r.dir]) best[r.dir]=r; }
+  return Object.values(best);
 }
-function scoreARB(inBar,isSig,sl,sig,A) {
-  let s=50;
+
+function scoreARB(inBar,bodyR,sl,clusterSz,clear) {
+  let s=48;
   if(inBar) s+=12;
-  if(isSig) s+=10;
-  s+=Math.min(10,Math.abs(sl)/0.001*2);
-  if((sig.h-sig.l)<A*0.4) s+=8;
+  s+=Math.min(10,bodyR*13);
+  s+=Math.min(8,Math.abs(sl)/0.0006*3);
+  s+=Math.min(6,(clusterSz-1)*2);
+  if(clear) s+=5; else s-=8;
   if(!inBar) s-=20;
-  if(!isSig) s-=10;
   return clamp(Math.round(s),20,97);
 }
 
@@ -1990,48 +2406,57 @@ async function startScan() {
     const pct=Math.round(done/coins.length*100);
     setLoad(true,`${coin} analiz ediliyor...`,`${done+1} / ${coins.length} — %${pct}`);
     setFill(pct);
-    const bars=await fetchBars(coin,tf,60);
+    const bars=await fetchBars(coin,tf);
     if(bars) {
       const em=ema20(bars), A=atr(bars,14);
       const price=bars[bars.length-1].c;
-      const sl=slope(em,Math.min(8,em.length-1));
+      const sl=emaSlp(em,Math.min(8,em.length-1));
       const chg=((price-bars[0].c)/bars[0].c*100);
       let coinSigs=[];
       for(const det of DETS) { try{ coinSigs.push(...det(bars,em,A)); }catch(e){} }
 
-      // ── Volman kuralı: EMA slope'u genel yön belirler ──────────────
-      // Güçlü slope → karşı yöndeki sinyali at
-      // Zayıf slope (sideways) → her iki yöne de izin ver ama skoru düşür
-      const SLOPE_STRONG = 0.0006; // güçlü trend eşiği
-      const SLOPE_WEAK   = 0.0002; // "EMA yatay" eşiği (Volman: unfavorable)
-      
+      // ══════════════════════════════════════════════════════
+      // Volman kuralı: EMA slope = dominant yön belirler
+      // Kitap: "the safest trades are to the long/short side"
+      // Unfavorable: EMA dalgalı (waving) → tüm sinyalleri atla
+      // ══════════════════════════════════════════════════════
+      const SLOPE_STRONG = 0.0005;
+      const SLOPE_WEAK   = 0.00018;
+
+      // EMA dalgalı = Volman'ın "unfavorable" dediği durum
+      // Detektörler zaten emaWaving() çağırıyor ama burada da filtrele
+      const waving = emaWaving(em, 12);
+
       coinSigs = coinSigs.filter(sig => {
-        // EMA yatay → Volman'a göre unfavorable, zayıf sinyaller kalabilir
-        if (Math.abs(sl) < SLOPE_WEAK) {
-          sig.score = Math.round(sig.score * 0.70); // skoru düşür
-          return sig.score >= 38;
+        // Waving EMA → skor büyük ceza
+        if (waving) {
+          sig.score = Math.round(sig.score * 0.60);
+          return sig.score >= 45; // sadece çok güçlü sinyaller geçer
         }
-        // Güçlü trend var → karşı yöne KESİNLİKLE izin verme
-        if (sl > SLOPE_STRONG  && sig.dir === 'short') return false;
+        // Güçlü trend: karşı yöne kesinlikle izin verme
+        if (sl >  SLOPE_STRONG && sig.dir === 'short') return false;
         if (sl < -SLOPE_STRONG && sig.dir === 'long')  return false;
-        // Orta trend → karşı yöne küçük ceza
-        if (sl > SLOPE_WEAK  && sig.dir === 'short') sig.score = Math.round(sig.score * 0.80);
-        if (sl < -SLOPE_WEAK && sig.dir === 'long')  sig.score = Math.round(sig.score * 0.80);
+        // Zayıf slope (neredeyse yatay)
+        if (Math.abs(sl) < SLOPE_WEAK) {
+          sig.score = Math.round(sig.score * 0.72);
+          return sig.score >= 40;
+        }
+        // Orta trend → karşı yöne ceza
+        if (sl >  SLOPE_WEAK && sig.dir === 'short') sig.score = Math.round(sig.score * 0.82);
+        if (sl < -SLOPE_WEAK && sig.dir === 'long')  sig.score = Math.round(sig.score * 0.82);
         return true;
       });
 
       coinSigs.sort((a,b)=>b.score-a.score);
-      
-      // Her coin için en fazla 1 sinyal (en yüksek skorlu)
-      // Volman: bir coin'de tek setup, tek yön — en güçlüsünü al
+
+      // Kitap: bir coin'de tek yön, en güçlü setup
+      // Güçlü trend varsa sadece dominant yön; zayıf/orta ise her iki yön olabilir
       const seenDir = new Set();
       for(const sig of coinSigs) {
-        if(seenDir.has(sig.dir)) continue; // aynı yönde ikinci sinyal alma
+        if(seenDir.has(sig.dir)) continue;
+        // Güçlü trend: 2. yönü eklemeyi engelle
+        if(seenDir.size>=1 && Math.abs(sl)>SLOPE_STRONG) break;
         seenDir.add(sig.dir);
-        
-        // Eğer zaten karşı yön eklendiyse ve slope güçlüyse atla
-        if(seenDir.size===2 && Math.abs(sl)>SLOPE_STRONG) break; // sadece dominant yön
-        
         const pip=pipSz(A);
         const tgt=sig.dir==='long'?sig.entry+pip*10:sig.entry-pip*10;
         const stp=sig.dir==='long'?sig.entry-pip*10:sig.entry+pip*10;
