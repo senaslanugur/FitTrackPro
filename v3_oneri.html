@@ -2392,90 +2392,107 @@ function scoreARB(inBar,bodyR,sl,clusterSz,clear) {
 //  MAIN SCAN
 // ═══════════════════════════════════════════════════════════
 async function startScan() {
-  document.getElementById('scan-btn').disabled=true;
-  document.getElementById('scan-txt').textContent='Taranıyor...';
-  setLoad(true,'Başlatılıyor','Binance API bağlantısı kuruluyor...');
-  allSigs=[];
-  const listKey=document.getElementById('coin-list').value;
-  const coins=COINS[listKey]||COINS.top60;
-  const tf=currentTf;
+  document.getElementById('scan-btn').disabled = true;
+  document.getElementById('scan-txt').textContent = 'Taranıyor...';
+  setLoad(true, 'Başlatılıyor', 'Binance API bağlantısı kuruluyor...');
+  allSigs = [];
+
+  const listKey = document.getElementById('coin-list').value;
+  const coins   = COINS[listKey] || COINS.top60;
+  const tf      = currentTf;
   await fetchHeaderPrices();
-  const DETS=[detectDD,detectFB,detectSB,detectBB,detectRB,detectIRB,detectARB];
-  let done=0;
-  for(const coin of coins) {
-    const pct=Math.round(done/coins.length*100);
-    setLoad(true,`${coin} analiz ediliyor...`,`${done+1} / ${coins.length} — %${pct}`);
+
+  const DETS = [detectDD, detectFB, detectSB, detectBB, detectRB, detectIRB, detectARB];
+  const SLOPE_STRONG = 0.0005;
+  const SLOPE_WEAK   = 0.00018;
+  let done = 0;
+
+  // ── Paralel batch fetch: 8 coin aynı anda ──────────────────────────
+  // Binance ücretsiz limit: 1200 istek/dk → 8 paralel güvenli
+  const BATCH = 8;
+  for (let b = 0; b < coins.length; b += BATCH) {
+    const batch = coins.slice(b, b + BATCH);
+    const pct   = Math.round(b / coins.length * 100);
+    setLoad(true,
+      `${batch[0]} grubu analiz ediliyor...`,
+      `${b + 1}–${Math.min(b + BATCH, coins.length)} / ${coins.length} — %${pct}`
+    );
     setFill(pct);
-    const bars=await fetchBars(coin,tf);
-    if(bars) {
-      const em=ema20(bars), A=atr(bars,14);
-      const price=bars[bars.length-1].c;
-      const sl=emaSlp(em,Math.min(8,em.length-1));
-      const chg=((price-bars[0].c)/bars[0].c*100);
-      let coinSigs=[];
-      for(const det of DETS) { try{ coinSigs.push(...det(bars,em,A)); }catch(e){} }
 
-      // ══════════════════════════════════════════════════════
-      // Volman kuralı: EMA slope = dominant yön belirler
-      // Kitap: "the safest trades are to the long/short side"
-      // Unfavorable: EMA dalgalı (waving) → tüm sinyalleri atla
-      // ══════════════════════════════════════════════════════
-      const SLOPE_STRONG = 0.0005;
-      const SLOPE_WEAK   = 0.00018;
+    // Aynı anda 8 istek
+    const barsArr = await Promise.all(batch.map(c => fetchBars(c, tf)));
 
-      // EMA dalgalı = Volman'ın "unfavorable" dediği durum
-      // Detektörler zaten emaWaving() çağırıyor ama burada da filtrele
+    for (let i = 0; i < batch.length; i++) {
+      const coin = batch[i];
+      const bars = barsArr[i];
+      done++;
+      document.getElementById('s-scan').textContent = `${done}/${coins.length} tarandı`;
+      if (!bars || bars.length < 20) continue;
+
+      const em    = ema20(bars);
+      const A     = calcATR(bars, 14);
+      const price = bars[bars.length - 1].c;
+      const sl    = emaSlp(em, Math.min(8, em.length - 2));
+      const chg   = (price - bars[0].c) / bars[0].c * 100;
+
+      // ── Setup tespiti ───────────────────────────────────────────────
+      let coinSigs = [];
+      for (const det of DETS) {
+        try { coinSigs.push(...det(bars, em, A)); } catch (e) {}
+      }
+      if (coinSigs.length === 0) continue;
+
+      // ── Volman kuralı: EMA slope = yön filtresi ────────────────────
+      // Kitap Ch.6: "safest trades are to the long/short side"
+      // Unfavorable: EMA dalgalıysa skor cezalandır
       const waving = emaWaving(em, 12);
 
       coinSigs = coinSigs.filter(sig => {
-        // Waving EMA → skor büyük ceza
         if (waving) {
           sig.score = Math.round(sig.score * 0.60);
-          return sig.score >= 45; // sadece çok güçlü sinyaller geçer
+          return sig.score >= 45;
         }
-        // Güçlü trend: karşı yöne kesinlikle izin verme
         if (sl >  SLOPE_STRONG && sig.dir === 'short') return false;
         if (sl < -SLOPE_STRONG && sig.dir === 'long')  return false;
-        // Zayıf slope (neredeyse yatay)
         if (Math.abs(sl) < SLOPE_WEAK) {
           sig.score = Math.round(sig.score * 0.72);
           return sig.score >= 40;
         }
-        // Orta trend → karşı yöne ceza
         if (sl >  SLOPE_WEAK && sig.dir === 'short') sig.score = Math.round(sig.score * 0.82);
         if (sl < -SLOPE_WEAK && sig.dir === 'long')  sig.score = Math.round(sig.score * 0.82);
         return true;
       });
 
-      coinSigs.sort((a,b)=>b.score-a.score);
+      coinSigs.sort((a, b) => b.score - a.score);
 
-      // Kitap: bir coin'de tek yön, en güçlü setup
-      // Güçlü trend varsa sadece dominant yön; zayıf/orta ise her iki yön olabilir
+      // ── Coin başına en iyi sinyal (yön başına 1) ───────────────────
       const seenDir = new Set();
-      for(const sig of coinSigs) {
-        if(seenDir.has(sig.dir)) continue;
-        // Güçlü trend: 2. yönü eklemeyi engelle
-        if(seenDir.size>=1 && Math.abs(sl)>SLOPE_STRONG) break;
+      for (const sig of coinSigs) {
+        if (seenDir.has(sig.dir)) continue;
+        if (seenDir.size >= 1 && Math.abs(sl) > SLOPE_STRONG) break;
         seenDir.add(sig.dir);
-        const pip=pipSz(A);
-        const tgt=sig.dir==='long'?sig.entry+pip*10:sig.entry-pip*10;
-        const stp=sig.dir==='long'?sig.entry-pip*10:sig.entry+pip*10;
-        allSigs.push({coin,price,ema:em[em.length-1],emaSlope:sl,atr:A,chg,tf,...sig,target:tgt,stop:stp,pip});
+        const pip = pipSz(A);
+        const tgt = sig.dir === 'long' ? sig.entry + pip * 10 : sig.entry - pip * 10;
+        const stp = sig.dir === 'long' ? sig.entry - pip * 10 : sig.entry + pip * 10;
+        allSigs.push({ coin, price, ema: em[em.length-1], emaSlope: sl, atr: A, chg, tf,
+          ...sig, target: tgt, stop: stp, pip });
       }
     }
-    done++;
-    document.getElementById('s-scan').textContent=`${done}/${coins.length} tarandı`;
-    await pause(85);
+
+    // Batch arası kısa bekleme (UI güncelleme + rate limit)
+    await pause(100);
   }
+
   updCounts();
   applyFilters();
   updStats(done);
   setLoad(false);
-  document.getElementById('scan-btn').disabled=false;
-  document.getElementById('scan-txt').textContent='Yeniden Tara';
-  document.getElementById('s-time').textContent=new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
-  document.getElementById('s-status').textContent=`${done} coin tarandı`;
-  showToast(`${allSigs.length} sinyal bulundu — ${done} coin tarandı`,'ok');
+  document.getElementById('scan-btn').disabled = false;
+  document.getElementById('scan-txt').textContent = 'Yeniden Tara';
+  document.getElementById('s-time').textContent =
+    new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('s-status').textContent = `${done} coin tarandı`;
+  showToast(`${allSigs.length} sinyal bulundu — ${done} coin tarandı`, 'ok');
 }
 
 // ═══════════════════════════════════════════════════════════
