@@ -1228,7 +1228,7 @@ background-color: #30363d; flex-shrink: 0;
   <div class="info-card">
     <div class="info-title">📖 Volman Method — 7 Setup</div>
     <div class="info-text">
-      Bob Volman'ın "Forex Price Action Scalping" kitabındaki 7 setup'a dayalı: DD (Double Doji), FB (First Break), SB (Second Break), BB (Block Break), RB (Range Break), IRB (Inside Range), ARB (Advanced Range). Tek indikatör: 20 EMA. Hedef = Stop = ATR × 0.15 × 10 pip.
+      Bob Volman'ın 7 setup'ı: DD · FB · SB · BB · RB · IRB · ARB. Tek indikatör: 20 EMA. Güçlü EMA slope → tek yön. Zayıf slope (sideways) → unfavorable, skor düşer. Her coin için maksimum 1 sinyal per yön. Hedef = Stop = ATR-bazlı pip × 10.
     </div>
   </div>
 </div>
@@ -1520,7 +1520,19 @@ async function fetchHeaderPrices() {
 // ═══════════════════════════════════════════════════════════
 //  BINANCE API
 // ═══════════════════════════════════════════════════════════
-async function fetchBars(sym, tf, limit=60) {
+// Volman: Her setup için yeterli bağlam lazım.
+// DD/FB: ~30 bar, RB: ~35 bar, IRB: ~30 bar, ARB: ~35 bar
+// En az 80 bar — ama 1h'de aşırı geçmişi çekmeyelim
+const TF_LIMIT = {
+  '1m': 100,  // 100 dk — spike+pullback+range için yeterli
+  '3m': 90,   // 4.5 saat
+  '5m': 80,   // 6.7 saat (Volman'ın ~1.5 saat önerisiyle uyumlu)
+  '15m': 70,  // 17 saat
+  '1h': 60,   // 60 saat (daha uzun vadeli bağlam)
+};
+
+async function fetchBars(sym, tf, limit) {
+  if (limit === undefined) limit = TF_LIMIT[tf] || 80;
   try {
     const r = await fetch(`https://api.binance.com/api/v3/klines?symbol=${sym}USDT&interval=${tf}&limit=${limit}`);
     if (!r.ok) return null;
@@ -1986,13 +1998,40 @@ async function startScan() {
       const chg=((price-bars[0].c)/bars[0].c*100);
       let coinSigs=[];
       for(const det of DETS) { try{ coinSigs.push(...det(bars,em,A)); }catch(e){} }
+
+      // ── Volman kuralı: EMA slope'u genel yön belirler ──────────────
+      // Güçlü slope → karşı yöndeki sinyali at
+      // Zayıf slope (sideways) → her iki yöne de izin ver ama skoru düşür
+      const SLOPE_STRONG = 0.0006; // güçlü trend eşiği
+      const SLOPE_WEAK   = 0.0002; // "EMA yatay" eşiği (Volman: unfavorable)
+      
+      coinSigs = coinSigs.filter(sig => {
+        // EMA yatay → Volman'a göre unfavorable, zayıf sinyaller kalabilir
+        if (Math.abs(sl) < SLOPE_WEAK) {
+          sig.score = Math.round(sig.score * 0.70); // skoru düşür
+          return sig.score >= 38;
+        }
+        // Güçlü trend var → karşı yöne KESİNLİKLE izin verme
+        if (sl > SLOPE_STRONG  && sig.dir === 'short') return false;
+        if (sl < -SLOPE_STRONG && sig.dir === 'long')  return false;
+        // Orta trend → karşı yöne küçük ceza
+        if (sl > SLOPE_WEAK  && sig.dir === 'short') sig.score = Math.round(sig.score * 0.80);
+        if (sl < -SLOPE_WEAK && sig.dir === 'long')  sig.score = Math.round(sig.score * 0.80);
+        return true;
+      });
+
       coinSigs.sort((a,b)=>b.score-a.score);
-      const seen=new Set();
+      
+      // Her coin için en fazla 1 sinyal (en yüksek skorlu)
+      // Volman: bir coin'de tek setup, tek yön — en güçlüsünü al
+      const seenDir = new Set();
       for(const sig of coinSigs) {
-        const key=`${sig.dir}-${sig.setup}`;
-        if(seen.has(key)) continue;
-        seen.add(key);
-        if(seen.size>2) break;
+        if(seenDir.has(sig.dir)) continue; // aynı yönde ikinci sinyal alma
+        seenDir.add(sig.dir);
+        
+        // Eğer zaten karşı yön eklendiyse ve slope güçlüyse atla
+        if(seenDir.size===2 && Math.abs(sl)>SLOPE_STRONG) break; // sadece dominant yön
+        
         const pip=pipSz(A);
         const tgt=sig.dir==='long'?sig.entry+pip*10:sig.entry-pip*10;
         const stp=sig.dir==='long'?sig.entry-pip*10:sig.entry+pip*10;
