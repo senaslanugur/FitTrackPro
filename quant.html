@@ -1582,8 +1582,7 @@ function renderTimingCard(d){
 }
 
 
-// Override renderScanTable with new design
-renderScanTable = function(results,filt,minRel){
+function renderScanTable(results,filt,minRel){
   filt=filt||'all';minRel=minRel||0;
   var filtered=results.filter(function(r){
     if(minRel&&r.rel<minRel)return false;
@@ -1620,7 +1619,7 @@ renderScanTable = function(results,filt,minRel){
 };
 
 // Override setChTab to handle canvas tabs
-setChTab = function(t,btn){
+function setChTab(t,btn){
   CTAB=t;
   document.querySelectorAll('.ctab').forEach(function(b){b.classList.remove('on');});
   btn.classList.add('on');
@@ -1636,7 +1635,7 @@ setChTab = function(t,btn){
 };
 
 // Override renderDetail with new design
-renderDetail = function(d){
+function renderDetail(d){
   if(!d||!d.analysis||!d.feat)return;
   var a=d.analysis,g=d.garch,ml=d.ml,pf=d.pf,ar=d.arima,kf=d.kf,sr=d.sr,pivots=d.pivots;
 
@@ -1758,7 +1757,7 @@ renderDetail = function(d){
 
 // Override drawCharts to handle vol/adx tabs AND macd/rsi
 var _origDrawCharts=drawCharts;
-drawCharts=function(d,tab){
+function drawCharts(d,tab){
   if(!d||!d.feat)return;
   if(typeof Chart==='undefined')return;
   var ch=d.feat;
@@ -1791,7 +1790,7 @@ drawCharts=function(d,tab){
 };
 
 // Override renderHist
-renderHist=function(){
+function renderHist(){
   var c=E('hist-container'),t=E('hist-total');if(!c)return;if(t)t.textContent=HISTORY.length;
   if(!HISTORY.length){c.innerHTML='<div style="color:var(--txt3);font-size:.65rem;padding:1rem">Sinyal yok.</div>';return;}
   var h='<div class="hist-row hdr"><div>Zaman</div><div>Sembol</div><div>TF</div><div>Sinyal</div><div>Güven</div><div>Fiyat</div><div>Hedef</div><div>Stop</div></div>';
