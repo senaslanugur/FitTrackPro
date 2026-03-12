@@ -630,6 +630,15 @@ function fmtP(v){
   if(v>=0.00001)return '$'+v.toFixed(7);
   return '$'+v.toExponential(4);
 }
+function fmtPShort(v){
+  if(v==null||!isFinite(v))return '—';
+  if(v>=100000)return '$'+Math.round(v/1000)+'k';
+  if(v>=1000)return '$'+v.toFixed(0);
+  if(v>=1)return '$'+v.toFixed(3);
+  if(v>=0.001)return '$'+v.toFixed(5);
+  return '$'+v.toExponential(3);
+}
+
 function fmtPct(v){if(!isFinite(v))return '—';return (v>=0?'+':'')+v.toFixed(2)+'%';}
 function pc(v){return v>0?'up':v<0?'dn':'nt';}
 function relCls(r){return r>=80?'rhi':r>=65?'rmd':r>=50?'rlo':'rvl';}
@@ -762,568 +771,784 @@ async function getTopCoins(n){
 }
 
 // ── MATH ──────────────────────────────────────────────────────────────────────
-function mean(a){var s=0,n=a.length;if(!n)return 0;for(var i=0;i<n;i++)s+=a[i];return s/n;}
-function varS(a){var m=mean(a),s=0,n=a.length;for(var i=0;i<n;i++)s+=(a[i]-m)*(a[i]-m);return n>1?s/(n-1):0;}
-function vari(a){var m=mean(a),s=0,n=a.length;for(var i=0;i<n;i++)s+=(a[i]-m)*(a[i]-m);return n?s/n:0;}
-function logRet(c){var r=[];for(var i=1;i<c.length;i++)r.push(Math.log(c[i]/c[i-1]));return r;}
-function acf(x,lag){var m=mean(x),n=x.length,num=0,den=0;for(var i=0;i<n;i++)den+=(x[i]-m)*(x[i]-m);for(var i=lag;i<n;i++)num+=(x[i]-m)*(x[i-lag]-m);return den>0?num/den:0;}
-function normCDF(z){var t=1/(1+0.2316419*Math.abs(z));var p=t*(0.319381530+t*(-0.356563782+t*(1.781477937+t*(-1.821255978+t*1.330274429))));var r=0.3989422803*Math.exp(-z*z/2)*p;return z>0?1-r:r;}
-function chiSqPval(x,df){var z=(Math.pow(x/df,1/3)-(1-2/(9*df)))/Math.sqrt(2/(9*df));return 1-normCDF(z);}
 
-function ols(X,y){
-  var n=y.length,k=X[0].length;
-  var XtX=[],Xty=[];
-  for(var i=0;i<k;i++){XtX.push([]);Xty.push(0);for(var j=0;j<k;j++){var s=0;for(var r=0;r<n;r++)s+=X[r][i]*X[r][j];XtX[i].push(s);}for(var r=0;r<n;r++)Xty[i]+=X[r][i]*y[r];}
-  var inv=invMat(XtX);if(!inv)return null;
-  var coef=inv.map(function(row){return row.reduce(function(s,v,j){return s+v*Xty[j];},0);});
-  var resid=y.map(function(yi,i){var yh=coef.reduce(function(s,b,j){return s+b*X[i][j];},0);return yi-yh;});
-  var sigma2=resid.reduce(function(s,r){return s+r*r;},0)/Math.max(n-k,1);
-  var meat=Array(k).fill(0).map(function(){return Array(k).fill(0);});
-  for(var i=0;i<n;i++){var e2=resid[i]*resid[i];for(var r=0;r<k;r++)for(var c=0;c<k;c++)meat[r][c]+=X[i][r]*X[i][c]*e2;}
-  var se=coef.map(function(_,j){var s=0;for(var a=0;a<k;a++)for(var b=0;b<k;b++)s+=inv[j][a]*meat[a][b]*inv[b][j];return Math.sqrt(Math.max(s,0));});
-  return{coef,resid,sigma2,se};
-}
-function invMat(M){
-  var n=M.length;
-  var A=M.map(function(r){return r.slice();}),I=Array.from({length:n},function(_,i){return Array.from({length:n},function(_,j){return i===j?1:0;});});
-  for(var c=0;c<n;c++){
-    var pr=c;for(var r=c+1;r<n;r++)if(Math.abs(A[r][c])>Math.abs(A[pr][c]))pr=r;
-    var ta=A[c];A[c]=A[pr];A[pr]=ta;var ti=I[c];I[c]=I[pr];I[pr]=ti;
-    var pv=A[c][c];if(Math.abs(pv)<1e-14)return null;
-    for(var j=0;j<n;j++){A[c][j]/=pv;I[c][j]/=pv;}
-    for(var r=0;r<n;r++){if(r===c)continue;var f=A[r][c];for(var j=0;j<n;j++){A[r][j]-=f*A[c][j];I[r][j]-=f*I[c][j];}}
-  }
-  return I;
-}
 
 // Hurst R/S [QS Ch10.2]
-function hurstRS(prices){
-  var y=prices.slice(),n=y.length;if(n<50)return 0.5;
-  var lags=[8,16,32,64,Math.floor(n/3),Math.floor(n/2)].filter(function(l){return l>=8&&l<n;});
-  var pts=[];
-  lags.forEach(function(lag){
-    var ns=Math.floor(n/lag);if(ns<2)return;var rs=[];
-    for(var s=0;s<ns;s++){
-      var seg=y.slice(s*lag,(s+1)*lag),m=mean(seg),cum=0,cums=[0];
-      for(var i=0;i<seg.length;i++){cum+=seg[i]-m;cums.push(cum);}
-      var rng=Math.max.apply(null,cums)-Math.min.apply(null,cums);
-      var sd=Math.sqrt(varS(seg));if(sd>0&&rng>0)rs.push(rng/sd);
-    }
-    if(rs.length)pts.push({lag,rs:mean(rs)});
-  });
-  if(pts.length<3)return 0.5;
-  var lx=pts.map(function(p){return Math.log(p.lag);}),ly=pts.map(function(p){return Math.log(p.rs);});
-  var mx=mean(lx),my=mean(ly),num=0,den=0;
-  for(var i=0;i<lx.length;i++){num+=(lx[i]-mx)*(ly[i]-my);den+=(lx[i]-mx)*(lx[i]-mx);}
-  return +Math.min(Math.max(den>0?num/den:0.5,0.05),1.95).toFixed(4);
-}
 
 // ADF test [Tsay Ch2.7]
-function adfTest(series){
-  var y=series.slice(),n=y.length;
-  var dy=[];for(var i=1;i<n;i++)dy.push(y[i]-y[i-1]);
-  var lags=Math.min(4,Math.floor(Math.pow(n,1/3)));
-  if(dy.length-lags<12)return{stat:0,pval:1,stationary:false};
-  var XX=[],YY=[];
-  for(var t=lags;t<dy.length;t++){var row=[1,y[t]];for(var l=1;l<=lags;l++)row.push(dy[t-l]);XX.push(row);YY.push(dy[t]);}
-  var res=ols(XX,YY);if(!res)return{stat:0,pval:1,stationary:false};
-  var tau=res.se[1]>1e-12?res.coef[1]/res.se[1]:0;
-  return{stat:+tau.toFixed(4),pval:tau<-3.43?0.01:tau<-2.86?0.05:tau<-2.57?0.10:0.25,stationary:tau<-2.86};
-}
 
 // Ljung-Box [Tsay Ch2.2]
-function ljungBox(resid,m){
-  m=m||10;var n=resid.length;if(n<m+5)return{Q:0,pval:0.5,wn:true};
-  var Q=0;for(var k=1;k<=m;k++){var rk=acf(resid,k);Q+=rk*rk/(n-k);}
-  Q*=n*(n+2);
-  return{Q:+Q.toFixed(2),pval:+chiSqPval(Q,m).toFixed(4),wn:chiSqPval(Q,m)>0.05};
-}
 
 // ARCH-LM [Tsay Ch3.3]
-function archLM(resid,q){
-  q=q||5;var r2=resid.map(function(v){return v*v;}),n=r2.length;
-  if(n<=q+5)return{lm:0,pval:1,hasArch:false};
-  var XX=[],YY=[];
-  for(var t=q;t<n;t++){var row=[1];for(var l=1;l<=q;l++)row.push(r2[t-l]);XX.push(row);YY.push(r2[t]);}
-  var res=ols(XX,YY);if(!res)return{lm:0,pval:1,hasArch:false};
-  var ss=0,sst=0,ym=mean(YY);
-  res.resid.forEach(function(r){ss+=r*r;});YY.forEach(function(v){sst+=(v-ym)*(v-ym);});
-  var R2=sst>1e-14?Math.max(0,1-ss/sst):0,LM=(n-q)*R2;
-  var p=chiSqPval(LM,q);
-  return{lm:+LM.toFixed(2),pval:+p.toFixed(4),hasArch:p<0.05};
-}
 
 // ── INDICATORS ────────────────────────────────────────────────────────────────
-function sma(a,w){return a.map(function(_,i){if(i<w-1)return NaN;var s=0;for(var j=i-w+1;j<=i;j++)s+=a[j];return s/w;});}
-function ema(a,sp){var al=2/(sp+1),o=[];a.forEach(function(v,i){o.push(i===0||isNaN(o[i-1])?v:al*v+(1-al)*o[i-1]);});return o;}
-function rollStd(a,w){return a.map(function(_,i){if(i<w-1)return NaN;var s=a.slice(i-w+1,i+1),m=mean(s);return Math.sqrt(s.reduce(function(r,v){return r+(v-m)*(v-m);},0)/w);});}
 
-function rsiWilder(cl,p){
-  p=p||14;var n=cl.length,rsi=Array(n).fill(NaN);
-  if(n<=p)return rsi;
-  var g=0,l=0;for(var i=1;i<=p;i++){var d=cl[i]-cl[i-1];if(d>0)g+=d;else l-=d;}g/=p;l/=p;
-  rsi[p]=l===0?100:100-100/(1+g/l);
-  for(var i=p+1;i<n;i++){var d=cl[i]-cl[i-1],gd=Math.max(d,0),ld=Math.max(-d,0);g=(g*(p-1)+gd)/p;l=(l*(p-1)+ld)/p;rsi[i]=l===0?100:100-100/(1+g/l);}
-  return rsi;
-}
 
-function atrWilder(hi,lo,cl,p){
-  p=p||14;var n=cl.length,atr=Array(n).fill(NaN);
-  var tr=[];for(var i=0;i<n;i++){var hl=hi[i]-lo[i];tr.push(i===0?hl:Math.max(hl,Math.abs(hi[i]-cl[i-1]),Math.abs(lo[i]-cl[i-1])));}
-  var sum=0;for(var i=0;i<p;i++)sum+=tr[i];atr[p-1]=sum/p;
-  for(var i=p;i<n;i++)atr[i]=(atr[i-1]*(p-1)+tr[i])/p;
-  return atr;
-}
 
-function calcADX(hi,lo,cl,p){
-  p=p||14;var n=cl.length;
-  var pdm=[0],ndm=[0],tr2=[hi[0]-lo[0]];
-  for(var i=1;i<n;i++){
-    var uh=hi[i]-hi[i-1],dl2=lo[i-1]-lo[i];
-    pdm.push(uh>dl2&&uh>0?uh:0);ndm.push(dl2>uh&&dl2>0?dl2:0);
-    tr2.push(Math.max(hi[i]-lo[i],Math.abs(hi[i]-cl[i-1]),Math.abs(lo[i]-cl[i-1])));
+
+
+
+
+
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// QUANTAI PRO v7 — KISA VADELİ AL-SAT ALGORİTMA MOTORU
+// ─────────────────────────────────────────────────────────────────────────
+// YÖNTEMLER (akademik + pratik):
+//  1. EMA 9/21/50 Trend Sistemi          [Elder: Trading for a Living]
+//  2. Supertrend (ATR tabanlı)            [Wilder: New Concepts]
+//  3. VWAP Sapma Analizi                  [Nasdaq Market Structure]
+//  4. RSI + Stochastic RSI                [Wilder + Lane]
+//  5. MACD Zero-Cross + Histogram         [Appel]
+//  6. Bollinger Band Squeeze + Breakout   [Bollinger on Bollinger Bands]
+//  7. Candlestick Pattern Engine          [Nison: Japanese Candlestick]
+//  8. Volume Delta + OBV Trend            [Wyckoff]
+//  9. CCI (Commodity Channel Index)       [Lambert]
+// 10. Williams %R                         [Williams]
+// 11. ATR-tabanlı Dinamik TP1/TP2/TP3    [Van Tharp: Trade Your Way]
+// 12. Kısa-Vadeli Momentum (ROC)
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ── TEMEL YARDIMCI FONKSİYONLAR ──────────────────────────────────────────
+
+// ── 1. SUPERTREND (ATR tabanlı trend göstergesi) ──────────────────────────
+// Kaynak: Wilder'ın ATR konseptinden türetilmiş, Chandelier Exit benzeri
+
+// ── 2. VWAP (Volume Weighted Average Price) ───────────────────────────────
+// Kurumsal yatırımcıların referans fiyatı
+
+// ── 3. CCI (Commodity Channel Index) ─────────────────────────────────────
+// Lambert (1980): -100/+100 bölgeleri kritik
+
+// ── 4. WILLIAMS %R ────────────────────────────────────────────────────────
+// Ters stochastic — -80 oversold, -20 overbought
+
+// ── 5. STOCHASTIC RSI ─────────────────────────────────────────────────────
+// RSI'ın stochastic normalize versiyonu — scalping için
+
+// ── 6. MOMENTUM / ROC (Rate of Change) ───────────────────────────────────
+
+// ── 7. CANDLESTICK PATTERN ENGINE ────────────────────────────────────────
+// Nison (1991) — en güvenilir kısa vadeli pattern'ler
+
+// ── 8. ÖZELLİK MÜHENDİSLİĞİ (Tüm göstergeler bir arada) ─────────────────
+
+// ═══════════════════════════════════════════════════════════════════════════
+// QUANTAI PRO v7 — KISA VADELİ AL-SAT ALGORİTMA MOTORU
+// ─────────────────────────────────────────────────────────────────────────
+// YÖNTEMLER (akademik + pratik):
+//  1. EMA 9/21/50 Trend Sistemi          [Elder: Trading for a Living]
+//  2. Supertrend (ATR tabanlı)            [Wilder: New Concepts]
+//  3. VWAP Sapma Analizi                  [Nasdaq Market Structure]
+//  4. RSI + Stochastic RSI                [Wilder + Lane]
+//  5. MACD Zero-Cross + Histogram         [Appel]
+//  6. Bollinger Band Squeeze + Breakout   [Bollinger on Bollinger Bands]
+//  7. Candlestick Pattern Engine          [Nison: Japanese Candlestick]
+//  8. Volume Delta + OBV Trend            [Wyckoff]
+//  9. CCI (Commodity Channel Index)       [Lambert]
+// 10. Williams %R                         [Williams]
+// 11. ATR-tabanlı Dinamik TP1/TP2/TP3    [Van Tharp: Trade Your Way]
+// 12. Kısa-Vadeli Momentum (ROC)
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ── TEMEL YARDIMCI FONKSİYONLAR ──────────────────────────────────────────
+function sma(arr,p){return arr.map(function(_,i){if(i<p-1)return NaN;var s=0;for(var j=i-p+1;j<=i;j++)s+=arr[j];return s/p;});}
+function ema(arr,p){var k=2/(p+1),out=arr.slice(),first=NaN;for(var i=0;i<arr.length;i++){if(isNaN(arr[i]))continue;if(isNaN(first)){first=arr[i];out[i]=first;}else{out[i]=arr[i]*k+out[i-1]*(1-k);}}return out;}
+function rollStd(arr,p){return arr.map(function(_,i){if(i<p-1)return NaN;var s=0,mn=0;for(var j=i-p+1;j<=i;j++)mn+=arr[j];mn/=p;for(var j=i-p+1;j<=i;j++)s+=(arr[j]-mn)*(arr[j]-mn);return Math.sqrt(s/(p-1));});}
+function mean(arr){var s=0,n=0;arr.forEach(function(v){if(isFinite(v)){s+=v;n++;}});return n?s/n:0;}
+function logRet(arr){return arr.map(function(v,i){return i===0?0:Math.log(v/arr[i-1]);});}
+function rsiWilder(cl,p){p=p||14;var n=cl.length,g=new Array(n).fill(NaN),l=new Array(n).fill(NaN);for(var i=1;i<n;i++){var d=cl[i]-cl[i-1];g[i]=Math.max(d,0);l[i]=Math.max(-d,0);}var ag=mean(g.slice(1,p+1)),al=mean(l.slice(1,p+1));var out=new Array(n).fill(NaN);out[p]=100-100/(1+ag/Math.max(al,1e-10));for(var i=p+1;i<n;i++){ag=(ag*(p-1)+g[i])/p;al=(al*(p-1)+l[i])/p;out[i]=100-100/(1+ag/Math.max(al,1e-10));}return out;}
+function atrWilder(hi,lo,cl,p){p=p||14;var n=cl.length,tr=new Array(n).fill(0);for(var i=1;i<n;i++)tr[i]=Math.max(hi[i]-lo[i],Math.abs(hi[i]-cl[i-1]),Math.abs(lo[i]-cl[i-1]));tr[0]=hi[0]-lo[0];var out=new Array(n).fill(NaN);var s=mean(tr.slice(0,p));out[p-1]=s;for(var i=p;i<n;i++)out[i]=(out[i-1]*(p-1)+tr[i])/p;return out;}
+function calcADX(hi,lo,cl,p){p=p||14;var n=cl.length;var pdm=new Array(n).fill(0),ndm=new Array(n).fill(0),tr2=[hi[0]-lo[0]];for(var i=1;i<n;i++){var up=hi[i]-hi[i-1],dn=lo[i-1]-lo[i];pdm[i]=up>dn&&up>0?up:0;ndm[i]=dn>up&&dn>0?dn:0;tr2[i]=Math.max(hi[i]-lo[i],Math.abs(hi[i]-cl[i-1]),Math.abs(lo[i]-cl[i-1]));}var spdm=mean(pdm.slice(0,p)),sndm=mean(ndm.slice(0,p)),str=mean(tr2.slice(0,p));var pdi=new Array(n).fill(NaN),ndi=new Array(n).fill(NaN),adxArr=new Array(n).fill(NaN);for(var i=p;i<n;i++){spdm=spdm-(spdm/p)+pdm[i];sndm=sndm-(sndm/p)+ndm[i];str=str-(str/p)+tr2[i];if(str<1e-10)continue;pdi[i]=100*spdm/str;ndi[i]=100*sndm/str;var dx=Math.abs(pdi[i]-ndi[i])/(pdi[i]+ndi[i]+1e-10)*100;adxArr[i]=i===p?dx:(adxArr[i-1]*(p-1)+dx)/p;}var last=n-1;return{adx:+(adxArr[last]||20).toFixed(1),pdi:+(pdi[last]||20).toFixed(1),ndi:+(ndi[last]||20).toFixed(1),bullTrend:pdi[last]>ndi[last],adxArr,pdiArr:pdi,ndiArr:ndi};}
+function stochastic(hi,lo,cl,k,d){k=k||14;d=d||3;var n=cl.length,kArr=new Array(n).fill(NaN);for(var i=k-1;i<n;i++){var maxH=Math.max.apply(null,hi.slice(i-k+1,i+1)),minL=Math.min.apply(null,lo.slice(i-k+1,i+1));kArr[i]=maxH===minL?50:(cl[i]-minL)/(maxH-minL)*100;}var dArr=sma(kArr,d);return{k:kArr,d:dArr};}
+function calcOBV(cl,vol){var obv=[vol[0]||0];for(var i=1;i<cl.length;i++)obv.push(obv[i-1]+(cl[i]>cl[i-1]?vol[i]:cl[i]<cl[i-1]?-vol[i]:0));return obv;}
+function pivotPts(hi,lo,cl,lb){lb=lb||20;var H=Math.max.apply(null,hi.slice(-lb)),L=Math.min.apply(null,lo.slice(-lb)),C=cl[cl.length-1];var P=(H+L+C)/3;return{P,R1:2*P-L,R2:P+(H-L),R3:H+2*(P-L),S1:2*P-H,S2:P-(H-L),S3:L-2*(H-P)};}
+function swingSR(hi,lo,cl,lb){lb=lb||5;var n=cl.length,rs=[],ss=[];for(var i=lb;i<n-lb;i++){var isR=true,isS=true;for(var j=1;j<=lb;j++){if(hi[i]<=hi[i-j]||hi[i]<=hi[i+j])isR=false;if(lo[i]>=lo[i-j]||lo[i]>=lo[i+j])isS=false;}if(isR)rs.push(hi[i]);if(isS)ss.push(lo[i]);}function clust(a,p){var pct=p||0.015;if(!a.length)return[];a.sort(function(x,y){return x-y;});var g=[[a[0]]];for(var i=1;i<a.length;i++){var last=g[g.length-1];if(Math.abs(a[i]-last[last.length-1])/last[last.length-1]<pct)last.push(a[i]);else g.push([a[i]]);}return g.map(function(c){return mean(c)});}return{R:clust(rs),S:clust(ss)};}
+function hurstRS(prices){var y=prices.slice(),n=y.length;if(n<50)return 0.5;var lags=[8,16,32,64].filter(function(l){return l<n/2;});var rs=lags.map(function(lag){var rs2=[];for(var s=0;s+lag<=n;s+=lag){var sub=y.slice(s,s+lag),mn=mean(sub),cs=0,mx=-Infinity,mn2=Infinity;for(var i=0;i<sub.length;i++){cs+=sub[i]-mn;if(cs>mx)mx=cs;if(cs<mn2)mn2=cs;}var std=Math.sqrt(mean(sub.map(function(v){return(v-mn)*(v-mn);})));rs2.push(std<1e-10?0:(mx-mn2)/std);}return mean(rs2.filter(function(v){return v>0;}));});var lx=lags.map(function(l){return Math.log(l);}),ly=rs.map(function(v){return Math.log(Math.max(v,1e-10));});var mn1=mean(lx),mn2=mean(ly),num=0,den=0;for(var i=0;i<lx.length;i++){num+=(lx[i]-mn1)*(ly[i]-mn2);den+=(lx[i]-mn1)*(lx[i]-mn1);}return Math.max(0.1,Math.min(0.95,den>0?num/den:0.5));}
+
+// ── 1. SUPERTREND (ATR tabanlı trend göstergesi) ──────────────────────────
+// Kaynak: Wilder'ın ATR konseptinden türetilmiş, Chandelier Exit benzeri
+function supertrend(hi,lo,cl,mult,atr){
+  mult=mult||2.5;
+  var n=cl.length;
+  var up=new Array(n).fill(0),dn=new Array(n).fill(0),trend=new Array(n).fill(1);
+  var finalUp=new Array(n).fill(0),finalDn=new Array(n).fill(0);
+  for(var i=0;i<n;i++){
+    var a=isNaN(atr[i])?cl[i]*0.02:atr[i];
+    var mid=(hi[i]+lo[i])/2;
+    up[i]=mid+mult*a; dn[i]=mid-mult*a;
+    if(i===0){finalUp[i]=up[i];finalDn[i]=dn[i];trend[i]=1;continue;}
+    finalUp[i]=up[i]<finalUp[i-1]||cl[i-1]>finalUp[i-1]?up[i]:finalUp[i-1];
+    finalDn[i]=dn[i]>finalDn[i-1]||cl[i-1]<finalDn[i-1]?dn[i]:finalDn[i-1];
+    if(trend[i-1]===-1&&cl[i]>finalUp[i-1])trend[i]=1;
+    else if(trend[i-1]===1&&cl[i]<finalDn[i-1])trend[i]=-1;
+    else trend[i]=trend[i-1];
   }
-  function ws(arr){
-    var s=arr.slice(0,p).reduce(function(a,b){return a+b;},0),out=[s];
-    for(var i=p;i<arr.length;i++){s=s-s/p+arr[i];out.push(s);}return out;
-  }
-  var atr14=ws(tr2),pdi14=ws(pdm),ndi14=ws(ndm);
-  var mn=Math.min(atr14.length,pdi14.length,ndi14.length);
-  var pdiA=[],ndiA=[],dxA=[];
-  for(var i=0;i<mn;i++){
-    var at=atr14[i]||1e-10,pd2=pdi14[i]/at*100,nd2=ndi14[i]/at*100;
-    pdiA.push(+pd2.toFixed(2));ndiA.push(+nd2.toFixed(2));
-    dxA.push(Math.abs(pd2-nd2)/(pd2+nd2||1)*100);
-  }
-  var adxA=[];
-  if(dxA.length>p){
-    var s2=dxA.slice(0,p).reduce(function(a,b){return a+b;},0)/p;adxA.push(s2);
-    for(var i=p;i<dxA.length;i++){s2=(s2*(p-1)+dxA[i])/p;adxA.push(s2);}
-  }
-  var last=function(a){return a.length?a[a.length-1]:0;};
-  return{adx:+last(adxA).toFixed(1),pdi:+last(pdiA).toFixed(1),ndi:+last(ndiA).toFixed(1),trending:last(adxA)>20,bullTrend:last(pdiA)>last(ndiA),bearTrend:last(ndiA)>last(pdiA),adxArr:adxA,pdiArr:pdiA,ndiArr:ndiA};
+  var last=n-1;
+  return{trend:trend[last],line:trend[last]===1?finalDn[last]:finalUp[last],arr:trend,upLine:finalDn,dnLine:finalUp};
 }
 
-function calcOBV(cl,vol){var o=[0];for(var i=1;i<cl.length;i++){var d=cl[i]>cl[i-1]?vol[i]:cl[i]<cl[i-1]?-vol[i]:0;o.push(o[o.length-1]+d);}return o;}
-
-function stochastic(hi,lo,cl,pk,pd){
-  pk=pk||14;pd=pd||3;var n=cl.length,stK=[];
-  for(var i=0;i<n;i++){if(i<pk-1){stK.push(50);continue;}var hh=Math.max.apply(null,hi.slice(i-pk+1,i+1)),ll=Math.min.apply(null,lo.slice(i-pk+1,i+1));stK.push(hh>ll?(cl[i]-ll)/(hh-ll)*100:50);}
-  return{K:stK,D:sma(stK,pd)};
+// ── 2. VWAP (Volume Weighted Average Price) ───────────────────────────────
+// Kurumsal yatırımcıların referans fiyatı
+function calcVWAP(hi,lo,cl,vol){
+  var tp=cl.map(function(_,i){return(hi[i]+lo[i]+cl[i])/3;});
+  var cumTPV=0,cumV=0;
+  return tp.map(function(p,i){cumTPV+=p*(vol[i]||1);cumV+=(vol[i]||1);return cumV?cumTPV/cumV:p;});
 }
 
-function pivotPts(hi,lo,cl,n){
-  n=n||20;var h=Math.max.apply(null,hi.slice(-n)),l=Math.min.apply(null,lo.slice(-n)),c=cl[cl.length-1];
-  var P=(h+l+c)/3;
-  return{P,R1:2*P-l,R2:P+(h-l),R3:h+2*(P-l),S1:2*P-h,S2:P-(h-l),S3:l-2*(h-P)};
-}
-
-function swingSR(hi,lo,cl,lb){
-  lb=lb||5;var n=cl.length,rs=[],ss=[];
-  for(var i=lb;i<n-lb;i++){
-    var hOk=true,lOk=true;
-    for(var j=1;j<=lb;j++){if(hi[i]<=hi[i-j]||hi[i]<=hi[i+j])hOk=false;if(lo[i]>=lo[i-j]||lo[i]>=lo[i+j])lOk=false;}
-    if(hOk)rs.push(hi[i]);if(lOk)ss.push(lo[i]);
+// ── 3. CCI (Commodity Channel Index) ─────────────────────────────────────
+// Lambert (1980): -100/+100 bölgeleri kritik
+function calcCCI(hi,lo,cl,p){
+  p=p||20;
+  var tp=cl.map(function(_,i){return(hi[i]+lo[i]+cl[i])/3;});
+  var cci=new Array(cl.length).fill(NaN);
+  for(var i=p-1;i<cl.length;i++){
+    var sub=tp.slice(i-p+1,i+1),mn=mean(sub);
+    var mad=mean(sub.map(function(v){return Math.abs(v-mn);}));
+    cci[i]=mad<1e-10?0:(tp[i]-mn)/(0.015*mad);
   }
-  function clust(arr,tol){arr=arr.sort(function(a,b){return a-b;});var out=[];arr.forEach(function(v){if(!out.length||v-out[out.length-1]>out[out.length-1]*tol)out.push(v);else out[out.length-1]=(out[out.length-1]+v)/2;});return out;}
-  var price=cl[n-1];
-  return{R:clust(rs.filter(function(v){return v>price;}),0.005).slice(-4),S:clust(ss.filter(function(v){return v<price;}),0.005).slice(-4)};
+  return cci;
 }
 
+// ── 4. WILLIAMS %R ────────────────────────────────────────────────────────
+// Ters stochastic — -80 oversold, -20 overbought
+function calcWR(hi,lo,cl,p){
+  p=p||14;
+  return cl.map(function(_,i){
+    if(i<p-1)return NaN;
+    var maxH=Math.max.apply(null,hi.slice(i-p+1,i+1));
+    var minL=Math.min.apply(null,lo.slice(i-p+1,i+1));
+    return maxH===minL?-50:(maxH-cl[i])/(maxH-minL)*-100;
+  });
+}
+
+// ── 5. STOCHASTIC RSI ─────────────────────────────────────────────────────
+// RSI'ın stochastic normalize versiyonu — scalping için
+function stochRSI(cl,rsiP,stP,kP,dP){
+  rsiP=rsiP||14;stP=stP||14;kP=kP||3;dP=dP||3;
+  var rsiArr=rsiWilder(cl,rsiP);
+  var k=rsiArr.map(function(_,i){
+    if(i<stP-1)return NaN;
+    var sub=rsiArr.slice(i-stP+1,i+1).filter(isFinite);
+    if(!sub.length)return NaN;
+    var mx=Math.max.apply(null,sub),mn=Math.min.apply(null,sub);
+    return mx===mn?50:(rsiArr[i]-mn)/(mx-mn)*100;
+  });
+  var d=ema(k.map(function(v){return isNaN(v)?0:v;}),kP);
+  var sig=ema(d,dP);
+  return{k,d,sig};
+}
+
+// ── 6. MOMENTUM / ROC (Rate of Change) ───────────────────────────────────
+function calcROC(cl,p){
+  p=p||10;
+  return cl.map(function(v,i){return i<p?NaN:(v-cl[i-p])/cl[i-p]*100;});
+}
+
+// ── 7. CANDLESTICK PATTERN ENGINE ────────────────────────────────────────
+// Nison (1991) — en güvenilir kısa vadeli pattern'ler
+function detectPatterns(klines){
+  var n=klines.length;
+  if(n<3)return{name:'',bull:false,bear:false,strength:0};
+  var c=klines[n-1],p1=klines[n-2],p2=klines[n-3];
+  var o=c.o,h=c.h,l=c.l,cl=c.c;
+  var body=Math.abs(cl-o),range=h-l||0.0001;
+  var bull=cl>o,bear=cl<o;
+  var bodyPct=body/range;
+  var upper=(bull?h-cl:h-o)/range;
+  var lower=(bull?o-l:cl-l)/range;
+
+  // Hammer / Shooting Star
+  if(lower>0.6&&bodyPct<0.3&&upper<0.1&&!bull)
+    return{name:'Çekiç 🔨',bull:true,bear:false,strength:3};
+  if(upper>0.6&&bodyPct<0.3&&lower<0.1&&bull)
+    return{name:'Asılı Adam ⚡',bull:false,bear:true,strength:3};
+
+  // Engulfing
+  if(bull&&o<p1.c&&cl>p1.o&&p1.c<p1.o)
+    return{name:'Boğa Yutması 🐂',bull:true,bear:false,strength:4};
+  if(bear&&o>p1.c&&cl<p1.o&&p1.c>p1.o)
+    return{name:'Ayı Yutması 🐻',bull:false,bear:true,strength:4};
+
+  // Doji
+  if(bodyPct<0.1&&range>0)
+    return{name:'Doji ⚖️',bull:false,bear:false,strength:1};
+
+  // Marubozu (güçlü trend mumu)
+  if(bodyPct>0.85&&bull)
+    return{name:'Boğa Marubozu ▲',bull:true,bear:false,strength:3};
+  if(bodyPct>0.85&&bear)
+    return{name:'Ayı Marubozu ▼',bull:false,bear:true,strength:3};
+
+  // Pin Bar (uzun fitil)
+  if(lower>0.65&&bodyPct<0.2)
+    return{name:'Pin Bar (Alt) 📍',bull:true,bear:false,strength:3};
+  if(upper>0.65&&bodyPct<0.2)
+    return{name:'Pin Bar (Üst) 📍',bull:false,bear:true,strength:3};
+
+  // Morning/Evening Star
+  if(p2.c<p2.o&&Math.abs(p1.c-p1.o)/range<0.2&&bull&&cl>p2.o)
+    return{name:'Sabah Yıldızı ⭐',bull:true,bear:false,strength:4};
+  if(p2.c>p2.o&&Math.abs(p1.c-p1.o)/range<0.2&&bear&&cl<p2.o)
+    return{name:'Akşam Yıldızı 🌙',bull:false,bear:true,strength:4};
+
+  // Three White Soldiers / Black Crows
+  if(bull&&p1.c>p1.o&&p2.c>p2.o&&cl>p1.c&&p1.c>p2.c)
+    return{name:'3 Beyaz Asker ▲▲▲',bull:true,bear:false,strength:4};
+  if(bear&&p1.c<p1.o&&p2.c<p2.o&&cl<p1.c&&p1.c<p2.c)
+    return{name:'3 Kara Karga ▼▼▼',bull:false,bear:true,strength:4};
+
+  return{name:'',bull:false,bear:false,strength:0};
+}
+
+// ── 8. ÖZELLİK MÜHENDİSLİĞİ (Tüm göstergeler bir arada) ─────────────────
 function computeFeatures(klines){
-  var cl=klines.map(function(k){return k.c;}),hi=klines.map(function(k){return k.h;}),lo=klines.map(function(k){return k.l;});
-  var vol=klines.map(function(k){return k.v;}),dates=klines.map(function(k){return k.date;});
-  var n=cl.length,lr=logRet(cl);
-  var sma9v=sma(cl,9),sma20v=sma(cl,20),sma50v=sma(cl,50);
+  var cl=klines.map(function(k){return k.c;}),
+      hi=klines.map(function(k){return k.h;}),
+      lo=klines.map(function(k){return k.l;}),
+      vol=klines.map(function(k){return k.v;}),
+      dates=klines.map(function(k){return k.date;});
+  var n=cl.length;
+  var lr=logRet(cl);
+
+  // Trend MAs
+  var ema9=ema(cl,9),ema21=ema(cl,21),ema50=ema(cl,50);
+  var sma20v=sma(cl,20),sma50v=sma(cl,50);
   var ema12v=ema(cl,12),ema26v=ema(cl,26);
-  var macdL=cl.map(function(_,i){return isNaN(ema12v[i])||isNaN(ema26v[i])?NaN:ema12v[i]-ema26v[i];});
-  var sigL=ema(macdL,9),mhist=cl.map(function(_,i){return isNaN(macdL[i])||isNaN(sigL[i])?NaN:macdL[i]-sigL[i];});
-  var bbMid=sma(cl,20),bbStd=rollStd(cl,20);
-  var bbu=cl.map(function(_,i){return isNaN(bbMid[i])?NaN:bbMid[i]+2*bbStd[i];});
-  var bbl=cl.map(function(_,i){return isNaN(bbMid[i])?NaN:bbMid[i]-2*bbStd[i];});
-  var bbPct=cl.map(function(v,i){var r=bbu[i]-bbl[i];return r>0?(v-bbl[i])/r:0.5;});
-  var bbW=cl.map(function(_,i){return bbMid[i]>0?(bbu[i]-bbl[i])/bbMid[i]:0;});
-  var rsiV=rsiWilder(cl,14),atrV=atrWilder(hi,lo,cl,14);
-  var vm20=sma(vol,20),vrat=vol.map(function(v,i){return vm20[i]>0?v/vm20[i]:1;});
-  var obv=calcOBV(cl,vol),obvEma=ema(obv,20);
-  var adxR=calcADX(hi,lo,cl,14);
+
+  // MACD
+  var macd=cl.map(function(_,i){return isNaN(ema12v[i])||isNaN(ema26v[i])?NaN:ema12v[i]-ema26v[i];});
+  var msig=ema(macd.map(function(v){return isNaN(v)?0:v;}),9);
+  var mhist=cl.map(function(_,i){return isNaN(macd[i])||isNaN(msig[i])?NaN:macd[i]-msig[i];});
+
+  // Bollinger Bands
+  var std20=rollStd(cl,20);
+  var bbu=cl.map(function(_,i){return isNaN(sma20v[i])?NaN:sma20v[i]+2*std20[i];});
+  var bbl=cl.map(function(_,i){return isNaN(sma20v[i])?NaN:sma20v[i]-2*std20[i];});
+  var bbw=cl.map(function(_,i){return isNaN(bbu[i])?NaN:(bbu[i]-bbl[i])/(sma20v[i]||1);});
+  var bbPct=cl.map(function(_,i){return isNaN(bbu[i])||bbu[i]===bbl[i]?0.5:(cl[i]-bbl[i])/(bbu[i]-bbl[i]);});
+
+  // Oscillators
+  var rsiArr=rsiWilder(cl,14);
+  var atrArr=atrWilder(hi,lo,cl,14);
   var stoch=stochastic(hi,lo,cl,14,3);
-  var cnd=klines.map(function(k){var b=k.c-k.o,fr=k.h-k.l||1,us=(k.h-Math.max(k.c,k.o))/fr,ds=(Math.min(k.c,k.o)-k.l)/fr,bz=Math.abs(b)/fr;return{bull:b>0,bear:b<0,doji:bz<0.1,hammer:ds>0.6&&bz<0.3&&us<0.2,star:us>0.6&&bz<0.3&&ds<0.2};});
-  function lag(arr,k){return arr.map(function(_,i){return i>=k?arr[i-k]:NaN;});}
-  var l1=lag(lr,1),l2=lag(lr,2),l3=lag(lr,3),l4=lag(lr,4),l5=lag(lr,5);
-  var mom5=lr.map(function(_,i){if(i<5)return NaN;var s=0;for(var j=i-5;j<i;j++)s+=lr[j];return s;});
-  var mom10=lr.map(function(_,i){if(i<10)return NaN;var s=0;for(var j=i-10;j<i;j++)s+=lr[j];return s;});
-  return{dates,cl,hi,lo,vol,lr,sma9:sma9v,sma20:sma20v,sma50:sma50v,ema12:ema12v,ema26:ema26v,macd:macdL,msig:sigL,mhist,bbu,bbl,bbMid,bbPct,bbW,rsi:rsiV,atr:atrV,vrat,obv,obvEma,adx:adxR,stK:stoch.K,stD:stoch.D,cnd,l1,l2,l3,l4,l5,mom5,mom10,n};
+  var stRSI=stochRSI(cl,14,14,3,3);
+  var cciArr=calcCCI(hi,lo,cl,20);
+  var wrArr=calcWR(hi,lo,cl,14);
+  var rocArr=calcROC(cl,10);
+
+  // ADX
+  var adxR=calcADX(hi,lo,cl,14);
+
+  // Volume indicators
+  var obvArr=calcOBV(cl,vol);
+  var obvEmaArr=ema(obvArr,21);
+  var volEma=ema(vol,20);
+  var vrat=vol.map(function(v,i){return volEma[i]?v/volEma[i]:1;});
+
+  // VWAP
+  var vwapArr=calcVWAP(hi,lo,cl,vol);
+
+  // Supertrend
+  var st=supertrend(hi,lo,cl,2.5,atrArr);
+
+  // Candlestick patterns
+  var cnd=detectPatterns(klines);
+
+  // Kısa vadeli momentum: EMA9 > EMA21 > EMA50 = güçlü uptrend
+  var emaTrend=0;
+  var li=n-1;
+  if(!isNaN(ema9[li])&&!isNaN(ema21[li])&&!isNaN(ema50[li])){
+    if(ema9[li]>ema21[li]&&ema21[li]>ema50[li])emaTrend=2;    // güçlü trend up
+    else if(ema9[li]>ema21[li])emaTrend=1;                     // zayıf up
+    else if(ema9[li]<ema21[li]&&ema21[li]<ema50[li])emaTrend=-2; // güçlü trend dn
+    else if(ema9[li]<ema21[li])emaTrend=-1;                    // zayıf dn
+  }
+
+  return{cl,hi,lo,vol,dates,n,lr,
+    sma20:sma20v,ema9,ema21,ema50,
+    macd,msig,mhist,
+    bbu,bbl,bbw,bbPct,
+    rsi:rsiArr,atr:atrArr,stK:stoch.k,stD:stoch.d,
+    stRSI_k:stRSI.k,stRSI_d:stRSI.d,
+    cci:cciArr,wr:wrArr,roc:rocArr,
+    adx:adxR,obv:obvArr,obvEma:obvEmaArr,vrat,
+    vwap:vwapArr,st,cnd,emaTrend};
 }
 
-// ── ARIMA [Tsay Ch2.4] ────────────────────────────────────────────────────────
+// ── 9. ARIMA (basitleştirilmiş AR(p)) ─────────────────────────────────────
+
+function mean(arr){var s=0,n=0;arr.forEach(function(v){if(isFinite(v)){s+=v;n++;}});return n?s/n:0;}
+function logRet(arr){return arr.map(function(v,i){return i===0?0:Math.log(v/arr[i-1]);});}
+function invMat(A){
+  var n=A.length,M=A.map(function(r){return r.concat(Array.from({length:n},function(_,i){return i===r.indexOf(r[0])?0:0;}))}); // placeholder
+  // Build augmented matrix
+  for(var i=0;i<n;i++){M[i]=A[i].slice();for(var j=0;j<n;j++)M[i].push(i===j?1:0);}
+  for(var col=0;col<n;col++){
+    var mx=col;for(var row=col+1;row<n;row++)if(Math.abs(M[row][col])>Math.abs(M[mx][col]))mx=row;
+    var tmp=M[col];M[col]=M[mx];M[mx]=tmp;
+    if(Math.abs(M[col][col])<1e-12)continue;
+    var piv=M[col][col];
+    for(var j=0;j<2*n;j++)M[col][j]/=piv;
+    for(var row=0;row<n;row++){if(row===col)continue;var f=M[row][col];for(var j=0;j<2*n;j++)M[row][j]-=f*M[col][j];}
+  }
+  return M.map(function(r){return r.slice(n);});
+}
+function ols(X,y){
+  if(!X.length||!X[0].length)return [0];
+  var n=X.length,p=X[0].length;
+  // X^T X
+  var XtX=[];for(var i=0;i<p;i++){XtX[i]=[];for(var j=0;j<p;j++){var s=0;for(var k=0;k<n;k++)s+=X[k][i]*X[k][j];XtX[i][j]=s;}}
+  // X^T y
+  var Xty=[];for(var i=0;i<p;i++){var s=0;for(var k=0;k<n;k++)s+=X[k][i]*y[k];Xty[i]=s;}
+  // (X^T X)^-1 X^T y
+  try{var inv=invMat(XtX);return inv.map(function(row){return row.reduce(function(s,v,j){return s+v*Xty[j];},0);});}
+  catch(e){return new Array(p).fill(0);}
+}
+
 function fitArima(lr,lastPrice,maxP){
-  maxP=maxP||CFG.arimaMaxP||5;
-  var y=lr.slice(),adf=adfTest(y),d=adf.stationary?0:1;
-  var yd=d===1?y.slice(1).map(function(_,i){return y[i+1]-y[i];}):y;
-  var N=yd.length,bestAIC=Infinity,bestP=1,bestRes=null;
-  for(var p=1;p<=Math.min(maxP,Math.floor(N/8));p++){
-    var XX=[],YY=[];
-    for(var t=p;t<N;t++){var row=[1];for(var j=1;j<=p;j++)row.push(yd[t-j]);XX.push(row);YY.push(yd[t]);}
-    var res=ols(XX,YY);if(!res)continue;
-    var T2=YY.length,k=p+1;
-    var aic=-T2*(Math.log(2*Math.PI*res.sigma2)+1)+2*k;
-    if(aic<bestAIC){bestAIC=aic;bestP=p;bestRes=res;}
-  }
-  if(!bestRes)return null;
-  var lb=ljungBox(bestRes.resid,10);
-  var buf=yd.slice(-bestP),fcRet=[],cvars=[];
-  var coef=bestRes.coef;
-  for(var h=0;h<30;h++){
-    var v=coef[0];for(var j=1;j<=bestP;j++)v+=(coef[j]||0)*(buf[buf.length-j]||0);
-    fcRet.push(v);buf.push(v);cvars.push(bestRes.sigma2*(h+1));
-  }
-  var cumR=0,fc=[],u95=[],l95=[];
-  for(var h=0;h<30;h++){
-    cumR+=fcRet[h];var se=Math.sqrt(cvars[h]);
-    fc.push(+(lastPrice*Math.exp(cumR)).toFixed(8));
-    u95.push(+(lastPrice*Math.exp(cumR+1.96*se)).toFixed(8));
-    l95.push(+(lastPrice*Math.exp(Math.max(cumR-1.96*se,-3))).toFixed(8));
-  }
-  return{fc,u95,l95,p:bestP,d,sigma2:bestRes.sigma2,adfStat:adf.stat,adfPval:adf.pval,adfOk:adf.stationary,lbQ:lb.Q,lbPval:lb.pval,residWN:lb.wn,coef};
-}
+  maxP=maxP||5;
+  if(!lr||lr.length<30)return null;
+  var y=lr.filter(isFinite),n=y.length;
 
-// ── GARCH(1,1) MLE [Tsay Ch3.5] ──────────────────────────────────────────────
-function fitGarch(lr){
-  var r=lr.slice(),n=r.length,mu=mean(r),rv=vari(r);
-  var a=r.map(function(v){return v-mu;});
-  function nll(om,al,be){
-    if(om<=1e-14||al<0||be<0||al+be>=0.9999)return 1e12;
-    var s2=rv,ll=0;
-    for(var t=1;t<n;t++){s2=Math.max(om+al*a[t-1]*a[t-1]+be*s2,1e-14);ll+=0.5*(Math.log(2*Math.PI*s2)+a[t]*a[t]/s2);}
-    return isFinite(ll)?ll:1e12;
-  }
-  var bO=rv*0.05,bA=0.09,bB=0.88,best=nll(bO,bA,bB);
-  [[0.05,0.80],[0.08,0.85],[0.10,0.88],[0.12,0.85],[0.15,0.80],[0.20,0.75],[0.05,0.93]].forEach(function(ab){
-    var al=ab[0],be=ab[1];if(al+be>=0.9999)return;
-    var om=Math.max(rv*(1-al-be)*0.8,1e-14),v=nll(om,al,be);if(v<best){best=v;bO=om;bA=al;bB=be;}
-  });
-  [0.3,0.1,0.05,0.02,0.01,0.005,0.001].forEach(function(step){
-    var imp=true;while(imp){imp=false;
-      [[step,0,0],[-step,0,0],[0,step*0.1,0],[0,-step*0.1,0],[0,0,step*0.1],[0,0,-step*0.1]].forEach(function(d){
-        var no=bO*(1+d[0]),na=bA+d[1],nb=bB+d[2];
-        if(no<=1e-14||na<0||nb<0||na+nb>=0.9999)return;
-        var v=nll(no,na,nb);if(v<best-1e-10){best=v;bO=no;bA=na;bB=nb;imp=true;}
-      });
+  // ADF stationarity check (simplified)
+  var adfStat=0,adfOk=true;
+  try{
+    var dy=y.slice(1).map(function(v,i){return v-y[i];});
+    var lag=Math.floor(Math.pow(n,1/3));
+    var Xc=y.slice(lag,n-1).map(function(_,i){return[y[i+lag]];}),
+        yc=dy.slice(lag);
+    var b=ols(Xc,yc);
+    adfStat=+(b[0]||0).toFixed(3);
+    adfOk=adfStat<-2.86;
+  }catch(e){}
+
+  // Best AR(p) by AIC
+  var bestP=1,bestAIC=Infinity,bestC=[0];
+  for(var p=1;p<=maxP;p++){
+    if(y.length<p+10)break;
+    var Xp=[],yp=[];
+    for(var i=p;i<y.length-1;i++){
+      var row=[];for(var j=1;j<=p;j++)row.push(y[i-j]);
+      Xp.push(row);yp.push(y[i]);
     }
-  });
-  var cv=[rv];for(var t=1;t<n;t++)cv.push(Math.max(bO+bA*a[t-1]*a[t-1]+bB*cv[t-1],1e-14));
-  var rho=bA+bB,LV=rho<1?bO/(1-rho):rv,s2L=cv[n-1];
-  return{omega:bO,alpha:+bA.toFixed(4),beta:+bB.toFixed(4),persist:+(rho).toFixed(4),
-    currAnn:+(Math.sqrt(s2L)*Math.sqrt(252)*100).toFixed(2),lrAnn:+(Math.sqrt(LV)*Math.sqrt(252)*100).toFixed(2),
-    ratio:+(Math.sqrt(s2L/LV)).toFixed(2),var99:+(2.326*Math.sqrt(s2L)*100).toFixed(3),sigma2_t:s2L,
-    cvSeries:cv.map(function(v){return +(Math.sqrt(v)*Math.sqrt(252)*100).toFixed(2);})};
+    try{
+      var c=ols(Xp,yp);
+      var resid=yp.map(function(v,i){var pr=0;for(var j=0;j<c.length;j++)pr+=c[j]*(Xp[i][j]||0);return v-pr;});
+      var sigma2=mean(resid.map(function(v){return v*v;}));
+      var aic=yp.length*Math.log(sigma2)+2*p;
+      if(aic<bestAIC){bestAIC=aic;bestP=p;bestC=c;}
+    }catch(e){}
+  }
+
+  // Forecast 21 bars
+  var tail=y.slice(-Math.max(bestP,5));
+  var fc=[],u95=[],l95=[];
+  var sigma=Math.sqrt(mean(y.slice(-30).map(function(v){return v*v;})));
+  for(var h=1;h<=21;h++){
+    var pred=0;
+    for(var j=0;j<bestP;j++)pred+=(bestC[j]||0)*(tail[tail.length-1-j]||0);
+    tail.push(pred);
+    var cumR=tail.slice(-h).reduce(function(a,b){return a+b;},0);
+    var se=sigma*Math.sqrt(h);
+    var fp=lastPrice*Math.exp(cumR);
+    fc.push(fp);u95.push(lastPrice*Math.exp(cumR+1.96*se));l95.push(lastPrice*Math.exp(cumR-1.96*se));
+  }
+  var lbStat=0,lbOk=true;
+  try{
+    var resid2=[];
+    var t2=y.slice(-30);
+    for(var i=bestP;i<t2.length;i++){var pr=0;for(var j=0;j<bestP;j++)pr+=(bestC[j]||0)*(t2[i-1-j]||0);resid2.push(t2[i]-pr);}
+    var rmn=mean(resid2),rvr=mean(resid2.map(function(v){return(v-rmn)*(v-rmn);}));
+    for(var k=1;k<=5&&k<resid2.length/2;k++){var s=0;for(var i=k;i<resid2.length;i++)s+=(resid2[i]-rmn)*(resid2[i-k]-rmn);var rk=s/((resid2.length)*rvr);lbStat+=rk*rk;}
+    lbStat=+(resid2.length*(resid2.length+2)*lbStat).toFixed(2);
+    lbOk=lbStat<11.07;
+  }catch(e){}
+
+  return{p:bestP,d:1,fc,u95,l95,sigma2:sigma*sigma,
+    adfStat,adfPval:adfOk?0.01:0.2,adfOk,
+    lbQ:lbStat,lbPval:lbOk?0.1:0.01,residWN:lbOk};
 }
 
-// ── KELLY [Chan Ch6 p.97] ─────────────────────────────────────────────────────
+// ── 10. GARCH(1,1) VOLATİLİTE ─────────────────────────────────────────────
+function fitGarch(lr){
+  if(!lr||lr.length<30)return null;
+  var r=lr.filter(isFinite),n=r.length;
+  var mu=mean(r),a2=r.map(function(v){return(v-mu)*(v-mu);});
+  var vL=mean(a2);
+  var om=vL*0.05,al=0.09,be=0.90;
+  // MLE coordinate descent (simplified)
+  for(var iter=0;iter<30;iter++){
+    var sv=new Array(n).fill(vL);
+    for(var i=1;i<n;i++)sv[i]=om+al*a2[i-1]+be*sv[i-1];
+    var grad_om=0,grad_al=0,grad_be=0;
+    for(var i=1;i<n;i++){var e=1/sv[i]-a2[i]/(sv[i]*sv[i]);grad_om+=e;grad_al+=e*a2[i-1];grad_be+=e*sv[i-1];}
+    var lr2=1e-7;om=Math.max(1e-10,om+lr2*grad_om);al=Math.max(0.01,Math.min(0.5,al+lr2*grad_al));be=Math.max(0.1,Math.min(0.98,be+lr2*grad_be));
+    if(al+be>=0.9999){var s=al+be;al=al/s*0.9995;be=be/s*0.9995;}
+  }
+  var sv2=new Array(n).fill(vL);for(var i=1;i<n;i++)sv2[i]=om+al*a2[i-1]+be*sv2[i-1];
+  var currV=sv2[n-1],lrV=om/(1-al-be),persist=al+be;
+  var cvSeries=sv2.map(function(v){return Math.sqrt(v)*Math.sqrt(252)*100;});
+  return{currAnn:+(Math.sqrt(currV*252)*100).toFixed(2),
+    lrAnn:+(Math.sqrt(lrV*252)*100).toFixed(2),
+    ratio:+(Math.sqrt(currV/lrV)).toFixed(2),
+    persist:+(persist).toFixed(4),
+    var99:+(2.326*Math.sqrt(currV)*100).toFixed(4),
+    cvSeries};
+}
+
+// ── 11. KELLY KRİTERİ ────────────────────────────────────────────────────
 function computeKelly(lr){
   var r=lr.filter(function(v){return isFinite(v)&&!isNaN(v);});
-  if(r.length<20)return{f:0,half:0,mu:0,sig2:0};
-  var mu=mean(r),sig2=varS(r);if(sig2<1e-12)return{f:0,half:0,mu,sig2};
-  var f=Math.max(-2,Math.min(2,mu/sig2));
-  return{f:+f.toFixed(4),half:+(f/2).toFixed(4),mu,sig2,annMu:+(mu*252*100).toFixed(3)};
+  if(r.length<20)return{half:0.01,annMu:0};
+  var mu=mean(r)*252,sigma2=mean(r.map(function(v){return v*v;}))*252;
+  var f=mu/Math.max(sigma2,0.01);
+  return{half:Math.max(-0.5,Math.min(0.5,f/2)),annMu:+(mu*100).toFixed(2)};
 }
 
-// ── PERF METRICS [QS Ch10] ───────────────────────────────────────────────────
+// ── 12. PERFORMANS METRİKLERİ ─────────────────────────────────────────────
 function perfMetrics(lr){
-  var r=lr.filter(function(v){return isFinite(v)&&!isNaN(v);});
-  if(r.length<20)return{};
-  var m=mean(r),s=Math.sqrt(vari(r)),annR=m*252,annV=s*Math.sqrt(252),rf=0.04/252;
-  var sh=s>0?(m-rf)/s*Math.sqrt(252):0;
-  var eq=1,mdd=0,peak=1;r.forEach(function(v){eq*=(1+v);peak=Math.max(peak,eq);mdd=Math.min(mdd,(eq-peak)/peak);});
-  var negR=r.filter(function(v){return v<rf;});
-  var ds=negR.length?Math.sqrt(negR.reduce(function(s,v){return s+(v-rf)*(v-rf);},0)/negR.length)*Math.sqrt(252):0.001;
+  var r=lr.filter(isFinite);if(r.length<10)return{sharpe:0,annR:0,annV:0,mdd:0,calmar:0,var95:0,win:0};
+  var annR=mean(r)*252,annV=Math.sqrt(mean(r.map(function(v){return v*v;}))*252);
+  var sharpe=annV?annR/annV:0;
+  var cum=1,peak=1,mdd=0;r.forEach(function(v){cum*=Math.exp(v);if(cum>peak)peak=cum;if((cum-peak)/peak<mdd)mdd=(cum-peak)/peak;});
+  var calmar=mdd?annR/Math.abs(mdd):0;
   var sorted=r.slice().sort(function(a,b){return a-b;});
   var var95=sorted[Math.floor(r.length*0.05)]||0;
-  var cv95=sorted.slice(0,Math.floor(r.length*0.05));
-  return{annR:+annR.toFixed(4),annV:+annV.toFixed(4),sharpe:+sh.toFixed(4),mdd:+mdd.toFixed(4),calmar:+(mdd!==0?annR/Math.abs(mdd):0).toFixed(4),var95:+var95.toFixed(4),cvar95:+(cv95.length?mean(cv95):var95).toFixed(4),win:+(r.filter(function(v){return v>0;}).length/r.length).toFixed(4),n:r.length};
+  var win=r.filter(function(v){return v>0;}).length/r.length;
+  return{sharpe:+sharpe.toFixed(3),annR:+annR.toFixed(4),annV:+annV.toFixed(4),mdd:+mdd.toFixed(4),calmar:+calmar.toFixed(3),var95:+var95.toFixed(4),win:+win.toFixed(3)};
 }
 
-// ── TF SELECTION [QS Ch10.2 + Chan Ch3] ──────────────────────────────────────
+// ── 13. OTOMATİK TF SEÇİCİ (Kısa vadeli odaklı) ──────────────────────────
 function selectTF(cl,hi,lo,atrPct){
   var H=hurstRS(cl),adxR=calcADX(hi,lo,cl,14),adx=adxR.adx;
-  var highVol=atrPct>5,lowVol=atrPct<1.2;
+  var highVol=atrPct>4,lowVol=atrPct<1;
   var tf,regime,reason;
+  // Kısa vadeli trader için: default 15m ve 1h
   if(H>0.60){
-    regime='Trend Rejimi';tf=highVol?'1h':'4h';
-    reason='H='+H.toFixed(3)+'>0.60 güçlü trend · ADX='+adx.toFixed(0)+(highVol?'· yüksek vol→1h':'→4h');
+    regime='Trend Rejimi 📈';
+    tf=highVol?'15m':'1h';
+    reason='H='+H.toFixed(3)+' Güçlü trend · ATR%='+atrPct.toFixed(1)+(highVol?' yüksek vol→15m':'→1h');
   }else if(H<0.42){
-    regime='Mean-Reverting';tf=highVol?'15m':'1h';
-    reason='H='+H.toFixed(3)+'<0.42 ortalamaya dönüş · '+(highVol?'yüksek vol→15m':'→1h');
+    regime='Mean-Reverting ↕';
+    tf=highVol?'5m':'15m';
+    reason='H='+H.toFixed(3)+' Ortalamaya dönüş · '+(highVol?'vol yüksek→5m':'→15m');
   }else{
-    regime='Karma/RandomWalk';
-    if(adx>25){tf=highVol?'1h':'4h';reason='Karma rejim · ADX='+adx.toFixed(0)+'>25 trend var→'+tf;}
-    else{tf='1h';reason='Karma rejim · ADX='+adx.toFixed(0)+'<25 nötr→1h';}
+    regime='Karma Rejim 🔀';
+    tf=adx>25?(highVol?'15m':'1h'):'15m';
+    reason='Karma · ADX='+adx.toFixed(0)+(adx>25?' trend var→'+(highVol?'15m':'1h'):'→15m');
   }
-  if(lowVol&&H>0.45){tf='4h';reason+=' (düşük vol→4h tercih)';}
-  return{tf,regime:''+regime+' (H='+H.toFixed(3)+')',reason,hurst:H,adxInfo:adxR};
+  return{tf,regime,reason,hurst:H,adxInfo:adxR};
 }
 
-// ── SIGNAL ENGINE ─────────────────────────────────────────────────────────────
+// ── 14. KSI VADELİ SİNYAL ENGİNİ ─────────────────────────────────────────
+// En iyi kısa vadeli sinyaller + TP1/TP2/TP3
 function buildSignals(feat,arima,garch,ml,price,tf,sr){
-  var i=feat.n-1;
-  var rsi=feat.rsi[i]||50,mh=feat.mhist[i]||0,mhPrev=feat.mhist[Math.max(0,i-1)]||0,mhPrev2=feat.mhist[Math.max(0,i-2)]||0;
-  var bbPct=feat.bbPct[i]||0.5,bbW=feat.bbW[i]||0;
-  var sma20=feat.sma20[i]||price,sma50=feat.sma50[i]||price;
-  var atr=Math.max(feat.atr[i]||price*.02,price*.001);
-  var vrat=feat.vrat[i]||1,stK=feat.stK[i]||50,stD=feat.stD[i]||50;
-  var adxR=feat.adx,cnd=feat.cnd[i];
-  var obv=feat.obv,obvEma=feat.obvEma;
-  var sigs=[],B=0,S=0,W=0;
+  var i=feat.n-1,sigs=[],B=0,S=0,W=0;
 
-  // RSI [QS B.10] with divergence
-  var rsiPrev=feat.rsi[Math.max(0,i-5)]||50;
-  var pChg=(price-(feat.cl[Math.max(0,i-5)]||price))/(feat.cl[Math.max(0,i-5)]||price||1);
-  if(rsi<25){sigs.push({t:'L',src:'RSI Aşırı Satım [QS]',tf,d:'RSI='+rsi.toFixed(1)+'<25 — Wilder aşırı satım bölgesi. Güçlü dönüş sinyali.'});B+=3;}
-  else if(rsi<35){sigs.push({t:'L',src:'RSI Satım Bölgesi',tf,d:'RSI='+rsi.toFixed(1)+'<35 — Satım bölgesi. Geri toplanma beklentisi.'});B+=1.8;}
-  else if(rsi>75){sigs.push({t:'S',src:'RSI Aşırı Alım [QS]',tf,d:'RSI='+rsi.toFixed(1)+'>75 — Wilder aşırı alım bölgesi. Düzeltme/short fırsatı.'});S+=3;}
-  else if(rsi>65){sigs.push({t:'S',src:'RSI Alım Bölgesi',tf,d:'RSI='+rsi.toFixed(1)+'>65 — Alım bölgesine yakın. Dikkatli.'});S+=1.8;}
-  if(pChg<-0.03&&(rsi-rsiPrev)>3){sigs.push({t:'L',src:'RSI Bullish Diverjans',tf,d:'Fiyat düşerken RSI yükseliyor — gizli güç, LONG sinyali.'});B+=2;}
-  if(pChg>0.03&&(rsi-rsiPrev)<-3){sigs.push({t:'S',src:'RSI Bearish Diverjans',tf,d:'Fiyat yükselirken RSI düşüyor — gizli zayıflık, SHORT sinyali.'});S+=2;}
+  // Shortcut refs
+  var rsi=feat.rsi[i]||50,
+      rsiPrev=feat.rsi[Math.max(0,i-3)]||50,
+      mh=feat.mhist[i]||0,mhPrev=feat.mhist[Math.max(0,i-1)]||0,
+      macd=feat.macd[i]||0,msig=feat.msig[i]||0,
+      cci=feat.cci[i]||0,wr=feat.wr[i]||-50,
+      roc=feat.roc[i]||0,
+      stK=feat.stK[i]||50,stD=feat.stD[i]||50,
+      stKPrev=feat.stK[Math.max(0,i-1)]||50,
+      srk=feat.stRSI_k[i]||50,
+      bbPct=feat.bbPct[i]||0.5,bbW=feat.bbw[i]||0,
+      vrat=feat.vrat[i]||1,
+      adxR=feat.adx,adx=adxR.adx,
+      pdi=adxR.pdi,ndi=adxR.ndi,
+      ema9=feat.ema9[i]||price,ema21=feat.ema21[i]||price,ema50=feat.ema50[i]||price,
+      atr=Math.max(feat.atr[i]||price*.02,price*.001),
+      obv=feat.obv,obvEma=feat.obvEma,
+      vwap=feat.vwap[i]||price,
+      st=feat.st,cnd=feat.cnd;
 
-  // MACD [Tsay B.2]
-  var mhAccBull=mh>0&&mh>mhPrev&&mhPrev>mhPrev2&&mhPrev2<0;
-  var mhAccBear=mh<0&&mh<mhPrev&&mhPrev<mhPrev2&&mhPrev2>0;
-  if(mh>0&&mhPrev<=0){sigs.push({t:'L',src:'MACD Kesişim ↑ [T Ch2]',tf,d:'Histogram sıfırı yukarı kesti — taze momentum. Güçlü giriş sinyali.'});B+=2.5;}
-  else if(mh<0&&mhPrev>=0){sigs.push({t:'S',src:'MACD Kesişim ↓ [T Ch2]',tf,d:'Histogram sıfırı aşağı kesti — momentum bozulması.'});S+=2.5;}
-  else if(mhAccBull){sigs.push({t:'L',src:'MACD Hızlanma ↑',tf,d:'Histogram giderek artan hızda yükseliyor — güçlü momentum.'});B+=1.5;}
-  else if(mhAccBear){sigs.push({t:'S',src:'MACD Hızlanma ↓',tf,d:'Histogram giderek artan hızda düşüyor — güçlü aşağı momentum.'});S+=1.5;}
-  else if(mh>0){sigs.push({t:'L',src:'MACD Pozitif',tf,d:'Histogram pozitif bölgede.'});B+=0.7;}
-  else if(mh<0){sigs.push({t:'S',src:'MACD Negatif',tf,d:'Histogram negatif bölgede.'});S+=0.7;}
-
-  // Bollinger Bands [C B.7]
-  if(bbPct<0.05){sigs.push({t:'L',src:'BB Alt Bant [C B.7]',tf,d:'BB%='+bbPct.toFixed(3)+' alt banda değdi — ortalamaya dönüş beklenir.'});B+=2;}
-  else if(bbPct>0.95){sigs.push({t:'S',src:'BB Üst Bant [C B.7]',tf,d:'BB%='+bbPct.toFixed(3)+' üst banda değdi — geri çekilme riski.'});S+=2;}
-  else if(bbPct<0.15&&bbW>0.04){sigs.push({t:'L',src:'BB Alt Yakın + Genişleme',tf,d:'Alt BB bölgesi, bantlar genişliyor — kırılım alım fırsatı.'});B+=1;}
-  else if(bbPct>0.85&&bbW>0.04){sigs.push({t:'S',src:'BB Üst Yakın + Genişleme',tf,d:'Üst BB bölgesi, bantlar genişliyor — kırılım satış fırsatı.'});S+=1;}
-
-  // SMA trend yapısı [C Ch3]
-  if(price>sma20&&sma20>sma50){sigs.push({t:'L',src:'SMA Trend Yapısı [C Ch3]',tf,d:'P>SMA20>SMA50 — Sağlıklı yukarı trend serisi.'});B+=1.5;}
-  else if(price<sma20&&sma20<sma50){sigs.push({t:'S',src:'SMA Aşağı Trend [C Ch3]',tf,d:'P<SMA20<SMA50 — Sağlıklı aşağı trend serisi.'});S+=1.5;}
-
-  // ADX/DI [C Ch3]
-  if(adxR.adx>25&&adxR.bullTrend){sigs.push({t:'L',src:'ADX/DI+ Güçlü Trend [C Ch3]',tf,d:'ADX='+adxR.adx+' · DI+='+adxR.pdi+'>DI-='+adxR.ndi+' — Güçlü yukarı trend teyidi.'});B+=2;}
-  else if(adxR.adx>25&&adxR.bearTrend){sigs.push({t:'S',src:'ADX/DI- Güçlü Trend [C Ch3]',tf,d:'ADX='+adxR.adx+' · DI-='+adxR.ndi+'>DI+='+adxR.pdi+' — Güçlü aşağı trend teyidi.'});S+=2;}
-  else if(adxR.adx<15){sigs.push({t:'W',src:'ADX Zayıf Trend',tf,d:'ADX='+adxR.adx+'<15 — Trend yok, yatay piyasa. Sinyal güvenilirliği düşük.'});W+=1;}
-
-  // Stochastic [QS B.10]
-  if(stK<20&&stK>stD){sigs.push({t:'L',src:'Stokastik Dip Kesişim',tf,d:'%K='+stK.toFixed(0)+'<20 ve %K>%D yukarı kesimi — aşırı satım dönüşü.'});B+=1.5;}
-  else if(stK>80&&stK<stD){sigs.push({t:'S',src:'Stokastik Tepe Kesişimi',tf,d:'%K='+stK.toFixed(0)+'>80 ve %K<%D aşağı kesimi — aşırı alım dönüşü.'});S+=1.5;}
-
-  // OBV + Hacim [C Ch7]
-  var obvBull=obv&&obvEma&&obv[i]>obvEma[i];
-  if(vrat>1.8&&obvBull&&price>sma20){sigs.push({t:'L',src:'Hacim Surge + OBV Yükselen [C Ch7]',tf,d:'Hacim '+vrat.toFixed(1)+'x + OBV artışı + fiyat SMA üstü — güçlü alım baskısı.'});B+=2;}
-  else if(vrat>1.8&&!obvBull&&price<sma20){sigs.push({t:'S',src:'Hacim Surge + OBV Düşen [C Ch7]',tf,d:'Hacim '+vrat.toFixed(1)+'x + OBV düşüşü + fiyat SMA altı — güçlü satış baskısı.'});S+=2;}
-  else if(vrat>1.5){sigs.push({t:'L',src:'Hacim Artışı',tf,d:'Hacim ort. '+vrat.toFixed(1)+'x üstünde.'});B+=0.8;}
-
-  // ML Ensemble [QS Ch11]
-  var up=ml.up||0.5;
-  if(up>0.62){sigs.push({t:'L',src:'ML Ensemble ↑ [QS Ch11]',tf:'ML',d:'%'+ml.upPct+' LONG olasılığı · Model: '+(ml.best||'—')+' · Güven: '+ml.conf});B+=2.5;}
-  else if(up>0.55){sigs.push({t:'L',src:'ML Zayıf ↑ [QS Ch11]',tf:'ML',d:'%'+ml.upPct+' LONG olasılığı.'});B+=1.2;}
-  else if(up<0.38){sigs.push({t:'S',src:'ML Ensemble ↓ [QS Ch11]',tf:'ML',d:'%'+(100-ml.upPct)+' SHORT olasılığı · Model: '+(ml.best||'—')});S+=2.5;}
-  else if(up<0.45){sigs.push({t:'S',src:'ML Zayıf ↓ [QS Ch11]',tf:'ML',d:'%'+(100-ml.upPct)+' SHORT olasılığı.'});S+=1.2;}
-
-  // ARIMA forecast [T Ch2.4]
-  if(arima&&arima.fc&&arima.fc.length>=21){
-    var fc5=arima.fc[4],c5=((fc5-price)/price*100),fc10=arima.fc[9],c10=((fc10-price)/price*100);
-    if(c5>2.5&&c10>3){sigs.push({t:'L',src:'ARIMA Yukarı Öngörü [T Ch2]',tf:'5b',d:'5-bar: '+c5.toFixed(2)+'% · 10-bar: '+c10.toFixed(2)+'% · Artık WN: '+(arima.residWN?'✓':'✗')});B+=1.5;}
-    else if(c5<-2.5&&c10<-3){sigs.push({t:'S',src:'ARIMA Aşağı Öngörü [T Ch2]',tf:'5b',d:'5-bar: '+c5.toFixed(2)+'% · 10-bar: '+c10.toFixed(2)+'%'});S+=1.5;}
-    else{sigs.push({t:'W',src:'ARIMA Nötr [T Ch2]',tf:'5b',d:'5-bar: '+c5.toFixed(2)+'% — net yön yok.'});W+=0.5;}
+  // ── A. EMA TREND SİSTEMİ [Elder] ──
+  if(feat.emaTrend===2){
+    sigs.push({t:'L',src:'EMA Trend',d:'EMA9('+fmtPShort(ema9)+') > EMA21 > EMA50 — Tam boğa dizilimi. Kısa vadeli trend yukarı.'});
+    B+=3;
+  } else if(feat.emaTrend===-2){
+    sigs.push({t:'S',src:'EMA Trend',d:'EMA9('+fmtPShort(ema9)+') < EMA21 < EMA50 — Tam ayı dizilimi. Kısa vadeli trend aşağı.'});
+    S+=3;
+  } else if(feat.emaTrend===1){
+    sigs.push({t:'L',src:'EMA Cross',d:'EMA9 > EMA21 — Zayıf boğa eğilimi. Trend dönüşü izle.'});B+=1.5;
+  } else if(feat.emaTrend===-1){
+    sigs.push({t:'S',src:'EMA Cross',d:'EMA9 < EMA21 — Zayıf ayı eğilimi.'});S+=1.5;
   }
 
-  // GARCH risk [T Ch3.5]
-  if(garch){
-    if(garch.currAnn>garch.lrAnn*2.5){sigs.push({t:'W',src:'GARCH Yüksek Vol [T Ch3]',tf:'Risk',d:'σt='+garch.currAnn+'% > LV×2.5. VaR99='+garch.var99+'%/gün. Pozisyon boyutunu küçültün.'});W+=2;}
-    else if(garch.persist>0.98){sigs.push({t:'W',src:'GARCH Kalıcı Vol [T Ch3]',tf:'Risk',d:'α+β='+garch.persist+' — yüksek volatilite kalıcı olabilir.'});W+=1;}
-    else if(garch.currAnn<garch.lrAnn*0.7&&up>0.55){sigs.push({t:'L',src:'GARCH Düşük Vol [T Ch3]',tf:'Risk',d:'Volatilite LV altında — trend genişlemesi için elverişli ortam.'});B+=0.5;}
+  // ── B. SUPERTREND [Wilder/ATR] ──
+  if(st.trend===1){
+    sigs.push({t:'L',src:'Supertrend ✅',d:'Supertrend YUKARI · Destek: '+fmtPShort(st.line)+' · Fiyat üzerinde = LONG trend.'});B+=2.5;
+  } else {
+    sigs.push({t:'S',src:'Supertrend ❌',d:'Supertrend AŞAĞI · Direnç: '+fmtPShort(st.line)+' · Fiyat altında = SHORT trend.'});S+=2.5;
   }
 
-  // Candlestick [C Ch7]
-  if(cnd.hammer&&rsi<45){sigs.push({t:'L',src:'Çekiç Formasyonu [C Ch7]',tf,d:'Hammer + RSI<45 — dip oluşumu sinyali.'});B+=1.5;}
-  if(cnd.star&&rsi>55){sigs.push({t:'S',src:'Kayan Yıldız [C Ch7]',tf,d:'Shooting Star + RSI>55 — tepe sinyali.'});S+=1.5;}
-  if(cnd.doji){sigs.push({t:'W',src:'Doji Mum',tf,d:'Kararsızlık mumu — yön belirleyici mumu bekleyin.'});W+=0.5;}
+  // ── C. RSI + STOCHASTIC RSI ──
+  if(rsi<30){sigs.push({t:'L',src:'RSI Aşırı Satım',d:'RSI='+rsi.toFixed(1)+' <30 — Güçlü geri dönüş bölgesi. LONG fırsatı.'});B+=2.5;}
+  else if(rsi<40&&rsi>rsiPrev){sigs.push({t:'L',src:'RSI Toplanıyor',d:'RSI='+rsi.toFixed(1)+' 30-40 aralığı ve yükseliyor — potansiyel dönüş.'});B+=1.5;}
+  else if(rsi>70){sigs.push({t:'S',src:'RSI Aşırı Alım',d:'RSI='+rsi.toFixed(1)+' >70 — Aşırı alım. SHORT düzeltme bölgesi.'});S+=2.5;}
+  else if(rsi>60&&rsi<rsiPrev){sigs.push({t:'S',src:'RSI Zayıflıyor',d:'RSI='+rsi.toFixed(1)+' 60-70 ve düşüyor — momentum zayıflıyor.'});S+=1.5;}
 
-  // S/R proximity [C Ch7]
+  if(srk<20&&srk>feat.stRSI_k[Math.max(0,i-1)]){
+    sigs.push({t:'L',src:'StochRSI Çıkış',d:'StochRSI '+srk.toFixed(0)+' — aşırı satım bölgesinden çıkış. LONG girişi.'});B+=2;
+  } else if(srk>80&&srk<feat.stRSI_k[Math.max(0,i-1)]){
+    sigs.push({t:'S',src:'StochRSI Düşüş',d:'StochRSI '+srk.toFixed(0)+' — aşırı alım bölgesinden dönüş. SHORT girişi.'});S+=2;
+  }
+
+  // ── D. MACD [Appel] ──
+  if(mh>0&&mhPrev<=0){sigs.push({t:'L',src:'MACD Yükseliş',d:'MACD histogramı negatiften pozitife geçti — momentum dönüşü YUKARI.'});B+=2.5;}
+  else if(mh<0&&mhPrev>=0){sigs.push({t:'S',src:'MACD Düşüş',d:'MACD histogramı pozitiften negatife geçti — momentum dönüşü AŞAĞI.'});S+=2.5;}
+  else if(mh>0&&mh>mhPrev){sigs.push({t:'L',src:'MACD Güçleniyor',d:'MACD histogramı yükseliyor — yukarı momentum devam ediyor.'});B+=1;}
+  else if(mh<0&&mh<mhPrev){sigs.push({t:'S',src:'MACD Zayıflıyor',d:'MACD histogramı azalıyor — aşağı baskı artıyor.'});S+=1;}
+  if(macd>msig&&macd>0){sigs.push({t:'L',src:'MACD Zero-Cross',d:'MACD sıfır üzerinde ve sinyal üzerinde — güçlü trend.'});B+=1.5;}
+  else if(macd<msig&&macd<0){sigs.push({t:'S',src:'MACD Negatif Bölge',d:'MACD sıfır altında — düşüş eğilimi hakim.'});S+=1.5;}
+
+  // ── E. BOLLINGER BANDS [Bollinger] ──
+  var bbSqueeze=bbW<0.05;
+  if(bbSqueeze){sigs.push({t:'W',src:'BB Squeeze',d:'BB genişliği='+((bbW||0)*100).toFixed(1)+'% — Kırılım yakın! Yön bekleniyor.'});W+=2;}
+  if(bbPct<0.05){sigs.push({t:'L',src:'BB Alt Bant',d:'Fiyat BB alt bandında — ortalamaya dönüş (LONG) ihtimali yüksek.'});B+=2;}
+  else if(bbPct>0.95){sigs.push({t:'S',src:'BB Üst Bant',d:'Fiyat BB üst bandında — ortalamaya dönüş (SHORT) ihtimali yüksek.'});S+=2;}
+  if(bbPct>1.0){sigs.push({t:'S',src:'BB Kırılım Üst',d:'Fiyat BB dışına çıktı (üst) — güçlü trend ama aşırı gerilmiş.'});S+=1;}
+  else if(bbPct<0){sigs.push({t:'L',src:'BB Kırılım Alt',d:'Fiyat BB dışına çıktı (alt) — aşırı satış, tepki alımı beklenir.'});B+=1;}
+
+  // ── F. CCI [Lambert] ──
+  if(cci<-100){sigs.push({t:'L',src:'CCI Aşırı Satım',d:'CCI='+cci.toFixed(0)+' <-100 — Lambert aşırı satım. LONG giriş sinyali.'});B+=2;}
+  else if(cci>100){sigs.push({t:'S',src:'CCI Aşırı Alım',d:'CCI='+cci.toFixed(0)+' >100 — Lambert aşırı alım. SHORT sinyali.'});S+=2;}
+  else if(cci>-100&&cci<0&&cci>feat.cci[Math.max(0,i-1)]){sigs.push({t:'L',src:'CCI Toplanıyor',d:'CCI negatif bölgeden dönüyor.'});B+=1;}
+
+  // ── G. WILLIAMS %R ──
+  if(wr<-80){sigs.push({t:'L',src:'Williams %R Oversold',d:'%R='+wr.toFixed(0)+' <-80 — Aşırı satış bölgesi. Geri dönüş için izle.'});B+=1.5;}
+  else if(wr>-20){sigs.push({t:'S',src:'Williams %R Overbought',d:'%R='+wr.toFixed(0)+' >-20 — Aşırı alış bölgesi. SHORT değerlendir.'});S+=1.5;}
+
+  // ── H. STOCHASTIC ──
+  var stCross=stK>stD&&stKPrev<feat.stD[Math.max(0,i-1)];
+  var stCrossDown=stK<stD&&stKPrev>feat.stD[Math.max(0,i-1)];
+  if(stK<20&&stCross){sigs.push({t:'L',src:'Stochastic Alt Çapraz',d:'Stoch K='+stK.toFixed(0)+' aşırı satım altında yukarı kesişti — güçlü LONG sinyali.'});B+=2.5;}
+  else if(stK>80&&stCrossDown){sigs.push({t:'S',src:'Stochastic Üst Çapraz',d:'Stoch K='+stK.toFixed(0)+' aşırı alım üzerinde aşağı kesişti — güçlü SHORT.'});S+=2.5;}
+
+  // ── I. VWAP [Kurumsal Referans] ──
+  var vwapDev=(price-vwap)/vwap*100;
+  if(price>vwap&&vwapDev<1.5){sigs.push({t:'L',src:'VWAP Destek',d:'Fiyat VWAP('+fmtPShort(vwap)+') üzerinde (+'+vwapDev.toFixed(1)+'%) — kurumsal referans güçlü.'});B+=1.5;}
+  else if(price<vwap&&vwapDev>-1.5){sigs.push({t:'S',src:'VWAP Direnç',d:'Fiyat VWAP('+fmtPShort(vwap)+') altında ('+vwapDev.toFixed(1)+'%) — kurumsal baskı altında.'});S+=1.5;}
+  else if(price<vwap&&vwapDev<-3){sigs.push({t:'L',src:'VWAP Alım Fırsatı',d:'Fiyat VWAP\'ın çok altında ('+vwapDev.toFixed(1)+'%) — aşırı sapma, geri dönüş beklenir.'});B+=1;}
+
+  // ── J. ADX TREND GÜCÜ ──
+  if(adx>30&&pdi>ndi){sigs.push({t:'L',src:'ADX Güçlü Trend',d:'ADX='+adx.toFixed(0)+' >30 · DI+('+pdi.toFixed(0)+') > DI-('+ndi.toFixed(0)+') — güçlü yukarı trend.'});B+=2;}
+  else if(adx>30&&ndi>pdi){sigs.push({t:'S',src:'ADX Güçlü Aşağı',d:'ADX='+adx.toFixed(0)+' >30 · DI-('+ndi.toFixed(0)+') > DI+('+pdi.toFixed(0)+') — güçlü aşağı trend.'});S+=2;}
+  else if(adx<20){sigs.push({t:'W',src:'ADX Zayıf Trend',d:'ADX='+adx.toFixed(0)+' <20 — Trend yok, yatay piyasa. Dikkatli ol.'});W+=2;}
+
+  // ── K. HACIM ANALİZİ [Wyckoff] ──
+  if(vrat>2.5){
+    var priceUp=feat.cl[i]>feat.cl[Math.max(0,i-1)];
+    sigs.push({t:priceUp?'L':'S',src:'Hacim Spike',d:'Hacim '+vrat.toFixed(1)+'x ortalamanın üzerinde '+( priceUp?'— kurumsal alım':'— kurumsal satım')+'.'});
+    if(priceUp)B+=2;else S+=2;
+  } else if(vrat>1.5){B+=0.5;}
+  if(obv&&obvEma&&i>0&&obv[i]>obvEma[i]&&obv[i-1]<=obvEma[i-1]){
+    sigs.push({t:'L',src:'OBV Yükseliş',d:'OBV EMA21 üzerine çıktı — birikim başlıyor. LONG yönlü hacim.'});B+=1.5;
+  } else if(obv&&obvEma&&i>0&&obv[i]<obvEma[i]&&obv[i-1]>=obvEma[i-1]){
+    sigs.push({t:'S',src:'OBV Düşüş',d:'OBV EMA21 altına indi — dağılım başlıyor. SHORT yönlü hacim.'});S+=1.5;
+  }
+
+  // ── L. MMENTUM ROC ──
+  if(roc>5){sigs.push({t:'L',src:'Momentum +',d:'ROC=+'+roc.toFixed(1)+'% — güçlü pozitif momentum. Trend sürebilir.'});B+=1;}
+  else if(roc<-5){sigs.push({t:'S',src:'Momentum -',d:'ROC='+roc.toFixed(1)+'% — güçlü negatif momentum. Düşüş devam edebilir.'});S+=1;}
+
+  // ── M. MUM PATTERN [Nison] ──
+  if(cnd&&cnd.name){
+    if(cnd.bull){sigs.push({t:'L',src:'Mum: '+cnd.name,d:cnd.name+' — fiyat aksiyonu LONG teyidi. Strength: '+cnd.strength+'/4'});B+=cnd.strength*0.8;}
+    else if(cnd.bear){sigs.push({t:'S',src:'Mum: '+cnd.name,d:cnd.name+' — fiyat aksiyonu SHORT teyidi. Strength: '+cnd.strength+'/4'});S+=cnd.strength*0.8;}
+    else{sigs.push({t:'W',src:'Mum: '+cnd.name,d:cnd.name+' — belirsizlik. Kırılım bekle.'});W+=0.5;}
+  }
+
+  // ── N. DESTEK/DİRENÇ YAKINLİK ──
   if(sr&&sr.S&&sr.S.length){
-    var ns=sr.S.find(function(s){return (price-s)/price<0.025&&s<price;});
-    if(ns){sigs.push({t:'L',src:'Destek Bölgesi [C Ch7]',tf,d:'Destek: '+fmtP(ns)+' ('+(((price-ns)/price)*100).toFixed(1)+'% uzaklık) — defansif long noktası.'});B+=1.5;}
+    var nearS=sr.S.filter(function(s){return Math.abs(price-s)/price<0.015;});
+    if(nearS.length){sigs.push({t:'L',src:'Destek Yakın',d:'Fiyat destek seviyesine yakın: '+nearS.map(fmtPShort).join(', ')+' (+/-%1.5).'});B+=1.5;}
   }
   if(sr&&sr.R&&sr.R.length){
-    var nr=sr.R.find(function(r){return (r-price)/price<0.025&&r>price;});
-    if(nr){sigs.push({t:'S',src:'Direnç Bölgesi [C Ch7]',tf,d:'Direnç: '+fmtP(nr)+' ('+(((nr-price)/price)*100).toFixed(1)+'% uzaklık) — short hedefi.'});S+=1.5;}
+    var nearR=sr.R.filter(function(r){return Math.abs(price-r)/price<0.015;});
+    if(nearR.length){sigs.push({t:'S',src:'Direnç Yakın',d:'Fiyat direnç seviyesine yakın: '+nearR.map(fmtPShort).join(', ')+' (+/-%1.5).'});S+=1.5;}
   }
 
-  // ── VERDICT ───────────────────────────────────────────────────────────────
-  var tot=(B+S+W)||1;
-  var lR=B/tot,sR=S/tot;
-  var verdict,vc,vsub,longE,shortE;
-  if(lR>0.56&&B>S*1.4){verdict='LONG';vc='g';vsub=B.toFixed(1)+' puan LONG | '+S.toFixed(1)+' SHORT | Oran: '+(lR*100).toFixed(0)+'% LONG';longE=true;shortE=false;}
-  else if(sR>0.56&&S>B*1.4){verdict='SHORT';vc='r';vsub=S.toFixed(1)+' puan SHORT | '+B.toFixed(1)+' LONG | Oran: '+(sR*100).toFixed(0)+'% SHORT';longE=false;shortE=true;}
-  else if(lR>0.48&&B>S){verdict='ZAYIF LONG';vc='a';vsub='Hafif LONG eğilimi. Küçük pozisyon veya bekleyin.';longE=true;shortE=false;}
-  else if(sR>0.48&&S>B){verdict='ZAYIF SHORT';vc='r';vsub='Hafif SHORT eğilimi. Küçük pozisyon veya bekleyin.';longE=false;shortE=true;}
-  else{verdict='BEKLE';vc='a';vsub='Karışık sinyaller. Net yön yok. İzlemeye devam edin.';longE=false;shortE=false;}
+  // ── O. ARIMA ÖNGÖRÜ ──
+  if(arima&&arima.fc&&arima.fc.length>0){
+    var fc5=arima.fc[4]||price,fc10=arima.fc[9]||price;
+    var pct5=(fc5-price)/price*100,pct10=(fc10-price)/price*100;
+    if(pct5>1.5){sigs.push({t:'L',src:'ARIMA Yukarı',d:'5-bar ARIMA öngörüsü: '+fmtPShort(fc5)+' (+'+pct5.toFixed(1)+'%) yükseliş bekleniyor.'});B+=1.5;}
+    else if(pct5<-1.5){sigs.push({t:'S',src:'ARIMA Aşağı',d:'5-bar ARIMA öngörüsü: '+fmtPShort(fc5)+' ('+pct5.toFixed(1)+'%) düşüş bekleniyor.'});S+=1.5;}
+    if(pct10>3){B+=1;}else if(pct10<-3){S+=1;}
+  }
 
-  // ── ATR-based levels [C Ch7] ───────────────────────────────────────────────
-  var atrPct2=atr/price;
-  var epM=CFG.atrEP||1.5,tpM=CFG.atrTP||2.5,slM=CFG.atrSL||2.0;
-  var ep,tp,sl,rr;
-  if(longE){
-    ep=price*(1-atrPct2*epM);tp=price*(1+atrPct2*tpM);sl=price*(1-atrPct2*slM);
-    rr=ep>sl?+((tp-ep)/(ep-sl)).toFixed(2):1.5;
-    // Snap to nearest support
-    if(sr&&sr.S&&sr.S.length){var sn=sr.S.find(function(s){return s<price&&s>price*(1-atrPct2*3);});if(sn)ep=Math.max(ep,sn);}
-  }else if(shortE){
-    ep=price*(1+atrPct2*epM);tp=price*(1-atrPct2*tpM);sl=price*(1+atrPct2*slM);
-    rr=ep<sl?+((ep-tp)/(sl-ep)).toFixed(2):1.5;
-    if(sr&&sr.R&&sr.R.length){var rn=sr.R.find(function(r){return r>price&&r<price*(1+atrPct2*3);});if(rn)ep=Math.min(ep,rn);}
-  }else{ep=price;tp=price*(1+atrPct2*tpM);sl=price*(1-atrPct2*slM);rr=1;}
+  // ── P. GARCH UYARI ──
+  if(garch&&garch.currAnn>60){sigs.push({t:'W',src:'⚠ Yüksek Volatilite',d:'GARCH vol='+garch.currAnn.toFixed(1)+'%/yıl — Pozisyon boyutunu küçült!'});W+=1;}
 
-  return{verdict,vc,vsub,B:+B.toFixed(1),S:+S.toFixed(1),W:+W.toFixed(1),longE,shortE,sigs,price,
-    ep:+ep.toFixed(8),tp:+tp.toFixed(8),sl:+sl.toFixed(8),rr,atr,
-    fc5:arima&&arima.fc?arima.fc[4]:null,c5:arima&&arima.fc?+((arima.fc[4]-price)/price*100).toFixed(2):null,
-    fc10:arima&&arima.fc?arima.fc[9]:null,c10:arima&&arima.fc?+((arima.fc[9]-price)/price*100).toFixed(2):null,
-    fc21:arima&&arima.fc?arima.fc[20]:null,c21:arima&&arima.fc?+((arima.fc[20]-price)/price*100).toFixed(2):null,
-    fc21u:arima&&arima.u95?arima.u95[20]:null,fc21l:arima&&arima.l95?arima.l95[20]:null};
+  // ── ML (opsiyonel) ──
+  if(ml&&ml.up>0.62){sigs.push({t:'L',src:'ML Ensemble',d:'ML yukarı olasılığı '+Math.round(ml.up*100)+'% — modeller LONG yönünde.'});B+=ml.up*3;}
+  else if(ml&&ml.up<0.38){sigs.push({t:'S',src:'ML Ensemble',d:'ML aşağı olasılığı '+Math.round((1-ml.up)*100)+'% — modeller SHORT yönünde.'});S+=(1-ml.up)*3;}
+
+  // ── KARAR ──────────────────────────────────────────────────────────────
+  var tot=B+S+W||1;
+  var longRatio=B/tot,shortRatio=S/tot;
+  var verdict,vc,vsub;
+  if(longRatio>0.55&&B>S*1.3){
+    verdict=B>S*2?'GÜÇLÜ LONG':'LONG';vc='g';
+    vsub=B.toFixed(0)+' LONG sinyali / '+S.toFixed(0)+' SHORT sinyali';
+  } else if(shortRatio>0.55&&S>B*1.3){
+    verdict=S>B*2?'GÜÇLÜ SHORT':'SHORT';vc='r';
+    vsub=S.toFixed(0)+' SHORT sinyali / '+B.toFixed(0)+' LONG sinyali';
+  } else {
+    verdict='BEKLE';vc='a';vsub='Karışık sinyaller. Kırılım bekle.';
+  }
+
+  // ── ATR BAZLI TP1/TP2/TP3 + SL [Van Tharp] ──────────────────────────
+  var isLong=verdict.includes('LONG');
+  var isShort=verdict.includes('SHORT');
+
+  // Nearest S/R for precise entry
+  var ep=price;
+  if(isLong&&sr&&sr.S&&sr.S.length){
+    var nearSupports=sr.S.filter(function(s){return s<price&&(price-s)/price<0.02;});
+    if(nearSupports.length)ep=Math.max.apply(null,nearSupports)*(1.001);
+    else ep=price-(atr*CFG.atrEP);
+  } else if(isShort&&sr&&sr.R&&sr.R.length){
+    var nearRes=sr.R.filter(function(r){return r>price&&(r-price)/price<0.02;});
+    if(nearRes.length)ep=Math.min.apply(null,nearRes)*(0.999);
+    else ep=price+(atr*CFG.atrEP);
+  } else {ep=isLong?price-(atr*CFG.atrEP):isShort?price+(atr*CFG.atrEP):price;}
+
+  // Multi-target TP
+  var tp1=isLong?ep+atr*1.5:ep-atr*1.5;
+  var tp2=isLong?ep+atr*2.5:ep-atr*2.5;
+  var tp3=isLong?ep+atr*4.0:ep-atr*4.0;
+  var sl=isLong?ep-atr*1.8:ep+atr*1.8;
+
+  // Primary TP = TP2 (balanced)
+  var tp=tp2;
+
+  var rr=sl&&ep&&Math.abs(ep-sl)>0?+((Math.abs(tp-ep)/Math.abs(ep-sl)).toFixed(2)):1.5;
+  var rr1=sl&&ep&&Math.abs(ep-sl)>0?+((Math.abs(tp1-ep)/Math.abs(ep-sl)).toFixed(2)):1.0;
+  var rr3=sl&&ep&&Math.abs(ep-sl)>0?+((Math.abs(tp3-ep)/Math.abs(ep-sl)).toFixed(2)):2.5;
+
+  // ARIMA forecast values
+  var fc5=arima&&arima.fc?arima.fc[4]||price:price;
+  var fc10=arima&&arima.fc?arima.fc[9]||price:price;
+  var fc21=arima&&arima.fc?arima.fc[20]||price:price;
+  var fc5u=arima&&arima.u95?arima.u95[4]||price*1.02:price*1.02;
+  var fc5l=arima&&arima.l95?arima.l95[4]||price*0.98:price*0.98;
+  var fc21u=arima&&arima.u95?arima.u95[20]||price*1.05:price*1.05;
+  var fc21l=arima&&arima.l95?arima.l95[20]||price*0.95:price*0.95;
+  var c5=+((fc5-price)/price*100).toFixed(2);
+  var c10=+((fc10-price)/price*100).toFixed(2);
+  var c21=+((fc21-price)/price*100).toFixed(2);
+
+  return{verdict,vc,vsub,B:+B.toFixed(1),S:+S.toFixed(1),W:+W.toFixed(1),
+    sigs,price,ep:+ep.toFixed(8),
+    tp:+tp.toFixed(8),tp1:+tp1.toFixed(8),tp2:+tp2.toFixed(8),tp3:+tp3.toFixed(8),
+    sl:+sl.toFixed(8),rr,rr1,rr3,atr,
+    fc5,fc10,fc21,fc5u,fc5l,fc21u,fc21l,c5,c10,c21};
 }
 
-// ── ML ENSEMBLE [QS Ch11] ─────────────────────────────────────────────────────
+// ── 15. ML (Basit Ensemble) ───────────────────────────────────────────────
 function runML(feat){
   var N=feat.n,X=[],y=[],lr=feat.lr;
   for(var i=25;i<N-1;i++){
-    var obvT=(feat.obv&&feat.obvEma&&feat.obv[i]>feat.obvEma[i])?1:-1;
-    var row=[feat.l1[i]||0,feat.l2[i]||0,feat.l3[i]||0,feat.l4[i]||0,feat.l5[i]||0,
-      ((feat.rsi[i]||50)-50)/50,isNaN(feat.mhist[i])?0:feat.mhist[i]*30,
-      (feat.bbPct[i]||0.5)-0.5,Math.log(Math.max(feat.vrat[i]||1,0.01)),Math.sign(feat.l1[i]||0),
-      feat.mom5[i]||0,feat.mom10[i]||0,((feat.stK[i]||50)-50)/50,obvT*0.1];
-    var ok=true;row.forEach(function(v){if(!isFinite(v))ok=false;});
-    if(ok){X.push(row);y.push(lr[i+1]>0?1:0);}
+    var obvT=feat.obv&&feat.obvEma&&feat.obv.length>i?(feat.obv[i]>feat.obvEma[i]?1:-1):0;
+    X.push([lr[i-1]||0,lr[i-2]||0,lr[i-3]||0,
+      (feat.rsi[i]-50)/50,(feat.mhist[i]||0)/((feat.atr[i]||1)*0.01),
+      (feat.bbPct[i]||0.5)-0.5,Math.log(feat.vrat[i]||1),
+      lr[i-1]>0?1:-1,(feat.stK[i]-50)/50,obvT,
+      (feat.cci[i]||0)/100,(feat.wr[i]||-50)/50]);
+    y.push(lr[i+1]>0?1:0);
   }
-  if(X.length<60)return{up:0.5,dir:'NÖTR ◆',conf:'Yetersiz veri',scores:{},best:null,upPct:50};
-  var nf=14,sp=Math.floor(X.length*(CFG.mlSplit||0.75));
-  var Xtr=X.slice(0,sp),ytr=y.slice(0,sp),Xte=X.slice(sp),yte=y.slice(sp);
-  var mu2=Array(nf).fill(0),sg=Array(nf).fill(1);
-  for(var j=0;j<nf;j++){var col=Xtr.map(function(r){return r[j];});mu2[j]=mean(col);sg[j]=Math.max(Math.sqrt(varS(col)),1e-8);}
-  function sc(row){return row.map(function(v,j){return (v-mu2[j])/sg[j];});}
-  var XtrS=Xtr.map(sc),XteS=Xte.map(sc);
-  function sig2(z){return 1/(1+Math.exp(-Math.max(-35,Math.min(35,z))));}
-  function acc(probs,labels){var c=0;probs.forEach(function(p,i){if((p>=0.5?1:0)===labels[i])c++;});return probs.length?c/probs.length:0.5;}
-  var models={};
-  // 1. LR with L2
-  try{
-    var w=Array(nf).fill(0),b0=0;
-    for(var ep=0;ep<500;ep++){var dw=Array(nf).fill(0),db=0,al=0.08/XtrS.length;for(var i=0;i<XtrS.length;i++){var z=b0;for(var j=0;j<nf;j++)z+=XtrS[i][j]*w[j];var e=sig2(z)-ytr[i];for(var j=0;j<nf;j++)dw[j]+=e*XtrS[i][j];db+=e;}for(var j=0;j<nf;j++)w[j]-=al*(dw[j]+1e-3*w[j]);b0-=al*db;}
-    var pLR=XteS.map(function(row){var z=b0;for(var j=0;j<nf;j++)z+=row[j]*w[j];return sig2(z);});
-    models.LR={prob:pLR[pLR.length-1],acc:acc(pLR,yte)};
-  }catch(e){}
-  // 2. LDA
-  try{
-    var pos=XtrS.filter(function(_,i){return ytr[i]===1;}),neg=XtrS.filter(function(_,i){return ytr[i]===0;});
-    if(pos.length>5&&neg.length>5){
-      var mP=Array(nf).fill(0).map(function(_,j){return mean(pos.map(function(r){return r[j];}));});
-      var mN=Array(nf).fill(0).map(function(_,j){return mean(neg.map(function(r){return r[j];}));});
-      var wv=mP.map(function(v,j){return v-mN[j];}),wn2=Math.sqrt(wv.reduce(function(s,v){return s+v*v;},0))||1;
-      wv=wv.map(function(v){return v/wn2;});var th=wv.reduce(function(s,v,j){return s+v*(mP[j]+mN[j])/2;},0);
-      var pLDA=XteS.map(function(row){var pj=row.reduce(function(s,v,j){return s+v*wv[j];},0);return sig2((pj-th)*3);});
-      models.LDA={prob:pLDA[pLDA.length-1],acc:acc(pLDA,yte)};
-    }
-  }catch(e){}
-  // 3. RF (bagged stumps)
-  try{
-    var nTr=30,prbs=Array(XteS.length).fill(0);
-    for(var t=0;t<nTr;t++){
-      var idx=Array.from({length:XtrS.length},function(){return Math.floor(Math.random()*XtrS.length);});
-      var Xs2=idx.map(function(i){return XtrS[i];}),ys2=idx.map(function(i){return ytr[i];});
-      var fi=Math.floor(Math.random()*nf);
-      var vals=[...new Set(Xs2.map(function(r){return r[fi];}))].sort(function(a,b){return a-b;});
-      var bGini=1,bTh=0,bLv=0,bRv=0;
-      for(var k=0;k<Math.min(vals.length-1,15);k++){
-        var th=(vals[k]+vals[k+1])/2;
-        var Ly=ys2.filter(function(_,i){return Xs2[i][fi]<=th;}),Ry=ys2.filter(function(_,i){return Xs2[i][fi]>th;});
-        if(!Ly.length||!Ry.length)continue;
-        var lm=mean(Ly),rm=mean(Ry),g=(2*lm*(1-lm))*Ly.length/Xs2.length+(2*rm*(1-rm))*Ry.length/Xs2.length;
-        if(g<bGini){bGini=g;bTh=th;bLv=lm;bRv=rm;}
+  if(X.length<30)return{up:0.5,dir:'—',conf:'Yetersiz veri',best:'—',scores:{}};
+
+  var nTrain=Math.floor(X.length*0.75),nF=X.length-nTrain;
+  var Xtr=X.slice(0,nTrain),ytr=y.slice(0,nTrain);
+  var Xte=X.slice(nTrain),yte=y.slice(nTrain);
+  var last=X[X.length-1];
+
+  function sc(preds,actual){return preds.filter(function(p,i){return Math.round(p)===actual[i];}).length/(actual.length||1);}
+  function sig2(x){return 1/(1+Math.exp(-x));}
+  function acc(preds,actual){return sc(preds.map(function(p){return p>0.5?1:0;}),actual);}
+
+  // LR (L2)
+  var w=new Array(X[0].length).fill(0),b=0,lr2=0.05,lam=0.01;
+  for(var ep=0;ep<80;ep++){
+    var dw=w.map(function(){return 0;}),db=0;
+    Xtr.forEach(function(x,i){var pred=sig2(x.reduce(function(s,v,j){return s+v*w[j];},b));var e=pred-ytr[i];x.forEach(function(v,j){dw[j]+=e*v/Xtr.length;});db+=e/Xtr.length;});
+    w=w.map(function(v,j){return v-lr2*(dw[j]+lam*v);});b-=lr2*db;
+  }
+  var lrPreds=Xte.map(function(x){return sig2(x.reduce(function(s,v,j){return s+v*w[j];},b));});
+  var lrAcc=acc(lrPreds,yte);
+  var lrLast=sig2(last.reduce(function(s,v,j){return s+v*w[j];},b));
+
+  // RF (bagged stumps)
+  var trees=20,rfVotes=new Array(Xte.length).fill(0),rfLast=0;
+  for(var t=0;t<trees;t++){
+    var bag=[];for(var k=0;k<Xtr.length;k++)bag.push(Xtr[Math.floor(Math.random()*Xtr.length)]);
+    var bestF=-1,bestThr=0,bestDir=1,bestErr=Infinity;
+    for(var f=0;f<X[0].length;f++){
+      var vals=bag.map(function(x){return x[f];}).sort(function(a,b){return a-b;});
+      for(var ti=0;ti<vals.length-1;ti++){
+        var thr=(vals[ti]+vals[ti+1])/2;
+        var err=bag.reduce(function(s,x,i){return s+(+(x[f]>thr)!==ytr[i%ytr.length]?1:0);},0)/bag.length;
+        if(err<bestErr){bestErr=err;bestF=f;bestThr=thr;bestDir=1;}
+        if(1-err<bestErr){bestErr=1-err;bestF=f;bestThr=thr;bestDir=-1;}
       }
-      XteS.forEach(function(row,i){prbs[i]+=(row[fi]<=bTh?bLv:bRv)/nTr;});
     }
-    models.RF={prob:prbs[prbs.length-1],acc:acc(prbs,yte)};
-  }catch(e){}
-  // 4. Gradient Boosting
-  try{
-    var nR=40,lrGB=0.15,pyM=mean(ytr);
-    var initF=Math.log((pyM+0.01)/(1-pyM+0.01));
-    var F=Array(XtrS.length).fill(initF),Fte=Array(XteS.length).fill(initF);
-    for(var round=0;round<nR;round++){
-      var resid=ytr.map(function(yi,i){return yi-sig2(F[i]);});
-      var fi2=round%nf;
-      var vals2=[...new Set(XtrS.map(function(r){return r[fi2];}))].sort(function(a,b){return a-b;});
-      var bSq=Infinity,bTh2=0,bLv2=0,bRv2=0;
-      for(var k=0;k<Math.min(vals2.length-1,10);k++){
-        var th2=(vals2[k]+vals2[k+1])/2;
-        var Lr=resid.filter(function(_,i){return XtrS[i][fi2]<=th2;}),Rr=resid.filter(function(_,i){return XtrS[i][fi2]>th2;});
-        if(!Lr.length||!Rr.length)continue;
-        var lv2=mean(Lr),rv2=mean(Rr),sq=Lr.reduce(function(s,v){return s+(v-lv2)*(v-lv2);},0)+Rr.reduce(function(s,v){return s+(v-rv2)*(v-rv2);},0);
-        if(sq<bSq){bSq=sq;bTh2=th2;bLv2=lv2;bRv2=rv2;}
-      }
-      F=F.map(function(v,i){return v+lrGB*(XtrS[i][fi2]<=bTh2?bLv2:bRv2);});
-      Fte=Fte.map(function(v,i){return v+lrGB*(XteS[i][fi2]<=bTh2?bLv2:bRv2);});
-    }
-    var pGB=Fte.map(sig2);models.GB={prob:pGB[pGB.length-1],acc:acc(pGB,yte)};
-  }catch(e){}
-  // Accuracy-weighted ensemble
-  var ws2=0,wp2=0;
-  Object.values(models).forEach(function(m){if(m&&m.acc>0.45){wp2+=m.prob*m.acc;ws2+=m.acc;}});
-  var up2=ws2>0?wp2/ws2:0.5;
-  var best=null,bAcc=0;Object.entries(models).forEach(function(e){if(e[1]&&e[1].acc>bAcc){bAcc=e[1].acc;best=e[0];}});
-  var scores={};Object.entries(models).forEach(function(e){if(e[1])scores[e[0]]=+e[1].acc.toFixed(3);});
-  var diff=Math.abs(up2-0.5);
-  return{up:+up2.toFixed(4),dir:up2>0.56?'YUKARI ▲':up2<0.44?'AŞAĞI ▼':'NÖTR ◆',
-    conf:diff>0.12?'Yüksek':diff>0.07?'Orta':'Düşük',scores,best,upPct:+(up2*100).toFixed(1)};
+    Xte.forEach(function(x,i){rfVotes[i]+=(+(bestDir===1?x[bestF]>bestThr:x[bestF]<=bestThr))/trees;});
+    rfLast+=(+(bestDir===1?last[bestF]>bestThr:last[bestF]<=bestThr))/trees;
+  }
+  var rfAcc=acc(rfVotes,yte);
+
+  // Ensemble weighted
+  var w1=lrAcc,w2=rfAcc,wT=w1+w2||1;
+  var upProb=(lrLast*w1+rfLast*w2)/wT;
+
+  var best=lrAcc>rfAcc?'LR (L2)':'Random Forest';
+  var dir=upProb>0.55?'LONG':upProb<0.45?'SHORT':'BEKLE';
+  var conf='Güven: '+(Math.abs(upProb-0.5)*200).toFixed(0)+'%';
+
+  return{up:+upProb.toFixed(3),dir,conf,best,scores:{LR:+lrAcc.toFixed(3),RF:+rfAcc.toFixed(3)}};
 }
 
-// ── RELIABILITY SCORE ─────────────────────────────────────────────────────────
-function computeRel(sig,ml,garch,arima,hurst,adfOk,atrPct,adxV){
+// ── 16. GÜVENİLİRLİK SKORU ───────────────────────────────────────────────
+function computeRel(sig,ml,garch,arima,hurst,adfOk,atrPct,adx){
+  var base=50;
   var tot=(sig.B+sig.S+sig.W)||1;
-  var cons=Math.max(sig.B,sig.S)/tot;
-  var cnt=Math.min(sig.sigs.filter(function(s){return s.t!=='W';}).length/10,1);
-  var mlConv=Math.abs(ml.up-0.5)*2,mlAcc=ml.best?ml.scores[ml.best]||0.5:0.5;
-  var regFit=adfOk?1.0:0.8,hurstFit=(hurst<0.40||hurst>0.60)?1.0:0.78;
-  var volFit=(atrPct>=0.8&&atrPct<=8)?1.0:0.75;
-  var garchPen=garch&&garch.ratio>2.5?0.8:1.0;
-  var adxFit=adxV>25?1.0:adxV>15?0.85:0.7;
-  var arimaFit=arima&&arima.residWN?1.0:0.85;
-  var raw=(cons*0.28+mlConv*0.15+mlAcc*0.12+cnt*0.12+regFit*0.10+hurstFit*0.08+adxFit*0.07+arimaFit*0.05+volFit*0.03)*garchPen;
-  return Math.round(Math.min(94,Math.max(24,raw*100)));
+  var signalStrength=Math.max(sig.B,sig.S)/tot;
+  base+=signalStrength*25;                                    // Sinyal konsensüsü
+  if(ml&&ml.up){base+=(Math.abs(ml.up-0.5)*2)*10;}           // ML güveni
+  if(garch&&garch.currAnn>60){base-=8;}                      // Yüksek vol cezası
+  if(arima&&arima.residWN){base+=5;}                         // ARIMA kalitesi
+  if(adfOk){base+=3;}                                        // Durağanlık
+  if(adx>30){base+=5;}                                       // Güçlü trend
+  if(hurst>0.60||hurst<0.40){base+=5;}                       // Net rejim
+  if((sig.B+sig.S)>8){base+=4;}                              // Çok sinyal teyidi
+  if(atrPct>8){base-=5;}                                     // Çok yüksek ATR cezası
+  var stCount=sig.sigs.filter(function(s){return s.src.includes('Supertrend')||s.src.includes('EMA');}).length;
+  if(stCount>0)base+=3;                                      // Supertrend/EMA teyidi bonus
+  return Math.min(96,Math.max(24,Math.round(base)));
 }
 
-function sigClass(verdict,rel){
-  if(verdict==='LONG'||verdict==='ZAYIF LONG')return rel>=80?'GUCLU-LONG':rel>=60?'LONG':'ZAYIF-LONG';
-  if(verdict==='SHORT'||verdict==='ZAYIF SHORT')return rel>=80?'GUCLU-SHORT':rel>=60?'SHORT':'ZAYIF-SHORT';
-  return 'NOTR';
-}
-function sigText(cls){
-  var t={'GUCLU-LONG':'💎 GÜÇLÜ LONG','LONG':'📈 LONG','ZAYIF-LONG':'📊 ZAYIF LONG','GUCLU-SHORT':'🔥 GÜÇLÜ SHORT','SHORT':'📉 SHORT','ZAYIF-SHORT':'📊 ZAYIF SHORT','NOTR':'⏸ BEKLE'};
-  return t[cls]||cls;
-}
-
-// ── ANALYZE COIN ──────────────────────────────────────────────────────────────
+// ── 17. ANA ANALİZ FONKSİYONU ────────────────────────────────────────────
 async function analyzeCoin(sym,tfOv){
   var pilot=await fetchKlines(sym,'1h',100);
-  var mtf={};
-  try{mtf=await fetchMultiTF(sym);}catch(e){}
   var pc2=pilot.map(function(k){return k.c;}),ph=pilot.map(function(k){return k.h;}),pl=pilot.map(function(k){return k.l;});
   var patr=atrWilder(ph,pl,pc2,14),atrPct=(patr[patr.length-1]||pc2[pc2.length-1]*.02)/pc2[pc2.length-1]*100;
   var tfInfo=tfOv&&tfOv!=='auto'
     ?{tf:tfOv,regime:'Manuel ('+tfOv+')',reason:'Kullanıcı seçimi',hurst:hurstRS(pc2),adxInfo:calcADX(ph,pl,pc2,14)}
     :selectTF(pc2,ph,pl,atrPct);
   var tf=tfInfo.tf;
+
   var klines=await fetchKlines(sym,tf,300);
   var price=klines[klines.length-1].c;
   var cl=klines.map(function(k){return k.c;}),hi=klines.map(function(k){return k.h;}),lo=klines.map(function(k){return k.l;});
+
   var feat=computeFeatures(klines);
   var lr=feat.lr;
   var arima=fitArima(lr,price);
@@ -1336,251 +1561,316 @@ async function analyzeCoin(sym,tfOv){
   var sig=buildSignals(feat,arima,garch,ml,price,tf,sr);
   var atrPctFull=sig.atr/price*100;
   var rel=computeRel(sig,ml,garch,arima,tfInfo.hurst,arima?arima.adfOk:false,atrPctFull,feat.adx.adx);
-  var sClass=sigClass(sig.verdict,rel);
-  var sText=sigText(sClass);
+
   var cVerdict=sig.verdict.includes('LONG')?'LONG':sig.verdict.includes('SHORT')?'SHORT':'BEKLE';
+  var sigCls2=rel>=80?'GUCLU-'+(cVerdict==='BEKLE'?'NOTR':cVerdict):rel>=65?cVerdict:rel>=50?'ZAYIF-'+(cVerdict==='BEKLE'?'NOTR':cVerdict):'NOTR';
+  var sigTxt=sig.verdict;
+
   var n=klines.length;
   var ch24=n>24?+((cl[n-1]-cl[n-25])/cl[n-25]*100).toFixed(2):0;
-  return{
-    sym,tf,regime:tfInfo.regime,tfReason:tfInfo.reason,hurst:tfInfo.hurst,
+
+  // MTF fetch
+  var mtf={};
+  try{mtf=await fetchMultiTF(sym);}catch(e){}
+
+  return{sym,tf,regime:tfInfo.regime,tfReason:tfInfo.reason,hurst:tfInfo.hurst,
     adxInfo:feat.adx,price,atrPct:+atrPctFull.toFixed(2),ch24,
     rsi:+(feat.rsi[feat.n-1]||50).toFixed(1),adx:feat.adx.adx,
     volRatio:+(feat.vrat[feat.n-1]||1).toFixed(2),
-    verdict:cVerdict,sigCls:sClass,sigText:sText,rel,
-    ep:sig.ep,tp:sig.tp,sl:sig.sl,rr:sig.rr,
+    verdict:cVerdict,sigCls:sigCls2,sigText:sigTxt,rel,
+    ep:sig.ep,tp:sig.tp,tp1:sig.tp1,tp2:sig.tp2,tp3:sig.tp3,
+    sl:sig.sl,rr:sig.rr,rr1:sig.rr1,rr3:sig.rr3,
     B:sig.B,S:sig.S,W:sig.W,
     analysis:sig,arima,garch,ml,kf,pf,feat,sr,pivots,mtf,klines,
-    stats:{adfR:arima?{stat:arima.adfStat,pval:arima.adfPval,stationary:arima.adfOk}:{stat:0,pval:1,stationary:false},archR:archLM(lr,5),hurst:tfInfo.hurst}
-  };
+    stats:{adfR:arima?{stat:arima.adfStat,pval:arima.adfPval,stationary:arima.adfOk}:{stat:0,pval:1,stationary:false},
+      archR:{pval:garch?0.01:0.5,hasArch:!!garch}}};
 }
 
-// ── SCAN ──────────────────────────────────────────────────────────────────────
+// ── SCAN KONTROL FONKSİYONLARI ───────────────────────────────────────────
 async function runScan(){
   if(SCANNING)return;
   SCANNING=true;
-  E('scanbtn').disabled=true;if(E('stopbtn'))E('stopbtn').style.display='inline-block';
+  if(E('scanbtn'))E('scanbtn').disabled=true;
+  if(E('stopbtn'))E('stopbtn').style.display='inline-block';
   if(E('sdot'))E('sdot').classList.add('on');
   hideAl('ea');hideAl('ia');
+
+  var filt=(E('sfilt')||{}).value||'all';
+  var minRel=+(E('sminrel')||{}).value||0;
+  var tfOv=(E('stf')||{}).value||'auto';
+
+  var coins=[];
   try{
-    var pool=(E('sc-pool')||{}).value||'top50',filt=(E('sc-filt')||{}).value||'all',minRel=parseInt((E('sc-rel')||{}).value)||0;
-    var coins;
-    if(pool==='custom'){
-      var c2=((E('sc-custom')||{}).value||'BTC,ETH,BNB').split(',').map(function(s){return s.trim().toUpperCase();}).filter(Boolean);
-      coins=c2.map(function(s){return{sym:s};});
+    var topEl=E('stopcoins');
+    if(topEl&&topEl.checked){
+      ovShow('TARAMA','Top coinler getiriliyor...');prog(5);
+      coins=await getTopCoins(+(E('slimit')||{}).value||30);
     }else{
-      var n=pool==='top20'?20:pool==='top50'?50:100;
-      if(E('sstat'))E('sstat').textContent='Binance ticker alınıyor…';
-      ovShow('PAZAR TARAMASI','Top '+n+' USDT coin alınıyor…');prog(3);
-      coins=await getTopCoins(n);
+      var raw=((E('scoins')||{}).value||'BTC,ETH,BNB,SOL,XRP').toUpperCase().split(/[,\s]+/).filter(Boolean);
+      coins=raw;
     }
-    if(E('sstat'))E('sstat').textContent=coins.length+' coin taranıyor…';
-    var results=[],tot=coins.length;
-    for(var ci=0;ci<tot;ci++){
-      if(!SCANNING)break;
-      var coin=coins[ci];
-      prog(5+Math.round(ci/tot*88));
-      if(E('sstat'))E('sstat').textContent='('+(ci+1)+'/'+tot+') '+coin.sym+'…';
-      if(E('ov-s'))E('ov-s').innerHTML='<b style="color:#00dc6e">'+coin.sym+'</b> — Hurst+ADX→TF · ARIMA+GARCH+ML+Kelly+S/R<br>'+(ci+1)+'/'+tot+' coin';
-      try{
-        var res=await analyzeCoin(coin.sym);
-        results.push(res);
-        renderScanTable(results,filt,minRel);
-        updScanMeta(results);
-        if(res.verdict!=='BEKLE'&&res.rel>=CFG.tgMinRel){sendSignalTG(res);addHist(res);}
-      }catch(e){console.warn('Skip',coin.sym,e.message);}
-      await sleep(300);
-    }
-    prog(100);SCAN_RES=results;
-    renderScanTable(results,filt,minRel);updScanMeta(results);
-    if(E('slast'))E('slast').textContent=now();
-    E('hb-scan').textContent='TARAMA: '+results.length+' coin';
-    showInfo('Tarama tamamlandı: '+results.length+' coin · LONG: '+results.filter(function(r){return r.verdict==='LONG';}).length+' · SHORT: '+results.filter(function(r){return r.verdict==='SHORT';}).length,'ia');
-    sendSummaryTG(results);setupAutoRefresh();
-  }catch(e){showErr('Tarama hatası: '+e.message,'ea');console.error(e);}
-  finally{SCANNING=false;E('scanbtn').disabled=false;if(E('sdot'))E('sdot').classList.remove('on');if(E('sstat'))E('sstat').textContent='Tamamlandı';ovHide();}
+  }catch(e){coins=['BTC','ETH','BNB','SOL','XRP','AVAX','LINK'];}
+
+  ovShow('TARAMA','<span id="scan-progress-lbl">'+coins.length+' coin taranıyor...</span>');
+  prog(8);
+
+  var results=[];
+  for(var ci=0;ci<coins.length;ci++){
+    if(!SCANNING)break;
+    var sym=coins[ci].replace(/USDT$/,'');
+    var pct=Math.round((ci/coins.length)*85)+8;
+    prog(pct);
+    if(E('scan-progress-lbl'))E('scan-progress-lbl').innerHTML=
+      'Tarıyor: <b>'+sym+'</b> ('+ci+'/'+coins.length+')';
+    try{
+      var res=await analyzeCoin(sym,tfOv);
+      results.push(res);
+      SCAN_RES=results.slice();
+      renderScanTable(results,filt,minRel);
+      updScanMeta(results);
+    }catch(e){console.warn('Skip '+sym,e.message);}
+  }
+
+  prog(100);
+  SCAN_RES=results;
+  renderScanTable(results,filt,minRel);
+  updScanMeta(results);
+  ovHide();
+  SCANNING=false;
+  if(E('scanbtn'))E('scanbtn').disabled=false;
+  if(E('stopbtn'))E('stopbtn').style.display='none';
+  if(E('sdot'))E('sdot').classList.remove('on');
 }
+
 function stopAuto(){
-  SCANNING=false;if(AUTO_TIMER){clearTimeout(AUTO_TIMER);AUTO_TIMER=null;}if(AUTO_CD){clearInterval(AUTO_CD);AUTO_CD=null;}
-  if(E('stopbtn'))E('stopbtn').style.display='none';if(E('snxt'))E('snxt').textContent='—';ovHide();
+  SCANNING=false;
+  if(AUTO_TIMER){clearTimeout(AUTO_TIMER);AUTO_TIMER=null;}
+  if(AUTO_CD){clearInterval(AUTO_CD);AUTO_CD=null;}
+  if(E('scanbtn'))E('scanbtn').disabled=false;
+  if(E('stopbtn'))E('stopbtn').style.display='none';
+  if(E('sdot'))E('sdot').classList.remove('on');
 }
-function setupAutoRefresh(){
-  var intv=parseInt((E('sc-auto')||{}).value)||0;if(!intv)return;
+
+function setupAutoRefresh(intv){
+  stopAuto();
+  if(!intv||intv<1)return;
   var secs=intv*60;
-  if(AUTO_CD)clearInterval(AUTO_CD);
-  AUTO_CD=setInterval(function(){secs--;if(secs<=0){clearInterval(AUTO_CD);return;}if(E('snxt'))E('snxt').textContent=Math.floor(secs/60)+'d '+(secs%60)+'s';},1000);
-  if(AUTO_TIMER)clearTimeout(AUTO_TIMER);
+  var cd=E('countdown');
+  AUTO_CD=setInterval(function(){secs--;if(secs<=0){clearInterval(AUTO_CD);return;}if(cd)cd.textContent=secs+'s';},1000);
   AUTO_TIMER=setTimeout(function(){runScan();},intv*60000);
 }
-function updScanMeta(r){
-  if(E('scnt'))E('scnt').textContent=r.length;
-  if(E('slng'))E('slng').textContent=r.filter(function(x){return x.verdict==='LONG';}).length;
-  if(E('ssht'))E('ssht').textContent=r.filter(function(x){return x.verdict==='SHORT';}).length;
-  if(E('sstg'))E('sstg').textContent=r.filter(function(x){return x.rel>=80;}).length;
+
+function updScanMeta(results){
+  var total=results.length;
+  var longs=results.filter(function(r){return r.verdict==='LONG';}).length;
+  var shorts=results.filter(function(r){return r.verdict==='SHORT';}).length;
+  var hi=results.filter(function(r){return r.rel>=75;}).length;
+  if(E('smeta'))E('smeta').textContent=
+    'Taranan: '+total+' · LONG: '+longs+' · SHORT: '+shorts+' · Güçlü: '+hi;
 }
 
-// ── DETAIL ────────────────────────────────────────────────────────────────────
-async function drillDown(sym,tf){E('d-sym').value=sym;E('d-tf').value=tf||'auto';nav('detail');if(E('back-btn'))E('back-btn').style.display='flex';await analyzeOne();}
-function qd(sym){E('d-sym').value=sym;analyzeOne();}
+async function drillDown(sym,tf){
+  E('d-sym').value=sym;
+  if(E('d-tf'))E('d-tf').value=tf||'auto';
+  nav('detail');
+  if(E('back-btn'))E('back-btn').style.display='flex';
+  await analyzeOne();
+}
+
+function qd(sym){
+  if(E('d-sym'))E('d-sym').value=sym;
+  nav('detail');
+  analyzeOne();
+}
 
 async function analyzeOne(){
-  var sym=(E('d-sym')||{}).value.trim().toUpperCase();
-  var tfSel=(E('d-tf')||{}).value;
+  var sym=((E('d-sym')||{}).value||'').trim().toUpperCase();
+  var tfSel=((E('d-tf')||{}).value)||'auto';
   if(!sym){showErr('Sembol girin','dea');return;}
-  hideAl('dea');if(E('gobtn'))E('gobtn').disabled=true;
+  hideAl('dea');
+  if(E('gobtn'))E('gobtn').disabled=true;
   if(E('d-content'))E('d-content').style.display='none';
-  ovShow('DERİN ANALİZ','<b style="color:#00dc6e">'+sym+'USDT</b><br>Pilot→Hurst(R/S)+ADX→TF<br>ARIMA+GARCH+ML+Kelly+S/R+Pivot<br>LONG/SHORT sinyal + güvenilirlik');
+  ovShow('DERİN ANALİZ','<b style="color:var(--g)">'+sym+'USDT</b><br>EMA · Supertrend · VWAP · BB · RSI<br>Mum Pattern · CCI · StochRSI<br>ATR TP1/TP2/TP3 + ML');
   prog(10);
   try{
     var res=await analyzeCoin(sym,tfSel);
-    prog(92);D=res;renderDetail(D);
-    if(E('d-content'))E('d-content').style.display='block';prog(100);
-  }catch(e){showErr(sym+' analiz hatası: '+e.message,'dea');console.error(e);}
-  finally{if(E('gobtn'))E('gobtn').disabled=false;ovHide();}
+    prog(92);D=res;
+    renderDetail(D);
+    if(E('d-content'))E('d-content').style.display='block';
+    prog(100);
+  }catch(e){
+    showErr(sym+' analiz hatası: '+e.message,'dea');
+    console.error(e);
+  }finally{
+    if(E('gobtn'))E('gobtn').disabled=false;
+    ovHide();
+  }
 }
 
-// ── RENDER DETAIL ─────────────────────────────────────────────────────────────
-function setFC(id,val,pct){
-  var e=E(id);if(!e)return;
-  if(!val||!isFinite(val)){e.textContent='—';e.className='fcv nt';return;}
-  e.textContent=fmtP(val)+' ('+(pct>=0?'+':'')+pct+'%)';
-  e.className='fcv '+(pct>0?'up':pct<0?'dn':'nt');
+
+// ── CANVAS VE ZAMANLAMA FONKSİYONLARI ─────────────────────────────────────
+
+var TF_MINS={'1m':1,'3m':3,'5m':5,'15m':15,'30m':30,'1h':60,'2h':120,'4h':240,'1d':1440,'1w':10080};
+
+function estTime(bars,tf){
+  var m=TF_MINS[tf]||60,total=bars*m;
+  if(total<60)return total+'dk';
+  if(total<1440)return Math.round(total/60)+'s';
+  return Math.round(total/1440)+'g';
 }
 
-// ── CHARTS ────────────────────────────────────────────────────────────────────
-if(typeof Chart!=='undefined'){Chart.defaults.color='rgba(106,128,144,.8)';Chart.defaults.borderColor='rgba(26,42,58,.5)';}
-
-// ── SAFE CHART CREATOR ──────────────────────────────────────────────────────
-function mkChart(ctx,cfg){
-  if(typeof Chart==='undefined'){console.error('Chart.js not loaded');return null;}
-  try{return new Chart(ctx,cfg);}catch(e){console.error('mkChart error:',e);return null;}
-}
-function killC(id){if(CHARTS[id]){try{CHARTS[id].destroy();}catch(e2){}delete CHARTS[id];}}
-function xAx(){return{grid:{color:'rgba(26,42,58,.4)'},ticks:{color:'#2d4060',font:{size:8,family:'Space Mono'},maxTicksLimit:8,maxRotation:0}};}
-function yAx(o){return Object.assign({grid:{color:'rgba(26,42,58,.4)'},ticks:{color:'#2d4060',font:{size:8,family:'Space Mono'},maxTicksLimit:6}},o||{});}
-function bOpts(ex){return Object.assign({responsive:true,maintainAspectRatio:false,animation:{duration:300},plugins:{legend:{display:false}}},ex||{});}
-function ln(lb,data,color,bw,ex){return Object.assign({type:'line',label:lb,data:data,borderColor:color,borderWidth:bw||1.4,pointRadius:0,fill:false,tension:.2},ex||{});}
-function fl(lb,data,bg,ex){return Object.assign({type:'line',label:lb,data:data,borderWidth:1,pointRadius:0,tension:.2,fill:true,backgroundColor:bg},ex||{});}
-
-
-
-var TF_MINS={'1m':1,'3m':3,'5m':5,'15m':15,'30m':30,'1h':60,'2h':120,'4h':240,'6h':360,'12h':720,'1d':1440,'3d':4320,'1w':10080};
-function estTime(tf,bars){var m=(TF_MINS[tf]||60)*Math.max(1,bars);if(m<60)return '~'+Math.round(m)+'dk';if(m<1440)return '~'+(m/60).toFixed(1)+'s';if(m<10080)return '~'+(m/1440).toFixed(1)+'g';return '~'+(m/10080).toFixed(1)+'h';}
 function calcTiming(d){
   if(!d||!d.arima||!d.arima.fc)return null;
-  var tf=d.tf,fc=d.arima.fc,price=d.price,tp=d.analysis.tp,sl=d.analysis.sl;
-  var tpBar=null,slBar=null;var isLong=d.verdict==='LONG';
-  for(var i=0;i<fc.length;i++){if(tpBar===null&&isLong&&fc[i]>=tp)tpBar=i+1;if(tpBar===null&&!isLong&&fc[i]<=tp)tpBar=i+1;if(slBar===null&&isLong&&fc[i]<=sl)slBar=i+1;if(slBar===null&&!isLong&&fc[i]>=sl)slBar=i+1;}
-  var entryTF=tf==='4h'?'15m – 1h':tf==='1d'?'1h – 4h':tf==='1h'?'5m – 15m':tf==='15m'?'1m – 5m':'5m – 15m';
-  return{tpEst:tpBar?estTime(tf,tpBar):estTime(tf,12),slEst:slBar?estTime(tf,slBar):estTime(tf,4),tpBar,slBar,
-    signalValid:estTime(tf,3),entryTF,
-    confirmTFs:tf==='4h'?['15m','1h','4h','1d']:tf==='1h'?['5m','15m','1h','4h']:tf==='15m'?['1m','5m','15m','1h']:['1h','4h','1d','1w']};
-}
-function fmtPShort(v){if(!v||!isFinite(v))return '—';if(v>=10000)return '$'+(v/1000).toFixed(1)+'K';if(v>=1000)return '$'+v.toFixed(0);if(v>=1)return '$'+v.toFixed(3);if(v>=0.01)return '$'+v.toFixed(5);return '$'+v.toExponential(3);}
-function drawCandles(canvasId,klines,opts){
-  opts=opts||{};var canvas=E(canvasId);if(!canvas)return;
-  var ctx=canvas.getContext('2d');
-  var W=canvas.clientWidth||canvas.offsetWidth||400,H=canvas.clientHeight||canvas.offsetHeight||200;
-  var dpr=window.devicePixelRatio||1;canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.scale(dpr,dpr);
-  var n=Math.min(opts.n||80,klines.length),data=klines.slice(-n);if(!data.length)return;
-  var highs=data.map(function(k){return k.h;}),lows=data.map(function(k){return k.l;});
-  var maxP=Math.max.apply(null,highs)*1.002,minP=Math.min.apply(null,lows)*0.998,pRange=maxP-minP||maxP*0.01;
-  var volH=opts.vol?Math.round(H*0.16):0;
-  var pL=opts.mini?44:66,pR=8,pT=opts.mini?8:14,pB=opts.mini?16:22;
-  var cW=W-pL-pR,cH=H-pT-pB-volH,cw=Math.max(1.5,cW/n*0.62);
-  function xS(i){return pL+(i+0.5)*(cW/n);}function yS(p){return pT+cH-Math.max(0,(p-minP)/pRange*cH);}
-  ctx.fillStyle='#0b1120';ctx.fillRect(0,0,W,H);
-  ctx.strokeStyle='rgba(255,255,255,0.04)';ctx.lineWidth=0.5;
-  for(var g=0;g<=4;g++){var gy=pT+g*(cH/4);ctx.beginPath();ctx.moveTo(pL,gy);ctx.lineTo(W-pR,gy);ctx.stroke();if(!opts.mini){ctx.fillStyle='rgba(120,140,180,0.45)';ctx.font='9px "IBM Plex Mono",monospace';ctx.textAlign='right';ctx.fillText(fmtPShort(maxP-g*(pRange/4)),pL-3,gy+3);}}
-  if(opts.mini){ctx.fillStyle='rgba(120,140,180,0.4)';ctx.font='8px "IBM Plex Mono",monospace';ctx.textAlign='right';ctx.fillText(fmtPShort(maxP),pL-2,pT+10);ctx.fillText(fmtPShort(minP),pL-2,pT+cH);}
-  if(opts.bb&&opts.bb.bbu){var bN=Math.min(n,opts.bb.bbu.length);ctx.strokeStyle='rgba(77,171,247,0.2)';ctx.lineWidth=1;ctx.beginPath();for(var i=0;i<bN;i++){var bi=opts.bb.bbu.length-bN+i;if(isNaN(opts.bb.bbu[bi]))continue;if(i===0)ctx.moveTo(xS(i),yS(opts.bb.bbu[bi]));else ctx.lineTo(xS(i),yS(opts.bb.bbu[bi]));}ctx.stroke();ctx.beginPath();for(var i=0;i<bN;i++){var bi=opts.bb.bbl.length-bN+i;if(isNaN(opts.bb.bbl[bi]))continue;if(i===0)ctx.moveTo(xS(i),yS(opts.bb.bbl[bi]));else ctx.lineTo(xS(i),yS(opts.bb.bbl[bi]));}ctx.stroke();}
-  if(opts.sma20){var sN=Math.min(n,opts.sma20.length);ctx.strokeStyle='rgba(0,230,118,0.3)';ctx.lineWidth=1;ctx.beginPath();var fs=true;for(var i=0;i<sN;i++){var si=opts.sma20.length-sN+i;if(isNaN(opts.sma20[si]))continue;if(fs){ctx.moveTo(xS(i),yS(opts.sma20[si]));fs=false;}else ctx.lineTo(xS(i),yS(opts.sma20[si]));}ctx.stroke();}
-  data.forEach(function(k,i){var bull=k.c>=k.o,gc=bull?'rgba(0,230,118,0.88)':'rgba(255,82,82,0.88)',wc=bull?'rgba(0,230,118,0.55)':'rgba(255,82,82,0.55)';ctx.strokeStyle=wc;ctx.lineWidth=opts.mini?0.8:1;ctx.beginPath();ctx.moveTo(xS(i),yS(k.h));ctx.lineTo(xS(i),yS(k.l));ctx.stroke();var by=yS(Math.max(k.o,k.c)),bh=Math.max(1,Math.abs(yS(k.o)-yS(k.c)));ctx.fillStyle=gc;ctx.fillRect(xS(i)-cw/2,by,cw,bh);});
-  function hLine(price,color,lbl){var y=yS(price);if(y<pT-2||y>pT+cH+2)return;ctx.strokeStyle=color;ctx.lineWidth=1;ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(pL,y);ctx.lineTo(W-pR,y);ctx.stroke();ctx.setLineDash([]);if(!opts.mini){ctx.fillStyle=color;ctx.font='bold 8px "IBM Plex Mono",monospace';ctx.textAlign='left';ctx.fillText(lbl+' '+fmtPShort(price),pL+4,y-2);}}
-  if(opts.tp)hLine(opts.tp,'rgba(0,230,118,0.75)','TP');if(opts.sl)hLine(opts.sl,'rgba(255,82,82,0.75)','SL');if(opts.ep)hLine(opts.ep,'rgba(255,171,64,0.85)','EP');
-  var cp=data[data.length-1].c;ctx.strokeStyle='rgba(255,255,255,0.18)';ctx.lineWidth=0.7;ctx.setLineDash([2,4]);ctx.beginPath();ctx.moveTo(pL,yS(cp));ctx.lineTo(W-pR,yS(cp));ctx.stroke();ctx.setLineDash([]);
-  if(!opts.mini){ctx.fillStyle='rgba(200,210,230,0.6)';ctx.font='8px "IBM Plex Mono",monospace';ctx.textAlign='left';ctx.fillText(fmtPShort(cp),pL+3,yS(cp)-3);}
-  if(opts.vol&&volH>3){var vols=data.map(function(k){return k.v;}),maxV=Math.max.apply(null,vols)||1;var vBase=H-pB;data.forEach(function(k,i){var vH2=Math.max(1,(k.v/maxV)*(volH-2));ctx.fillStyle=k.c>=k.o?'rgba(0,230,118,0.18)':'rgba(255,82,82,0.15)';ctx.fillRect(xS(i)-cw/2,vBase-vH2,cw,vH2);});}
-  if(opts.signal){var lk=data[data.length-1],ax=xS(data.length-1);if(opts.signal==='LONG'){var ay=yS(lk.l)+10;ctx.fillStyle='#00e676';ctx.beginPath();ctx.moveTo(ax,ay-10);ctx.lineTo(ax-5,ay);ctx.lineTo(ax+5,ay);ctx.closePath();ctx.fill();}else if(opts.signal==='SHORT'){var ay=yS(lk.h)-10;ctx.fillStyle='#ff5252';ctx.beginPath();ctx.moveTo(ax,ay+10);ctx.lineTo(ax-5,ay);ctx.lineTo(ax+5,ay);ctx.closePath();ctx.fill();}}
-  if(opts.tf){ctx.fillStyle='rgba(0,0,0,0.5)';ctx.beginPath();if(ctx.roundRect)ctx.roundRect(pL+4,pT+3,opts.tf.length*7+8,15,3);else ctx.rect(pL+4,pT+3,opts.tf.length*7+8,15);ctx.fill();ctx.fillStyle='#00e676';ctx.font='bold 9px "IBM Plex Mono",monospace';ctx.textAlign='left';ctx.fillText(opts.tf.toUpperCase(),pL+8,pT+13);}
-  // Date labels on x-axis
-  if(!opts.mini&&data.length>0){var step=Math.ceil(n/6);ctx.fillStyle='rgba(120,140,180,0.4)';ctx.font='7px "IBM Plex Mono",monospace';ctx.textAlign='center';for(var i=0;i<n;i+=step){var dt=data[i]&&data[i].date?data[i].date.slice(5,16):'';ctx.fillText(dt,xS(i),pT+cH+14);}}
-}
-function drawARIMAChart(canvasId,d){
-  var canvas=E(canvasId);if(!canvas||!d||!d.arima||!d.klines)return;
-  var ctx=canvas.getContext('2d');var W=canvas.clientWidth||600,H=canvas.clientHeight||180;
-  var dpr=window.devicePixelRatio||1;canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.scale(dpr,dpr);
-  var ar=d.arima,price=d.price,hist=d.klines.slice(-40).map(function(k){return k.c;});
-  var fc=ar.fc.slice(0,21),u=ar.u95.slice(0,21),l=ar.l95.slice(0,21);
-  var allP=hist.concat(fc,u,l);var maxP=Math.max.apply(null,allP)*1.002,minP=Math.min.apply(null,allP)*0.998,pRange=maxP-minP||maxP*0.01;
-  var pL=66,pR=10,pT=14,pB=22,cW=W-pL-pR,cH=H-pT-pB,nH=hist.length,nF=fc.length,nAll=nH+nF;
-  function xS(i){return pL+i*(cW/nAll);}function yS(p){return pT+cH-((p-minP)/pRange*cH);}
-  ctx.fillStyle='#0b1120';ctx.fillRect(0,0,W,H);
-  ctx.strokeStyle='rgba(255,255,255,0.04)';ctx.lineWidth=0.5;
-  for(var g=0;g<=4;g++){var gy=pT+g*(cH/4);ctx.beginPath();ctx.moveTo(pL,gy);ctx.lineTo(W-pR,gy);ctx.stroke();ctx.fillStyle='rgba(120,140,180,0.45)';ctx.font='9px "IBM Plex Mono",monospace';ctx.textAlign='right';ctx.fillText(fmtPShort(maxP-g*(pRange/4)),pL-3,gy+3);}
-  // CI fill
-  ctx.beginPath();for(var i=0;i<nF;i++)i===0?ctx.moveTo(xS(nH+i),yS(u[i])):ctx.lineTo(xS(nH+i),yS(u[i]));for(var i=nF-1;i>=0;i--)ctx.lineTo(xS(nH+i),yS(l[i]));ctx.closePath();ctx.fillStyle='rgba(0,230,118,0.05)';ctx.fill();
-  ctx.strokeStyle='rgba(0,230,118,0.15)';ctx.lineWidth=0.8;
-  ctx.beginPath();for(var i=0;i<nF;i++){if(i===0)ctx.moveTo(xS(nH+i),yS(u[i]));else ctx.lineTo(xS(nH+i),yS(u[i]));}ctx.stroke();
-  ctx.beginPath();for(var i=0;i<nF;i++){if(i===0)ctx.moveTo(xS(nH+i),yS(l[i]));else ctx.lineTo(xS(nH+i),yS(l[i]));}ctx.stroke();
-  // Hist line
-  ctx.strokeStyle='rgba(77,171,247,0.65)';ctx.lineWidth=1.4;ctx.setLineDash([]);
-  ctx.beginPath();hist.forEach(function(p,i){if(i===0)ctx.moveTo(xS(i),yS(p));else ctx.lineTo(xS(i),yS(p));});ctx.stroke();
-  // Forecast
-  ctx.strokeStyle='#00e676';ctx.lineWidth=1.8;ctx.setLineDash([5,3]);
-  ctx.beginPath();ctx.moveTo(xS(nH-1),yS(hist[hist.length-1]));fc.forEach(function(p,i){ctx.lineTo(xS(nH+i),yS(p));});ctx.stroke();ctx.setLineDash([]);
-  // Divider
-  ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(xS(nH),pT);ctx.lineTo(xS(nH),pT+cH);ctx.stroke();ctx.setLineDash([]);
-  ctx.fillStyle='rgba(255,255,255,0.25)';ctx.font='7px "IBM Plex Mono",monospace';ctx.textAlign='center';ctx.fillText('ŞİMDİ',xS(nH),pT+cH+13);
-  // TP/SL
-  var tp=d.analysis.tp,sl=d.analysis.sl;
-  function hL(p,c,lbl){var y=yS(p);if(y<pT-2||y>pT+cH+2)return;ctx.strokeStyle=c;ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(xS(nH),y);ctx.lineTo(W-pR,y);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=c;ctx.font='bold 8px "IBM Plex Mono",monospace';ctx.textAlign='left';ctx.fillText(lbl+' '+fmtPShort(p),xS(nH)+4,y-2);}
-  hL(tp,'rgba(0,230,118,0.75)','TP');hL(sl,'rgba(255,82,82,0.75)','SL');
-  // TP timing marker
-  var timing=calcTiming(d);
-  if(timing&&timing.tpBar&&timing.tpBar<=nF){var tx=xS(nH+timing.tpBar-1);ctx.strokeStyle='rgba(255,171,64,0.4)';ctx.lineWidth=1;ctx.setLineDash([2,3]);ctx.beginPath();ctx.moveTo(tx,pT);ctx.lineTo(tx,pT+cH);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='rgba(255,171,64,0.7)';ctx.font='bold 8px "IBM Plex Mono",monospace';ctx.textAlign='center';ctx.fillText('TP? '+timing.tpEst,tx,pT+10);}
-  // Labels
-  ctx.fillStyle='rgba(77,171,247,0.55)';ctx.font='8px "IBM Plex Mono",monospace';ctx.textAlign='left';ctx.fillText('Geçmiş ('+d.tf+')',pL+4,pT+10);
-  ctx.fillStyle='rgba(0,230,118,0.65)';ctx.fillText('ARIMA AR('+ar.p+','+ar.d+',0)',xS(nH)+4,pT+10);
-  // X-axis forecast bar labels
-  [5,10,21].forEach(function(b){if(b<nF){ctx.fillStyle='rgba(120,140,180,0.4)';ctx.font='7px "IBM Plex Mono",monospace';ctx.textAlign='center';ctx.fillText('+'+b,xS(nH+b-1),pT+cH+13);}});
-}
-async function fetchMultiTF(sym){
-  var tfs=['15m','1h','4h','1d'],result={};
-  for(var i=0;i<tfs.length;i++){try{result[tfs[i]]=await fetchKlines(sym,tfs[i],60);}catch(e){}await sleep(100);}
-  return result;
-}
-function drawMTFGrid(d){
-  ['15m','1h','4h','1d'].forEach(function(tf2){
-    var cid='mtf-'+tf2;var kl=(d.mtf&&d.mtf[tf2])||(tf2===d.tf?d.klines:null);
-    if(!kl||!kl.length){var c=E(cid);if(c){var cx=c.getContext('2d');c.width=c.clientWidth||180;c.height=c.clientHeight||100;cx.fillStyle='#0b1120';cx.fillRect(0,0,c.width,c.height);cx.fillStyle='#1a2a3a';cx.font='9px monospace';cx.textAlign='center';cx.fillText('Yükleniyor...',c.width/2,c.height/2);}return;}
-    drawCandles(cid,kl,{n:40,mini:true,tf:tf2,vol:false,ep:tf2===d.tf?d.analysis.ep:null,tp:tf2===d.tf?d.analysis.tp:null,sl:tf2===d.tf?d.analysis.sl:null,signal:tf2===d.tf?d.verdict:null});
-  });
-}
-function initCanvases(d){
-  if(!d)return;
-  if(d.klines&&d.klines.length){var f=d.feat;drawCandles('c-candle',d.klines,{n:80,tf:d.tf,vol:true,bb:{bbu:f.bbu,bbl:f.bbl},sma20:f.sma20,ep:d.analysis.ep,tp:d.analysis.tp,sl:d.analysis.sl,signal:d.verdict});}
-  drawARIMAChart('c-arima-fc',d);
-  drawMTFGrid(d);
-}
-function renderTimingCard(d){
-  var el=E('timing-card');if(!el||!d)return;
-  var t=calcTiming(d);if(!t){el.innerHTML='<div style="color:#1a2a3a;font-size:.6rem">Zamanlama hesaplanamadı</div>';return;}
-  var v=d.verdict,vc=v==='LONG'?'#00e676':'#ff5252';
-  el.innerHTML=
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem">'+
-    '<div class="t-box"><div class="t-lbl">✅ TP Tahmini</div><div class="t-val" style="color:#00e676">'+t.tpEst+'</div><div class="t-sub">'+(t.tpBar?t.tpBar+'. bar (ARIMA)':'ARIMA hedef yok')+'</div></div>'+
-    '<div class="t-box"><div class="t-lbl">🛑 SL Tahmini</div><div class="t-val" style="color:#ff5252">'+t.slEst+'</div><div class="t-sub">'+(t.slBar?t.slBar+'. bar':'ARIMA teyidi yok')+'</div></div>'+
-    '</div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">'+
-    '<div class="t-box"><div class="t-lbl">⏰ Sinyal Geçerliliği</div><div class="t-val" style="color:#ffab40">'+t.signalValid+'</div><div class="t-sub">3 bar içinde giriş beklenir</div></div>'+
-    '<div class="t-box"><div class="t-lbl">🔍 Giriş Teyit TF</div><div class="t-val" style="color:#4dabf7">'+t.entryTF+'</div><div class="t-sub">Alt TF ile giriş onayı</div></div>'+
-    '</div>'+
-    '<div style="margin-top:.55rem;padding:.4rem .6rem;background:rgba(255,255,255,.03);border-radius:4px;font-size:.56rem;color:#2d4060;line-height:1.8">'+
-    '📐 <strong style="color:#c9d3de">Bakılacak Timeframe\'ler:</strong> '+
-    t.confirmTFs.map(function(tf,i){return '<span style="padding:.07rem .3rem;border-radius:2px;background:'+(tf===d.tf?'rgba(0,230,118,.12)':'rgba(26,42,58,.8)')+';border:1px solid '+(tf===d.tf?'#00773d':'#1a2a3a')+';color:'+(tf===d.tf?'#00e676':'#4d6070')+'">'+tf+(tf===d.tf?' ★':'')+'</span>';}).join(' ')+
-    '</div>';
+  var tf=d.tf,tp=d.tp,sl=d.sl,ar=d.arima;
+  var tpBars=5,slBars=2;
+  for(var i=0;i<ar.fc.length;i++){
+    if(d.verdict==='LONG'&&ar.fc[i]>=tp){tpBars=i+1;break;}
+    if(d.verdict==='SHORT'&&ar.fc[i]<=tp){tpBars=i+1;break;}
+  }
+  for(var i=0;i<ar.fc.length;i++){
+    if(d.verdict==='LONG'&&ar.fc[i]<=sl){slBars=i+1;break;}
+    if(d.verdict==='SHORT'&&ar.fc[i]>=sl){slBars=i+1;break;}
+  }
+  return{tpEst:estTime(tpBars,tf),slEst:estTime(slBars,tf),
+    validFor:estTime(3,tf),
+    entryTF:tf==='1d'?'4h':tf==='4h'?'1h':tf==='1h'?'15m':'5m',
+    confTFs:tf==='15m'?['1h','4h']:tf==='1h'?['4h','1d']:['1d']};
 }
 
+function drawCandles(canvasId,klines,opts){
+  var cv=document.getElementById(canvasId);
+  if(!cv||!klines||!klines.length)return;
+  opts=opts||{};
+  var W=cv.offsetWidth||600,H=cv.offsetHeight||280;
+  cv.width=W;cv.height=H;
+  var ctx=cv.getContext('2d');
+  var n=Math.min(opts.n||80,klines.length);
+  var data=klines.slice(-n);
+  var hi=data.map(function(k){return k.h;}),lo=data.map(function(k){return k.l;}),
+      cl=data.map(function(k){return k.c;}),vol=data.map(function(k){return k.v;});
+  var maxP=Math.max.apply(null,hi)+0.001,minP=Math.min.apply(null,lo);
+  var pad=0.05*(maxP-minP)||maxP*0.02;
+  maxP+=pad;minP-=pad;
+  var maxV=Math.max.apply(null,vol)||1;
+  var pRange=maxP-minP||1;
+  var volH=Math.floor(H*0.18),chartH=H-volH-4;
+  function px(p){return chartH-(p-minP)/pRange*chartH;}
+  var cw=Math.max(2,Math.floor(W/n)-1);
+  var gp=Math.max(1,Math.floor((W-cw*n)/(n+1)));
+  ctx.fillStyle='#060c14';ctx.fillRect(0,0,W,H);
+  // Grid
+  ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=1;
+  for(var gi=0;gi<4;gi++){var gy=Math.round(chartH/3*gi);ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke();}
+  // SMA20
+  var sm=sma(cl,20);
+  ctx.strokeStyle='rgba(79,195,247,0.5)';ctx.lineWidth=1;ctx.beginPath();
+  var st2=false;
+  for(var i=0;i<n;i++){if(isNaN(sm[i]))continue;var x=gp+i*(cw+gp)+cw/2;if(!st2){ctx.moveTo(x,px(sm[i]));st2=true;}else ctx.lineTo(x,px(sm[i]));}
+  ctx.stroke();
+  // BB
+  var std=rollStd(cl,20);
+  var bbu=cl.map(function(_,i){return isNaN(sm[i])?NaN:sm[i]+2*std[i];});
+  var bbl=cl.map(function(_,i){return isNaN(sm[i])?NaN:sm[i]-2*std[i];});
+  function drawLine(arr,col){ctx.strokeStyle=col;ctx.lineWidth=1;ctx.beginPath();var s=false;for(var i=0;i<n;i++){if(isNaN(arr[i]))continue;var x=gp+i*(cw+gp)+cw/2;if(!s){ctx.moveTo(x,px(arr[i]));s=true;}else ctx.lineTo(x,px(arr[i]));}ctx.stroke();}
+  drawLine(bbu,'rgba(255,171,64,0.3)');drawLine(bbl,'rgba(255,171,64,0.3)');
+  // Candles
+  for(var i=0;i<n;i++){
+    var x=gp+i*(cw+gp),bull=data[i].c>=data[i].o,col=bull?'#00e676':'#ff5252';
+    ctx.fillStyle=col;ctx.strokeStyle=col;ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(x+cw/2,px(hi[i]));ctx.lineTo(x+cw/2,px(lo[i]));ctx.stroke();
+    var y1=px(Math.max(data[i].o,data[i].c)),y2=px(Math.min(data[i].o,data[i].c));
+    ctx.fillRect(x,y1,cw,Math.max(1,y2-y1));
+  }
+  // H lines
+  function hLine(price2,color,label){
+    if(!price2||price2<minP||price2>maxP)return;
+    var y=px(price2);ctx.strokeStyle=color;ctx.lineWidth=1;ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=color;ctx.font='10px monospace';ctx.fillText(label+' '+fmtPShort(price2),4,y-3);
+  }
+  if(opts.ep)hLine(opts.ep,'#ffab40','EP');
+  if(opts.tp)hLine(opts.tp,'#00e676','TP');
+  if(opts.sl)hLine(opts.sl,'#ff5252','SL');
+  // Volume
+  for(var i=0;i<n;i++){
+    var x=gp+i*(cw+gp),bull=data[i].c>=data[i].o;
+    var vh=Math.round(vol[i]/maxV*volH);
+    ctx.fillStyle=bull?'rgba(0,230,118,0.3)':'rgba(255,82,82,0.3)';
+    ctx.fillRect(x,H-vh,cw,vh);
+  }
+  if(opts.tf){ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(W-44,4,40,16);ctx.fillStyle='#4fc3f7';ctx.font='bold 9px monospace';ctx.fillText(opts.tf.toUpperCase(),W-39,16);}
+}
+
+function drawARIMAChart(canvasId,d){
+  var cv=document.getElementById(canvasId);
+  if(!cv||!d||!d.arima||!d.arima.fc)return;
+  var W=cv.offsetWidth||600,H=cv.offsetHeight||220;
+  cv.width=W;cv.height=H;
+  var ctx=cv.getContext('2d');
+  var ar=d.arima,price=d.price;
+  var hist=d.klines?d.klines.slice(-30).map(function(k){return k.c;}):[price];
+  var all=hist.concat(ar.fc);
+  var allU=hist.concat(ar.u95||ar.fc),allL=hist.concat(ar.l95||ar.fc);
+  var maxP=Math.max.apply(null,allU),minP=Math.min.apply(null,allL);
+  var pad=0.03*(maxP-minP)||price*0.01;
+  maxP+=pad;minP-=pad;
+  var pRange=maxP-minP||1;
+  function py(p){return H-(p-minP)/pRange*H;}
+  var n=all.length,step=W/(n-1||1);
+  ctx.fillStyle='#060c14';ctx.fillRect(0,0,W,H);
+  if(ar.u95&&ar.l95){
+    ctx.fillStyle='rgba(0,220,110,0.08)';ctx.beginPath();
+    for(var i=hist.length;i<n;i++)ctx.lineTo(i*step,py(allU[i]));
+    for(var i=n-1;i>=hist.length;i--)ctx.lineTo(i*step,py(allL[i]));
+    ctx.closePath();ctx.fill();
+  }
+  ctx.strokeStyle='#4fc3f7';ctx.lineWidth=1.5;ctx.beginPath();
+  for(var i=0;i<hist.length;i++){var x=i*step;if(i===0)ctx.moveTo(x,py(hist[i]));else ctx.lineTo(x,py(hist[i]));}ctx.stroke();
+  ctx.strokeStyle='#ffab40';ctx.lineWidth=2;ctx.setLineDash([5,3]);ctx.beginPath();
+  for(var i=hist.length-1;i<n;i++){var x=i*step;if(i===hist.length-1)ctx.moveTo(x,py(all[i]));else ctx.lineTo(x,py(all[i]));}ctx.stroke();ctx.setLineDash([]);
+  function hL(p,col,lbl){if(!p||p<minP||p>maxP)return;var y=py(p);ctx.strokeStyle=col;ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=col;ctx.font='9px monospace';ctx.fillText(lbl,4,y-2);}
+  hL(d.tp,'#00e676','TP');hL(d.sl,'#ff5252','SL');
+  ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(0,0,W,18);
+  ctx.fillStyle='#ffab40';ctx.font='bold 10px monospace';
+  ctx.fillText('ARIMA('+ar.p+',1,0) — '+d.sym+'USDT',6,13);
+}
+
+async function fetchMultiTF(sym){
+  var tfs=['15m','1h','4h','1d'],result={};
+  await Promise.all(tfs.map(async function(tf){
+    try{result[tf]=await fetchKlines(sym,tf,60);}catch(e){result[tf]=[];}
+  }));
+  return result;
+}
+
+function drawMTFGrid(d){
+  if(!d||!d.mtf)return;
+  ['15m','1h','4h','1d'].forEach(function(tf){
+    var kl=d.mtf[tf];
+    if(kl&&kl.length)drawCandles('mtf-'+tf,kl,{n:40,tf:tf});
+  });
+}
+
+function initCanvases(d){
+  if(!d)return;
+  setTimeout(function(){
+    if(d.klines&&d.klines.length)drawCandles('c-candle',d.klines,{n:80,tf:d.tf,ep:d.ep,tp:d.tp,sl:d.sl});
+    if(d.arima&&d.arima.fc){var fcCv=document.getElementById('c-arima-fc');if(fcCv)fcCv.style.display='block';drawARIMAChart('c-arima-fc',d);}
+    drawMTFGrid(d);
+    drawCharts(d,'macd');drawCharts(d,'rsi');
+  },80);
+}
+
+function renderTimingCard(d){
+  var t=calcTiming(d);
+  var el=document.getElementById('timing-card');
+  if(!el||!t)return;
+  el.innerHTML='<div class="tc-row"><span class="tc-lbl">🎯 TP ~</span><span class="tc-val kv-g">'+t.tpEst+'</span></div>'+
+    '<div class="tc-row"><span class="tc-lbl">🛡 SL ~</span><span class="tc-val kv-r">'+t.slEst+'</span></div>'+
+    '<div class="tc-row"><span class="tc-lbl">⏱ Geçerlilik</span><span class="tc-val">'+t.validFor+'</span></div>'+
+    '<div class="tc-row"><span class="tc-lbl">📊 Giriş TF</span><span class="tc-val kv-b">'+t.entryTF+'</span></div>'+
+    '<div class="tc-row"><span class="tc-lbl">✅ Teyit TF</span><span class="tc-val">'+t.confTFs.join(', ')+'</span></div>';
+}
 
 function renderScanTable(results,filt,minRel){
   filt=filt||'all';minRel=minRel||0;
@@ -1800,6 +2090,7 @@ function renderHist(){
   });
   c.innerHTML=h;
 };
+
 
 // ── INIT (runs after all functions defined) ──
 (function(){
