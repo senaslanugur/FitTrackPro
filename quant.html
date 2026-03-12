@@ -4,248 +4,292 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>QuantAI Pro v5 — Binance Sinyal Motoru</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<title>QuantAI Pro v6 — Profesyonel Kripto Analiz</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
+
+@import url(‘https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;700&family=DM+Sans:wght@300;400;500;600;700&display=swap’);
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Space Mono',monospace;font-size:12px;background:#060a0e;color:#c9d3de;overflow-x:hidden}
-body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,200,90,.003) 2px,rgba(0,200,90,.003) 3px)}
+:root{
+–bg0:#060c14;–bg1:#0b1120;–bg2:#101828;–bg3:#141f30;–brd:#1a2a3e;–brd2:#223040;
+–g:#00e676;–g2:#1de9b6;–r:#ff5252;–a:#ffab40;–b:#4fc3f7;–p:#ce93d8;
+–txt:#c8d8f0;–txt2:#6a8090;–txt3:#2d4060;–txt4:#1a2a3e;
+}
+body{font-family:‘DM Sans’,sans-serif;font-size:13px;background:var(–bg0);color:var(–txt);overflow-x:hidden;line-height:1.5}
+body::before{content:’’;position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 80% 40% at 20% 0%,rgba(0,230,118,.03),transparent),radial-gradient(ellipse 60% 60% at 80% 100%,rgba(79,195,247,.02),transparent)}
+
 /* HEADER */
-header{position:sticky;top:0;z-index:400;background:rgba(6,10,14,.97);border-bottom:2px solid #00dc6e;padding:0 1.4rem;height:50px;display:flex;align-items:center;justify-content:space-between}
-.logo{font-family:'Bebas Neue',cursive;font-size:1.9rem;color:#00dc6e;letter-spacing:.1em}
-.logo em{color:#ffaa00;font-style:normal}
-.logo-s{font-size:.5rem;color:#2d4060;letter-spacing:.16em;margin-left:.5rem;text-transform:uppercase}
-.hinfo{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
-.badge{font-size:.5rem;padding:.1rem .42rem;border-radius:2px;letter-spacing:.1em;text-transform:uppercase}
-.bg{background:rgba(0,220,110,.08);border:1px solid #00773d;color:#00dc6e}
-.by{background:rgba(255,170,0,.08);border:1px solid #996600;color:#ffaa00}
-.bn{background:#0d1520;border:1px solid #1a2a3a;color:#2d4060}
-#hclock{font-size:.52rem;color:#2d4060;font-style:italic}
-.blink::before{content:'● ';animation:blink 1.4s ease infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.1}}
+header{position:sticky;top:0;z-index:500;background:rgba(6,12,20,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(–brd);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 1.4rem}
+.logo{font-family:‘IBM Plex Mono’,monospace;font-weight:700;font-size:1.1rem;color:var(–g);letter-spacing:.04em}
+.logo em{color:var(–b);font-style:normal}.logo sup{font-size:.45em;color:var(–txt3);letter-spacing:.2em;text-transform:uppercase;margin-left:.3rem}
+.hbadge{display:flex;align-items:center;gap:.35rem;flex-wrap:wrap}
+.pill{font-family:‘IBM Plex Mono’,monospace;font-size:.48rem;padding:.12rem .4rem;border-radius:3px;letter-spacing:.1em;text-transform:uppercase;font-weight:500}
+.pill-g{background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:var(–g)}
+.pill-b{background:rgba(79,195,247,.08);border:1px solid rgba(79,195,247,.25);color:var(–b)}
+.pill-a{background:rgba(255,171,64,.08);border:1px solid rgba(255,171,64,.2);color:var(–a)}
+.pill-d{background:var(–bg3);border:1px solid var(–brd);color:var(–txt3)}
+.blink::before{content:’● ’;animation:blink 1.4s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+#hclock{font-family:‘IBM Plex Mono’,monospace;font-size:.5rem;color:var(–txt3)}
+
 /* NAV */
-nav{background:#08111a;border-bottom:1px solid #1a2a3a;display:flex;position:sticky;top:50px;z-index:399}
-.ntab{padding:.5rem 1.4rem;cursor:pointer;font-family:'Bebas Neue',cursive;font-size:.86rem;letter-spacing:.14em;color:#2d4060;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
-.ntab:hover{color:#c9d3de}
-.ntab.on{color:#00dc6e;border-bottom-color:#00dc6e}
-/* MAIN */
-main{position:relative;z-index:1;max-width:2000px;margin:0 auto;padding:.9rem 1.1rem 5rem}
-.tv{display:none}.tv.on{display:block}
+nav{background:var(–bg1);border-bottom:1px solid var(–brd);display:flex;position:sticky;top:52px;z-index:499;overflow-x:auto}
+nav::-webkit-scrollbar{display:none}
+.ntab{padding:.55rem 1.3rem;cursor:pointer;font-family:‘IBM Plex Mono’,monospace;font-size:.62rem;letter-spacing:.12em;color:var(–txt3);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap;text-transform:uppercase}
+.ntab:hover{color:var(–txt)}.ntab.on{color:var(–g);border-bottom-color:var(–g)}
+
 /* OVERLAY */
-#ov{display:none;position:fixed;inset:0;z-index:999;background:rgba(6,10,14,.94);backdrop-filter:blur(8px);flex-direction:column;align-items:center;justify-content:center;gap:.85rem}
+#ov{display:none;position:fixed;inset:0;z-index:999;background:rgba(6,12,20,.92);backdrop-filter:blur(10px);flex-direction:column;align-items:center;justify-content:center;gap:.85rem}
 #ov.on{display:flex}
-.spin{width:42px;height:42px;border-radius:50%;border:2px solid #1a2a3a;border-top-color:#00dc6e;animation:rot .7s linear infinite}
+.spin{width:40px;height:40px;border-radius:50%;border:2px solid var(–brd2);border-top-color:var(–g);animation:rot .7s linear infinite}
 @keyframes rot{to{transform:rotate(360deg)}}
-#ov-t{font-family:'Bebas Neue',cursive;font-size:1.1rem;color:#00dc6e;letter-spacing:.25em}
-#ov-s{color:#2d4060;font-size:.63rem;text-align:center;line-height:2.4;max-width:360px}
-#ov-pb{width:300px;height:2px;background:#1a2a3a;border-radius:2px;overflow:hidden}
-#ov-pf{height:100%;background:linear-gradient(90deg,#00dc6e,#1dd1a1);border-radius:2px;transition:width .35s;width:0}
+#ov-t{font-family:‘IBM Plex Mono’,monospace;font-size:.78rem;color:var(–g);letter-spacing:.25em}
+#ov-s{color:var(–txt3);font-size:.6rem;text-align:center;line-height:2.2;max-width:340px}
+#ov-pb{width:280px;height:2px;background:var(–brd);border-radius:2px;overflow:hidden}
+#ov-pf{height:100%;background:linear-gradient(90deg,var(–g),var(–g2));border-radius:2px;transition:width .35s;width:0}
+
 /* ALERTS */
-.al{display:none;padding:.55rem .85rem;margin-bottom:.7rem;font-size:.66rem;line-height:1.7;border-radius:3px;gap:.45rem;align-items:flex-start}
+.al{display:none;padding:.5rem .9rem;margin-bottom:.7rem;font-size:.63rem;line-height:1.7;border-radius:5px;gap:.5rem;align-items:flex-start}
 .al.on{display:flex}
-.ale{background:rgba(255,55,55,.06);border:1px solid rgba(255,55,55,.28);color:#ff4444}
-.ali{background:rgba(0,220,110,.04);border:1px solid rgba(0,220,110,.18);color:#00dc6e}
-.alw{background:rgba(255,170,0,.06);border:1px solid rgba(255,170,0,.22);color:#ffaa00}
+.ale{background:rgba(255,82,82,.06);border:1px solid rgba(255,82,82,.25);color:var(–r)}
+.ali{background:rgba(0,230,118,.05);border:1px solid rgba(0,230,118,.2);color:var(–g)}
+
+/* MAIN LAYOUT */
+main{position:relative;z-index:1;max-width:1800px;margin:0 auto;padding:.85rem 1.1rem 5rem}
+.tv{display:none}.tv.on{display:block}
+
 /* CONTROLS */
-.ctrl{background:#08111a;border:1px solid #1a2a3a;border-top:2px solid #00773d;border-radius:0 0 5px 5px;padding:.85rem 1.1rem;margin-bottom:.85rem}
-.crow{display:flex;gap:.7rem;align-items:flex-end;flex-wrap:wrap}
-.fl{display:flex;flex-direction:column;gap:.25rem}
-.fl label{font-size:.5rem;text-transform:uppercase;letter-spacing:.18em;color:#2d4060}
-input,select,textarea{background:#0d1520;border:1px solid #1a2a3a;border-radius:3px;color:#c9d3de;font-family:'Space Mono',monospace;font-size:.78rem;padding:.38rem .65rem;outline:none;transition:border-color .12s}
-input:focus,select:focus,textarea:focus{border-color:#00dc6e}
-input::placeholder,textarea::placeholder{color:#1a2a3a}
-select option{background:#0d1520}
-textarea{resize:vertical;min-height:55px}
-.btn{padding:.42rem 1.1rem;border:none;border-radius:3px;font-family:'Space Mono',monospace;font-size:.7rem;font-weight:700;cursor:pointer;letter-spacing:.07em;text-transform:uppercase;transition:all .13s}
-.bg2{background:#00dc6e;color:#060a0e}.bg2:hover:not(:disabled){background:#00b858;transform:translateY(-1px)}
-.by2{background:#ffaa00;color:#060a0e}.by2:hover:not(:disabled){background:#cc8800;transform:translateY(-1px)}
-.br{background:#ff4444;color:#fff}.br:hover:not(:disabled){background:#cc2222}
-.bn2{background:#1a2a3a;color:#c9d3de;border:1px solid #253545}.bn2:hover:not(:disabled){background:#253545}
+.ctrl{background:var(–bg1);border:1px solid var(–brd);border-radius:8px;padding:.85rem 1.1rem;margin-bottom:.85rem}
+.crow{display:flex;gap:.65rem;align-items:flex-end;flex-wrap:wrap}
+.fl{display:flex;flex-direction:column;gap:.22rem}
+.fl label{font-family:‘IBM Plex Mono’,monospace;font-size:.48rem;text-transform:uppercase;letter-spacing:.16em;color:var(–txt3)}
+input,select,textarea{background:var(–bg2);border:1px solid var(–brd);border-radius:5px;color:var(–txt);font-family:‘IBM Plex Mono’,monospace;font-size:.72rem;padding:.35rem .65rem;outline:none;transition:border-color .12s}
+input:focus,select:focus{border-color:var(–g)}
+input::placeholder{color:var(–txt4)}
+select option{background:var(–bg2)}
+.btn{padding:.4rem 1rem;border:none;border-radius:5px;font-family:‘IBM Plex Mono’,monospace;font-size:.65rem;font-weight:700;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;transition:all .13s}
+.btn-g{background:var(–g);color:#000}.btn-g:hover:not(:disabled){background:#00c853;transform:translateY(-1px)}
+.btn-a{background:var(–a);color:#000}.btn-a:hover:not(:disabled){background:#ff9100;transform:translateY(-1px)}
+.btn-r{background:var(–r);color:#fff}.btn-r:hover:not(:disabled){background:#d50000}
+.btn-n{background:var(–bg3);color:var(–txt);border:1px solid var(–brd)}.btn-n:hover:not(:disabled){background:var(–brd)}
 .btn:disabled{opacity:.3;cursor:not-allowed;transform:none!important}
-/* SCANNER TABLE */
-.stbl{border:1px solid #1a2a3a;border-radius:4px;overflow:hidden}
-/* 13 columns */
-.shdr,.srow{display:grid;
-  grid-template-columns:2.2rem 2.2fr 1.3fr .9fr .9fr .9fr 1fr 1.5fr 1.2fr 1.1fr 1.1fr 1.1fr .9fr;
-  align-items:center;padding:.4rem .8rem;gap:.2rem}
-.shdr{background:#0d1520;font-size:.5rem;text-transform:uppercase;letter-spacing:.1em;color:#2d4060;border-bottom:1px solid #1a2a3a}
-.srow{background:#08111a;border-bottom:1px solid #0d1520;cursor:pointer;transition:background .1s}
-.srow:hover{background:#0d1520}.srow:last-child{border-bottom:none}
-.sr-rk{font-size:.58rem;color:#1a2a3a;font-weight:700;text-align:center}
-.sr-sym{font-family:'Bebas Neue',cursive;font-size:.82rem;letter-spacing:.06em}
-.sr-nm{font-size:.5rem;color:#2d4060}
-.sr-pr{font-size:.74rem;font-weight:700;text-align:right}
-.pct{font-size:.65rem;text-align:right;font-style:italic}
-.up{color:#00dc6e}.dn{color:#ff4444}.nt{color:#2d4060}
-.tpill{font-size:.52rem;padding:.06rem .28rem;border-radius:2px;background:#0d1520;border:1px solid #1a2a3a;color:#2d4060;text-align:center;white-space:nowrap}
-.tpill.auto{background:rgba(0,220,110,.07);border-color:#00773d;color:#00dc6e}
-.bw{display:flex;align-items:center;gap:.26rem}
-.bg3{height:5px;flex:1;background:#0d1520;border-radius:2px;overflow:hidden}
-.bf{height:100%;border-radius:2px;transition:width .5s}
-.bv{font-size:.58rem;width:28px;text-align:right;font-weight:700}
-/* Signal pills */
-.spl{font-size:.56rem;padding:.08rem .34rem;border-radius:2px;font-family:'Bebas Neue',cursive;letter-spacing:.07em;text-align:center;white-space:nowrap;display:inline-block}
-.LONG{background:rgba(0,220,110,.15);border:1px solid #00aa55;color:#00ff88}
-.GUCLU-LONG{background:rgba(0,220,110,.22);border:1px solid #00cc66;color:#00ff99;font-weight:700;box-shadow:0 0 6px rgba(0,220,110,.15)}
-.ZAYIF-LONG{background:rgba(0,220,110,.07);border:1px solid #005528;color:#00884a}
-.SHORT{background:rgba(255,68,68,.15);border:1px solid #bb2222;color:#ff6666}
-.GUCLU-SHORT{background:rgba(255,68,68,.22);border:1px solid #ff2222;color:#ff7777;font-weight:700;box-shadow:0 0 6px rgba(255,68,68,.15)}
-.ZAYIF-SHORT{background:rgba(255,68,68,.07);border:1px solid #441111;color:#992222}
-.NOTR{background:#0d1520;border:1px solid #1a2a3a;color:#2d4060}
-.rel{display:inline-flex;align-items:center;font-size:.58rem;padding:.07rem .35rem;border-radius:2px;font-weight:700}
-.rhi{background:rgba(0,220,110,.1);border:1px solid #00773d;color:#00dc6e}
-.rmd{background:rgba(77,171,247,.08);border:1px solid #2266aa;color:#4dabf7}
-.rlo{background:rgba(255,170,0,.08);border:1px solid #996600;color:#ffaa00}
-.rvl{background:rgba(255,68,68,.07);border:1px solid #662222;color:#ff4444}
-.scan-load{text-align:center;padding:2.5rem;color:#2d4060;font-size:.68rem;line-height:2.4}
-.scan-meta{display:flex;gap:.7rem;align-items:center;flex-wrap:wrap;margin-bottom:.6rem}
-.smi{font-size:.55rem;color:#2d4060;padding:.2rem .52rem;background:#08111a;border:1px solid #1a2a3a;border-radius:3px}
-.smi strong{color:#00dc6e}
-.pdot{width:7px;height:7px;border-radius:50%;background:#1a2a3a;display:inline-block;margin-right:.2rem}
-.pdot.on{background:#00dc6e;animation:pulse 2s ease infinite}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,220,110,.4)}50%{box-shadow:0 0 0 5px rgba(0,220,110,0)}}
-/* DETAIL */
-.vgrid{display:grid;grid-template-columns:1.7fr 1.5fr 1fr 1fr;gap:.75rem;margin-bottom:.75rem}
-.vc{background:#08111a;border:1px solid #1a2a3a;border-radius:5px;padding:.85rem .95rem;position:relative;overflow:hidden}
-.vt{position:absolute;top:0;left:0;right:0;height:2px}
-.vtg{background:#00dc6e}.vta{background:#ffaa00}.vtr{background:#ff4444}.vtb{background:#4dabf7}.vtc{background:#1dd1a1}
-.vlb{font-size:.49rem;text-transform:uppercase;letter-spacing:.16em;color:#2d4060;margin-bottom:.36rem}
-.vd{font-family:'Bebas Neue',cursive;font-size:1.5rem;letter-spacing:.1em;line-height:1}
-.cg{color:#00dc6e}.ca{color:#ffaa00}.cr{color:#ff4444}.cb{color:#4dabf7}
-.vs{font-size:.6rem;color:#2d4060;margin-top:.26rem;line-height:1.55}
-.sbars{display:flex;gap:.75rem;margin-top:.58rem}
-.sbar{display:flex;flex-direction:column;gap:.18rem;flex:1}
-.sblb{font-size:.5rem;color:#2d4060}
-.sbtr{height:4px;background:#0d1520;border-radius:2px;overflow:hidden}
-.sbfi{height:100%;border-radius:2px;transition:width .8s}
-.sfg{background:#00dc6e}.sfa{background:#ffaa00}.sfr{background:#ff4444}
-/* Price grid */
-.ptg{display:grid;grid-template-columns:1fr 1fr;gap:.3rem;margin-top:.48rem}
-.pti{background:#0d1520;border:1px solid #1a2a3a;border-radius:3px;padding:.44rem .55rem;text-align:center}
-.ptk{font-size:.47rem;color:#2d4060;text-transform:uppercase;letter-spacing:.07em}
-.ptv{font-size:.84rem;font-weight:700;margin-top:.12rem}
-.ptg2{color:#00dc6e}.ptr{color:#ff4444}.pta{color:#ffaa00}.ptb{color:#4dabf7}
-.rrnote{font-size:.54rem;color:#2d4060;margin-top:.38rem}
-/* Kelly */
-.kbox{background:#0d1520;border:1px solid #1a2a3a;border-radius:3px;padding:.55rem .7rem;margin-top:.4rem}
-.kboxt{font-family:'Bebas Neue',cursive;font-size:.66rem;letter-spacing:.14em;color:#ffaa00;margin-bottom:.32rem}
-.kr{display:flex;justify-content:space-between;padding:.16rem 0;border-bottom:1px solid #1a2a3a;font-size:.57rem}
-.kr:last-child{border-bottom:none}
-.kk{color:#2d4060}.kv{font-weight:600}
-/* Stat rows */
-.fcr{display:flex;justify-content:space-between;align-items:center;padding:.25rem .4rem;background:#0d1520;border-radius:2px;margin:.16rem 0}
-.fck{color:#2d4060;font-size:.57rem}
-.fcv{font-size:.62rem;font-weight:700}
-.fcv.up{color:#00dc6e}.fcv.dn{color:#ff4444}.fcv.nt{color:#2d4060}
-.gvr{display:flex;justify-content:space-between;padding:.22rem .4rem;background:#0d1520;border-radius:2px;margin:.16rem 0}
-.gk{color:#2d4060;font-size:.56rem}.gv{font-size:.6rem;font-weight:600}
-/* Dashboard */
-.dash{display:grid;grid-template-columns:2.1fr 1fr;gap:.75rem;margin-top:.75rem}
-.pn{background:#08111a;border:1px solid #1a2a3a;border-radius:5px;padding:.85rem .95rem}
-.pnhdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:.48rem;margin-bottom:.58rem;border-bottom:1px solid #0d1520}
-.pntl{font-family:'Bebas Neue',cursive;font-size:.82rem;letter-spacing:.14em;color:#c9d3de}
-.pnbg{font-size:.5rem;padding:.09rem .32rem;border-radius:2px;background:#0d1520;color:#2d4060}
-.pnbg.hi{color:#00dc6e;border:1px solid #00773d}
-.ctabs{display:flex;gap:.18rem}
-.ctab{padding:.14rem .44rem;border:1px solid #1a2a3a;border-radius:2px;color:#2d4060;cursor:pointer;font-family:'Space Mono',monospace;font-size:.54rem;transition:all .12s;background:none}
-.ctab.on{background:#0d1520;color:#00dc6e;border-color:#00773d}
-.cw{position:relative}
-.cw.h260{height:260px}.cw.h145{height:145px}.cw.h135{height:135px}
+
+/* ═════════════════ SCAN TABLE ════════════════ */
+.scan-wrap{border:1px solid var(–brd);border-radius:8px;overflow:hidden;background:var(–bg1)}
+.scan-hdr{display:grid;grid-template-columns:2.2rem 2.4fr 1.1fr .85fr .75fr .75fr .95fr 1.6fr 1.3fr 1fr 1fr 1fr .85fr;align-items:center;padding:.45rem .85rem;gap:.25rem;background:var(–bg2);border-bottom:1px solid var(–brd)}
+.scan-hdr > div{font-family:‘IBM Plex Mono’,monospace;font-size:.47rem;text-transform:uppercase;letter-spacing:.1em;color:var(–txt3)}
+.srow{display:grid;grid-template-columns:2.2rem 2.4fr 1.1fr .85fr .75fr .75fr .95fr 1.6fr 1.3fr 1fr 1fr 1fr .85fr;align-items:center;padding:.42rem .85rem;gap:.25rem;border-bottom:1px solid rgba(26,42,62,.6);cursor:pointer;transition:background .1s}
+.srow:hover{background:var(–bg2)}.srow:last-child{border-bottom:none}
+.sr-rk{font-family:‘IBM Plex Mono’,monospace;font-size:.55rem;color:var(–txt3);text-align:center;font-weight:700}
+.sr-sym{font-family:‘IBM Plex Mono’,monospace;font-size:.78rem;font-weight:700;letter-spacing:.03em}
+.sr-sub{font-size:.48rem;color:var(–txt3);margin-top:.1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr-price{font-family:‘IBM Plex Mono’,monospace;font-size:.7rem;font-weight:500;text-align:right}
+.sr-num{font-family:‘IBM Plex Mono’,monospace;font-size:.64rem;text-align:right}
+.up{color:var(–g)}.dn{color:var(–r)}.nt{color:var(–txt3)}
+.tpill{font-family:‘IBM Plex Mono’,monospace;font-size:.5rem;padding:.06rem .3rem;border-radius:3px;background:var(–bg3);border:1px solid var(–brd);color:var(–txt3);text-align:center}
+.tpill.hi{background:rgba(0,230,118,.08);border-color:rgba(0,230,118,.3);color:var(–g)}
+/* Reliability bar */
+.rel-wrap{display:flex;align-items:center;gap:.3rem}
+.rel-track{flex:1;height:4px;background:var(–bg3);border-radius:2px;overflow:hidden}
+.rel-fill{height:100%;border-radius:2px;transition:width .5s}
+.rel-num{font-family:‘IBM Plex Mono’,monospace;font-size:.58rem;font-weight:700;min-width:28px;text-align:right}
+/* Signal pill */
+.sig-pill{font-family:‘IBM Plex Mono’,monospace;font-size:.52rem;padding:.08rem .35rem;border-radius:4px;text-align:center;white-space:nowrap;display:inline-block;font-weight:700;letter-spacing:.04em}
+.GUCLU-LONG{background:rgba(0,230,118,.15);border:1px solid rgba(0,230,118,.4);color:#00ff88;box-shadow:0 0 8px rgba(0,230,118,.1)}
+.LONG{background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:var(–g)}
+.ZAYIF-LONG{background:rgba(0,230,118,.05);border:1px solid rgba(0,230,118,.15);color:#00a849}
+.GUCLU-SHORT{background:rgba(255,82,82,.15);border:1px solid rgba(255,82,82,.4);color:#ff8a80;box-shadow:0 0 8px rgba(255,82,82,.1)}
+.SHORT{background:rgba(255,82,82,.1);border:1px solid rgba(255,82,82,.3);color:var(–r)}
+.ZAYIF-SHORT{background:rgba(255,82,82,.05);border:1px solid rgba(255,82,82,.15);color:#c62828}
+.NOTR{background:var(–bg3);border:1px solid var(–brd);color:var(–txt3)}
+/* Scan meta */
+.scan-meta{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-bottom:.7rem}
+.sm-box{background:var(–bg1);border:1px solid var(–brd);border-radius:5px;padding:.22rem .55rem;font-family:‘IBM Plex Mono’,monospace;font-size:.52rem;color:var(–txt3)}
+.sm-box strong{color:var(–txt)}
+.pdot{width:6px;height:6px;border-radius:50%;background:var(–txt4);display:inline-block;margin-right:.3rem}
+.pdot.on{background:var(–g);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,230,118,.4)}50%{box-shadow:0 0 0 4px rgba(0,230,118,0)}}
+.scan-empty{text-align:center;padding:2.5rem;color:var(–txt3);font-size:.65rem;line-height:2.5}
+.scan-timing{font-family:‘IBM Plex Mono’,monospace;font-size:.52rem;text-align:right;white-space:nowrap}
+
+/* ═════════════════ DETAIL VIEW ════════════════ */
+.back-btn{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .7rem;background:var(–bg1);border:1px solid var(–brd);border-radius:5px;cursor:pointer;font-family:‘IBM Plex Mono’,monospace;font-size:.6rem;color:var(–txt3);transition:all .12s;margin-bottom:.8rem}
+.back-btn:hover{color:var(–g);border-color:rgba(0,230,118,.3)}
+
+/* TF Banner */
+.tf-banner{background:rgba(0,230,118,.04);border:1px solid rgba(0,230,118,.12);border-radius:6px;padding:.55rem .9rem;margin-bottom:.8rem;display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
+.tf-sel{font-family:‘IBM Plex Mono’,monospace;font-size:.75rem;font-weight:700;color:var(–g)}
+.tf-why{font-size:.58rem;color:var(–txt3)}
+.tf-tag{font-family:‘IBM Plex Mono’,monospace;font-size:.5rem;padding:.06rem .3rem;border-radius:3px}
+
+/* Hero summary row */
+.hero-row{display:grid;grid-template-columns:2fr 1.4fr 1.1fr 1fr;gap:.75rem;margin-bottom:.75rem}
+.hero-card{background:var(–bg1);border:1px solid var(–brd);border-radius:8px;padding:.9rem 1rem;position:relative;overflow:hidden}
+.hero-card::before{content:’’;position:absolute;top:0;left:0;right:0;height:2px}
+.hc-g::before{background:linear-gradient(90deg,var(–g),var(–g2))}
+.hc-r::before{background:linear-gradient(90deg,var(–r),#ff867c)}
+.hc-a::before{background:var(–a)}
+.hc-b::before{background:var(–b)}
+.hc-lbl{font-family:‘IBM Plex Mono’,monospace;font-size:.47rem;text-transform:uppercase;letter-spacing:.16em;color:var(–txt3);margin-bottom:.32rem}
+.hc-val{font-family:‘IBM Plex Mono’,monospace;font-size:1.4rem;font-weight:700;line-height:1.1}
+.hc-sub{font-size:.58rem;color:var(–txt3);margin-top:.28rem;line-height:1.6}
+.score-bars{display:flex;gap:.45rem;margin-top:.52rem}
+.sbar2{flex:1}
+.sbar2-lbl{font-family:‘IBM Plex Mono’,monospace;font-size:.48rem;color:var(–txt3);display:flex;justify-content:space-between;margin-bottom:.18rem}
+.sbar2-track{height:3px;background:var(–bg3);border-radius:2px;overflow:hidden}
+.sbar2-fill{height:100%;border-radius:2px;transition:width .7s}
+.level-grid{display:grid;grid-template-columns:1fr 1fr;gap:.3rem;margin-top:.42rem}
+.lv-box{background:var(–bg2);border:1px solid var(–brd);border-radius:4px;padding:.38rem .5rem;text-align:center}
+.lv-k{font-family:‘IBM Plex Mono’,monospace;font-size:.44rem;text-transform:uppercase;letter-spacing:.06em;color:var(–txt3);margin-bottom:.1rem}
+.lv-v{font-family:‘IBM Plex Mono’,monospace;font-size:.8rem;font-weight:700}
+.rr-note{font-family:‘IBM Plex Mono’,monospace;font-size:.52rem;color:var(–txt3);margin-top:.35rem;line-height:1.7;padding:.32rem .45rem;background:var(–bg2);border-radius:4px}
+.kelly-row{display:flex;justify-content:space-between;padding:.18rem .4rem;background:var(–bg2);border-radius:3px;margin:.14rem 0;font-family:‘IBM Plex Mono’,monospace;font-size:.56rem}
+.kelly-k{color:var(–txt3)}.kelly-v{font-weight:600}
+
+/* Timing card */
+.timing-card{background:var(–bg1);border:1px solid var(–brd);border-radius:8px;padding:.85rem 1rem;margin-bottom:.75rem}
+.t-box{background:var(–bg2);border:1px solid var(–brd);border-radius:5px;padding:.5rem .7rem}
+.t-lbl{font-family:‘IBM Plex Mono’,monospace;font-size:.47rem;text-transform:uppercase;letter-spacing:.1em;color:var(–txt3);margin-bottom:.12rem}
+.t-val{font-family:‘IBM Plex Mono’,monospace;font-size:.88rem;font-weight:700;line-height:1.2}
+.t-sub{font-size:.52rem;color:var(–txt3);margin-top:.1rem}
+
+/* MTF Grid */
+.mtf-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.55rem;margin-bottom:.75rem}
+.mtf-card{background:var(–bg1);border:1px solid var(–brd);border-radius:7px;overflow:hidden}
+.mtf-hdr{padding:.32rem .6rem;background:var(–bg2);border-bottom:1px solid var(–brd);font-family:‘IBM Plex Mono’,monospace;font-size:.5rem;color:var(–txt3);display:flex;justify-content:space-between;align-items:center}
+.mtf-canvas{display:block;width:100%;height:110px}
+
+/* Main chart panel */
+.chart-panel{background:var(–bg1);border:1px solid var(–brd);border-radius:8px;margin-bottom:.75rem;overflow:hidden}
+.chart-panel-hdr{padding:.55rem .9rem;background:var(–bg2);border-bottom:1px solid var(–brd);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem}
+.chart-panel-title{font-family:‘IBM Plex Mono’,monospace;font-size:.62rem;font-weight:700;color:var(–txt)}
+.chart-tabs{display:flex;gap:.2rem}
+.ctab{padding:.14rem .44rem;border:1px solid var(–brd);border-radius:3px;color:var(–txt3);cursor:pointer;font-family:‘IBM Plex Mono’,monospace;font-size:.52rem;transition:all .12s;background:none}
+.ctab.on{background:rgba(0,230,118,.08);color:var(–g);border-color:rgba(0,230,118,.3)}
+.chart-canvas-wrap{position:relative}
+.chart-canvas-wrap.h300{height:300px}
+.chart-canvas-wrap.h180{height:180px}
+.chart-canvas-wrap.h150{height:150px}
+.chart-canvas-wrap.h140{height:140px}
+canvas.full{display:block;width:100%;height:100%}
+
+/* Dashboard 2-col */
+.dash2{display:grid;grid-template-columns:1.8fr 1fr;gap:.75rem}
+.panel{background:var(–bg1);border:1px solid var(–brd);border-radius:8px;overflow:hidden}
+.panel-hdr{padding:.5rem .9rem;background:var(–bg2);border-bottom:1px solid var(–brd);display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-family:‘IBM Plex Mono’,monospace;font-size:.58rem;font-weight:700;color:var(–txt)}
+.panel-badge{font-family:‘IBM Plex Mono’,monospace;font-size:.47rem;padding:.06rem .28rem;border-radius:3px;background:var(–bg3);color:var(–txt3)}
+.panel-badge.hi{color:var(–g);background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.2)}
+.panel-body{padding:.75rem .9rem}
+
+/* Stats table */
+.kv-table{display:flex;flex-direction:column;gap:.18rem}
+.kv-row{display:flex;justify-content:space-between;align-items:center;padding:.22rem .38rem;background:var(–bg2);border-radius:3px}
+.kv-k{font-family:‘IBM Plex Mono’,monospace;font-size:.55rem;color:var(–txt3)}
+.kv-v{font-family:‘IBM Plex Mono’,monospace;font-size:.6rem;font-weight:600}
+.kv-g{color:var(–g)}.kv-r{color:var(–r)}.kv-a{color:var(–a)}.kv-b{color:var(–b)}.kv-c{color:var(–g2)}.kv-n{color:var(–txt3)}
+
+/* S/R */
+.sr-row{display:flex;justify-content:space-between;align-items:center;padding:.24rem .44rem;border-radius:3px;margin:.14rem 0;font-family:‘IBM Plex Mono’,monospace;font-size:.58rem}
+.sr-res{background:rgba(255,82,82,.05);border:1px solid rgba(255,82,82,.15)}
+.sr-sup{background:rgba(0,230,118,.05);border:1px solid rgba(0,230,118,.15)}
+.sr-cur{background:rgba(79,195,247,.05);border:1px solid rgba(79,195,247,.15)}
+.sr-type{font-size:.5rem;color:var(–txt3);min-width:55px}
+.sr-pct{font-size:.5rem;min-width:40px;text-align:right}
+
+/* Pivot */
+.pvgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:.2rem;padding:.7rem .9rem}
+.pvtile{text-align:center;padding:.32rem .25rem;border-radius:4px;background:var(–bg2);border:1px solid var(–brd)}
+.pvtile-k{font-family:‘IBM Plex Mono’,monospace;font-size:.46rem;color:var(–txt3);text-transform:uppercase}
+.pvtile-v{font-family:‘IBM Plex Mono’,monospace;font-size:.68rem;font-weight:700;margin-top:.1rem}
+
 /* ML Ring */
-.mlw{display:flex;flex-direction:column;align-items:center;padding:.45rem 0}
-.rg{position:relative;width:78px;height:78px}
+.ml-ring-wrap{display:flex;flex-direction:column;align-items:center;padding:.6rem 0 .4rem}
+.rg{position:relative;width:76px;height:76px}
 .rg svg{transform:rotate(-90deg)}
-.rc{fill:none;stroke:#0d1520;stroke-width:9}
-.rf{fill:none;stroke-width:9;stroke-linecap:round;transition:stroke-dashoffset .9s}
-.rp{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',cursive;font-size:1rem}
-.mld{font-family:'Bebas Neue',cursive;font-size:.85rem;letter-spacing:.12em;margin-top:.34rem;text-align:center}
-.mlc{font-size:.54rem;color:#2d4060;text-align:center;margin-top:.1rem}
-.mlbars{display:flex;flex-direction:column;gap:.23rem;margin-top:.46rem}
-.mlbar{display:grid;grid-template-columns:26px 1fr 30px;gap:.24rem;align-items:center}
-.mlbl{font-size:.54rem;color:#2d4060;text-align:right}
-.mlbt{height:4px;background:#0d1520;border-radius:2px;overflow:hidden}
-.mlbf{height:100%;border-radius:2px;background:linear-gradient(90deg,#00dc6e,#1dd1a1);transition:width .7s}
-.mlbv{font-size:.54rem;text-align:right;color:#c9d3de}
+.rc{fill:none;stroke:var(–bg3);stroke-width:8}
+.rf{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset .9s}
+.rp{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:‘IBM Plex Mono’,monospace;font-size:.95rem;font-weight:700}
+.ml-dir{font-family:‘IBM Plex Mono’,monospace;font-size:.78rem;font-weight:700;margin-top:.32rem;text-align:center}
+.ml-conf{font-family:‘IBM Plex Mono’,monospace;font-size:.5rem;color:var(–txt3);text-align:center;margin-top:.08rem}
+.ml-models{display:flex;flex-direction:column;gap:.2rem;margin-top:.45rem}
+.ml-bar-row{display:grid;grid-template-columns:24px 1fr 30px;gap:.22rem;align-items:center}
+.ml-bar-lbl{font-family:‘IBM Plex Mono’,monospace;font-size:.52rem;color:var(–txt3);text-align:right}
+.ml-bar-track{height:4px;background:var(–bg3);border-radius:2px;overflow:hidden}
+.ml-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(–g),var(–g2));transition:width .7s}
+.ml-bar-val{font-family:‘IBM Plex Mono’,monospace;font-size:.52rem;color:var(–txt)}
+
 /* Signal list */
-.sl{display:flex;flex-direction:column;gap:.33rem;max-height:420px;overflow-y:auto}
-.si{background:#0d1520;border:1px solid #1a2a3a;border-radius:4px;padding:.58rem .7rem;border-left:3px solid transparent}
-.si.L{border-left-color:#00dc6e}
-.si.S{border-left-color:#ff4444}
-.si.W{border-left-color:#ffaa00}
-.sih{display:flex;justify-content:space-between;align-items:center;margin-bottom:.18rem}
-.sit{font-size:.52rem;font-weight:700;padding:.07rem .28rem;border-radius:2px;letter-spacing:.08em;font-family:'Bebas Neue',cursive}
-.sit.L{background:rgba(0,220,110,.1);color:#00dc6e}
-.sit.S{background:rgba(255,68,68,.1);color:#ff4444}
-.sit.W{background:rgba(255,170,0,.1);color:#ffaa00}
-.sisrc{font-size:.51rem;background:#1a2a3a;padding:.06rem .26rem;border-radius:2px;color:#2d4060}
-.sitf{font-size:.5rem;color:#1dd1a1;font-style:italic}
-.sid{font-size:.62rem;color:#2d4060;line-height:1.6}
-/* STAT GRID */
-.sg{display:grid;grid-template-columns:1fr 1fr;gap:.26rem}
-.sr2{display:flex;justify-content:space-between;align-items:center;padding:.3rem .44rem;background:#0d1520;border-radius:2px}
-.sk{color:#2d4060;font-size:.57rem}
-.sv{font-size:.61rem;font-weight:600}
-.sv.g{color:#00dc6e}.sv.r{color:#ff4444}.sv.a{color:#ffaa00}.sv.b{color:#4dabf7}.sv.c{color:#1dd1a1}
-/* Support/Resistance */
-.sr-levels{display:flex;flex-direction:column;gap:.2rem;margin-top:.4rem}
-.srl{display:flex;justify-content:space-between;align-items:center;padding:.22rem .4rem;border-radius:2px;font-size:.58rem}
-.srl-r{background:rgba(255,68,68,.06);border:1px solid rgba(255,68,68,.2);color:#c9d3de}
-.srl-s{background:rgba(0,220,110,.06);border:1px solid rgba(0,220,110,.2);color:#c9d3de}
-.srl-n{background:#0d1520;border:1px solid #1a2a3a;color:#c9d3de}
-.srlk{color:#2d4060;font-size:.52rem}
-.srlv{font-weight:700}
-.srlpct{font-size:.52rem}
-/* SETTINGS */
-.set-sec{background:#08111a;border:1px solid #1a2a3a;border-radius:5px;padding:.95rem 1.1rem;margin-bottom:.85rem}
-.set-title{font-family:'Bebas Neue',cursive;font-size:.95rem;letter-spacing:.16em;color:#c9d3de;padding-bottom:.48rem;margin-bottom:.75rem;border-bottom:1px solid #0d1520}
-.set-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
-.set-row{display:flex;flex-direction:column;gap:.26rem;margin-bottom:.52rem}
-.set-row label{font-size:.5rem;text-transform:uppercase;letter-spacing:.16em;color:#2d4060}
-.set-row input,.set-row select,.set-row textarea{width:100%}
-.set-hint{font-size:.55rem;color:#1a2a3a;margin-top:.18rem;line-height:1.6}
+.sig-list{display:flex;flex-direction:column;gap:.3rem;max-height:380px;overflow-y:auto;padding:.75rem .9rem}
+.sig-item{background:var(–bg2);border:1px solid var(–brd);border-radius:5px;padding:.52rem .65rem;border-left:3px solid transparent}
+.sig-item.L{border-left-color:var(–g)}.sig-item.S{border-left-color:var(–r)}.sig-item.W{border-left-color:var(–a)}
+.sig-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.16rem}
+.sig-badge{font-family:‘IBM Plex Mono’,monospace;font-size:.5rem;font-weight:700;padding:.06rem .25rem;border-radius:3px;letter-spacing:.06em}
+.sig-badge.L{background:rgba(0,230,118,.1);color:var(–g)}.sig-badge.S{background:rgba(255,82,82,.1);color:var(–r)}.sig-badge.W{background:rgba(255,171,64,.08);color:var(–a)}
+.sig-src{font-family:‘IBM Plex Mono’,monospace;font-size:.5rem;background:var(–bg3);padding:.04rem .22rem;border-radius:3px;color:var(–txt3)}
+.sig-tf2{font-family:‘IBM Plex Mono’,monospace;font-size:.48rem;color:var(–g2);font-style:italic}
+.sig-desc{font-size:.58rem;color:var(–txt3);line-height:1.6}
+
+/* ARIMA/GARCH panels */
+.fc-row{display:flex;justify-content:space-between;align-items:center;padding:.22rem .38rem;background:var(–bg2);border-radius:3px;margin:.13rem 0}
+.fc-k{font-family:‘IBM Plex Mono’,monospace;font-size:.55rem;color:var(–txt3)}
+.fc-v{font-family:‘IBM Plex Mono’,monospace;font-size:.62rem;font-weight:700}
+.gv-row{display:flex;justify-content:space-between;padding:.2rem .38rem;background:var(–bg2);border-radius:3px;margin:.13rem 0;font-family:‘IBM Plex Mono’,monospace;font-size:.55rem}
+.gv-k{color:var(–txt3)}.gv-v{font-weight:600}
+
 /* History */
-.htbl{border:1px solid #1a2a3a;border-radius:4px;overflow:hidden;max-height:500px;overflow-y:auto}
-.hrow{display:grid;grid-template-columns:1.4fr .9fr .7fr 1.2fr .8fr 1fr 1fr 1fr;gap:.3rem;padding:.3rem .6rem;font-size:.58rem;border-bottom:1px solid #0d1520;align-items:center}
-.hrow:last-child{border-bottom:none}
-.hrow.hdr{background:#0d1520;font-size:.5rem;text-transform:uppercase;letter-spacing:.08em;color:#2d4060}
-.back-btn{display:inline-flex;align-items:center;gap:.36rem;padding:.3rem .7rem;background:#0d1520;border:1px solid #1a2a3a;border-radius:2px;cursor:pointer;font-size:.66rem;color:#2d4060;transition:all .12s;margin-bottom:.75rem}
-.back-btn:hover{color:#00dc6e;border-color:#00773d}
-.acnote{margin-top:1.1rem;padding:.68rem .9rem;background:#08111a;border:1px solid #1a2a3a;border-radius:4px;border-left:2px solid #1dd1a1;font-size:.54rem;color:#2d4060;line-height:2}
-.acnote strong{color:#1dd1a1}
-/* Pivot levels */
-.pivot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.25rem;margin-top:.35rem}
-.pvt{text-align:center;padding:.32rem .3rem;border-radius:3px;background:#0d1520;border:1px solid #1a2a3a}
-.pvt-k{font-size:.47rem;color:#2d4060;text-transform:uppercase;letter-spacing:.05em}
-.pvt-v{font-size:.7rem;font-weight:700;margin-top:.1rem}
-@media(max-width:1300px){.vgrid{grid-template-columns:1fr 1fr}.dash{grid-template-columns:1fr}.set-grid{grid-template-columns:1fr}}
-@media(max-width:750px){.vgrid{grid-template-columns:1fr}.shdr,.srow{grid-template-columns:1.8rem 2fr 1.1fr 1fr 1fr!important}}
-::-webkit-scrollbar{width:3px;height:3px}
-::-webkit-scrollbar-track{background:#08111a}
-::-webkit-scrollbar-thumb{background:#1a2a3a;border-radius:2px}
+.hist-tbl{border:1px solid var(–brd);border-radius:7px;overflow:hidden;max-height:480px;overflow-y:auto}
+.hist-row{display:grid;grid-template-columns:1.4fr .8fr .6fr 1.2fr .7fr .9fr .9fr .9fr;gap:.3rem;padding:.32rem .65rem;font-family:‘IBM Plex Mono’,monospace;font-size:.54rem;border-bottom:1px solid rgba(26,42,62,.5);align-items:center}
+.hist-row.hdr{background:var(–bg2);font-size:.47rem;text-transform:uppercase;letter-spacing:.08em;color:var(–txt3);position:sticky;top:0;border-bottom:1px solid var(–brd)}
+.hist-row:last-child{border-bottom:none}.hist-row:not(.hdr):hover{background:var(–bg2)}
+
+/* Settings */
+.set-sec{background:var(–bg1);border:1px solid var(–brd);border-radius:8px;padding:.9rem 1.1rem;margin-bottom:.85rem}
+.set-sec-title{font-family:‘IBM Plex Mono’,monospace;font-size:.8rem;letter-spacing:.1em;color:var(–txt);padding-bottom:.45rem;margin-bottom:.7rem;border-bottom:1px solid var(–brd)}
+.set-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.set-row{display:flex;flex-direction:column;gap:.22rem;margin-bottom:.5rem}
+.set-row label{font-family:‘IBM Plex Mono’,monospace;font-size:.47rem;text-transform:uppercase;letter-spacing:.16em;color:var(–txt3)}
+.set-row input,.set-row select{width:100%}
+.set-hint{font-size:.52rem;color:var(–txt4);margin-top:.14rem;line-height:1.6}
+
+/* Academic note */
+.ac-note{margin-top:1rem;padding:.6rem .85rem;background:var(–bg1);border:1px solid var(–brd);border-radius:6px;border-left:2px solid var(–g2);font-family:‘IBM Plex Mono’,monospace;font-size:.5rem;color:var(–txt3);line-height:2;opacity:.7}
+.ac-note strong{color:var(–g2)}
+
+/* ARIMA model tag */
+.arima-model-lbl{font-family:‘IBM Plex Mono’,monospace;font-size:.5rem;color:var(–txt3);margin-bottom:.28rem;padding:.18rem .4rem;background:var(–bg2);border-radius:3px;display:inline-block}
+
+/* Quick chips */
+.qchip{padding:.09rem .38rem;border:1px solid var(–brd);border-radius:3px;cursor:pointer;font-family:‘IBM Plex Mono’,monospace;font-size:.56rem;color:var(–txt3);transition:all .12s;display:inline-block}
+.qchip:hover{color:var(–g);border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.05)}
+
+@media(max-width:1300px){.hero-row{grid-template-columns:1fr 1fr}.dash2{grid-template-columns:1fr}.mtf-grid{grid-template-columns:repeat(2,1fr)}.set-grid{grid-template-columns:1fr}}
+@media(max-width:750px){.hero-row{grid-template-columns:1fr}.scan-hdr,.srow{grid-template-columns:2rem 2fr 1fr 1fr 1fr!important}.mtf-grid{grid-template-columns:repeat(2,1fr)}}
+::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-track{background:var(–bg1)}::-webkit-scrollbar-thumb{background:var(–brd2);border-radius:2px}
+
 </style>
 </head>
 <body>
+
 <header>
-  <div style="display:flex;align-items:baseline;gap:.5rem">
-    <span class="logo">QUANT<em>AI</em> <span style="font-size:1rem;color:#4dabf7">PRO</span></span>
-    <span class="logo-s">// Binance · Auto TF [Hurst+ADX] · ARIMA+GARCH+ML+Kelly+S/R · LONG/SHORT · Telegram</span>
+  <div style="display:flex;align-items:center;gap:.8rem">
+    <span class="logo">QUANT<em>AI</em><sup>PRO v6</sup></span>
   </div>
-  <div class="hinfo">
-    <span class="badge bg blink">CANLI</span>
-    <span class="badge by">BINANCE API</span>
-    <span class="badge bn" id="hb-tg">TG: —</span>
-    <span class="badge bn" id="hb-scan">TARAMA: —</span>
+  <div class="hbadge">
+    <span class="pill pill-g blink">● CANLI</span>
+    <span class="pill pill-b">BINANCE API</span>
+    <span class="pill pill-d" id="hb-tg">TG: —</span>
+    <span class="pill pill-d" id="hb-scan">—</span>
     <span id="hclock">—</span>
   </div>
 </header>
 <nav>
   <div class="ntab on" id="nt-scan" onclick="nav('scan')">⚡ TARAMA</div>
   <div class="ntab" id="nt-detail" onclick="nav('detail')">📊 DERİN ANALİZ</div>
-  <div class="ntab" id="nt-history" onclick="nav('history')">📋 GEÇMİŞ</div>
+  <div class="ntab" id="nt-history" onclick="nav('history')">📋 SİNYAL GEÇMİŞİ</div>
   <div class="ntab" id="nt-settings" onclick="nav('settings')">⚙ AYARLAR</div>
 </nav>
-
 <div id="ov">
   <div class="spin"></div>
   <div id="ov-t">YÜKLENİYOR</div>
@@ -254,7 +298,7 @@ textarea{resize:vertical;min-height:55px}
 </div>
 <main>
 
-<!-- SCANNER -->
+<!-- ═══════════════ SCANNER ═══════════════ -->
 
 <div id="view-scan" class="tv on">
   <div class="al ale" id="ea"><span>⚠</span><span id="em"></span></div>
@@ -262,11 +306,9 @@ textarea{resize:vertical;min-height:55px}
   <div class="ctrl">
     <div class="crow">
       <div class="fl"><label>Koin Havuzu</label>
-        <select id="sc-pool"><option value="top20">Top 20</option><option value="top50" selected>Top 50</option><option value="top100">Top 100</option><option value="custom">Özel Liste</option></select>
+        <select id="sc-pool"><option value="top20">Top 20</option><option value="top50" selected>Top 50</option><option value="top100">Top 100</option><option value="custom">Özel</option></select>
       </div>
-      <div class="fl"><label>Özel Koinler (virgülle)</label>
-        <input id="sc-custom" type="text" value="BTC,ETH,BNB,SOL,XRP,AVAX,LINK,DOT,ADA,MATIC" style="width:220px">
-      </div>
+      <div class="fl"><label>Özel Koinler</label><input id="sc-custom" type="text" value="BTC,ETH,BNB,SOL,XRP,AVAX,LINK,DOT,ADA" style="width:200px"></div>
       <div class="fl"><label>Filtre</label>
         <select id="sc-filt"><option value="all">Tümü</option><option value="long">Sadece LONG</option><option value="short">Sadece SHORT</option><option value="strong">Güçlü ≥70%</option><option value="vstrong">Çok Güçlü ≥80%</option></select>
       </div>
@@ -276,286 +318,284 @@ textarea{resize:vertical;min-height:55px}
       <div class="fl"><label>Oto-Yenile</label>
         <select id="sc-auto"><option value="0">Kapalı</option><option value="5">5 Dk</option><option value="15" selected>15 Dk</option><option value="30">30 Dk</option><option value="60">1 Saat</option></select>
       </div>
-      <div class="fl"><label>&nbsp;</label><button class="btn bg2" id="scanbtn" onclick="runScan()">▶ TARA</button></div>
-      <div class="fl"><label>&nbsp;</label><button class="btn by2" id="stopbtn" style="display:none" onclick="stopAuto()">⏹ DURDUR</button></div>
+      <div class="fl"><label>&nbsp;</label><button class="btn btn-g" id="scanbtn" onclick="runScan()">▶ TARA</button></div>
+      <div class="fl"><label>&nbsp;</label><button class="btn btn-r" id="stopbtn" style="display:none" onclick="stopAuto()">⏹ DURDUR</button></div>
     </div>
   </div>
   <div class="scan-meta">
-    <span class="smi"><span class="pdot" id="sdot"></span><strong id="sstat">Hazır</strong></span>
-    <span class="smi">Taranan: <strong id="scnt">0</strong></span>
-    <span class="smi">LONG: <strong id="slng" style="color:#00dc6e">0</strong></span>
-    <span class="smi">SHORT: <strong id="ssht" style="color:#ff4444">0</strong></span>
-    <span class="smi">Güçlü(≥80%): <strong id="sstg" style="color:#ffaa00">0</strong></span>
-    <span class="smi">Son: <strong id="slast">—</strong></span>
-    <span class="smi">Sonraki: <strong id="snxt">—</strong></span>
+    <span class="sm-box"><span class="pdot" id="sdot"></span><strong id="sstat">Hazır</strong></span>
+    <span class="sm-box">Taranan: <strong id="scnt">0</strong></span>
+    <span class="sm-box">LONG: <strong id="slng" style="color:var(--g)">0</strong></span>
+    <span class="sm-box">SHORT: <strong id="ssht" style="color:var(--r)">0</strong></span>
+    <span class="sm-box">≥80%: <strong id="sstg" style="color:var(--a)">0</strong></span>
+    <span class="sm-box">Son: <strong id="slast">—</strong></span>
+    <span class="sm-box">Sonraki: <strong id="snxt">—</strong></span>
   </div>
-  <div class="shdr">
-    <div>#</div><div>Sembol / Rejim</div>
-    <div style="text-align:right">Fiyat</div><div style="text-align:right">24s%</div>
-    <div style="text-align:right">RSI</div><div style="text-align:right">ADX</div>
-    <div style="text-align:center">Opt.TF</div>
-    <div style="text-align:right">Güvenilirlik</div>
-    <div style="text-align:center">SİNYAL</div>
-    <div style="text-align:right">Giriş</div><div style="text-align:right">Hedef</div>
-    <div style="text-align:right">Stop</div><div style="text-align:right">R/R</div>
+  <div class="scan-wrap">
+    <div class="scan-hdr">
+      <div>#</div><div>Sembol / Rejim</div>
+      <div style="text-align:right">Fiyat</div><div style="text-align:right">24s%</div>
+      <div style="text-align:right">RSI</div><div style="text-align:right">ADX</div>
+      <div style="text-align:center">TF</div>
+      <div>Güvenilirlik</div><div style="text-align:center">Sinyal</div>
+      <div style="text-align:right">Giriş</div><div style="text-align:right">TP</div>
+      <div style="text-align:right">SL</div><div style="text-align:right">R/R · ~TP</div>
+    </div>
+    <div id="scan-body">
+      <div class="scan-empty">▶ "TARA" butonuna basın<br><span style="font-size:.56rem;color:var(--txt4)">Hurst R/S + ADX → Optimal TF · ARIMA+GARCH+ML+Kelly → LONG/SHORT + Zamanlama</span></div>
+    </div>
   </div>
-  <div class="stbl"><div id="scan-body" class="scan-load">▶ "TARA" butonuna basın — Binance API'den otomatik veri çekilir<br><span style="font-size:.58rem;color:#1a2a3a">Hurst(R/S)+ADX → Optimal TF · ARIMA+GARCH+ML+Kelly+S/R → LONG / SHORT</span></div></div>
-  <div class="acnote"><strong>[T]</strong>=Tsay(2005) · <strong>[C]</strong>=Chan(2009) · <strong>[QS]</strong>=QuantStart · <strong>[G]</strong>=Greene(2003) · Hurst R/S[QS]+ADX[C3]→TF · ADF τ+Ljung-Box Q+ARCH-LM · ARIMA AR(p)+OLS+HC[T2,G11] · GARCH(1,1)+VaR99[T3] · Kelly f*=μ/σ²[C6] · ATR+S/R+Pivot[C7] · LR+LDA+RF+GB 14 features[QS11] · <strong>⚠ Akademik amaçlıdır</strong></div>
+  <div class="ac-note"><strong>[T]</strong>=Tsay · <strong>[C]</strong>=Chan · <strong>[QS]</strong>=QuantStart · <strong>[G]</strong>=Greene · ARIMA[T2]+GARCH[T3]+Kelly[C6]+ADX[C3]+S/R[C7]+Hurst[QS10]+ML-LR/LDA/RF/GB[QS11] · <strong>⚠ Akademik, yatırım tavsiyesi değildir</strong></div>
 </div>
 
-<!-- DETAIL -->
+<!-- ═══════════════ DETAIL ═══════════════ -->
 
 <div id="view-detail" class="tv">
   <div class="al ale" id="dea"><span>⚠</span><span id="dem"></span></div>
   <div class="ctrl">
     <div class="crow">
-      <div class="fl"><label>Sembol (USDT)</label>
-        <input id="d-sym" type="text" value="BTC" style="width:110px" onkeydown="if(event.key==='Enter')analyzeOne()">
-      </div>
+      <div class="fl"><label>Sembol (USDT)</label><input id="d-sym" type="text" value="BTC" style="width:100px" onkeydown="if(event.key==='Enter')analyzeOne()"></div>
       <div class="fl"><label>Timeframe</label>
         <select id="d-tf"><option value="auto" selected>🤖 Otomatik</option><option value="5m">5m</option><option value="15m">15m</option><option value="1h">1h</option><option value="4h">4h</option><option value="1d">1d</option></select>
       </div>
-      <div class="fl"><label>Bar Sayısı</label>
-        <select id="d-bars"><option value="100">100</option><option value="200" selected>200</option><option value="300">300</option><option value="500">500</option></select>
-      </div>
-      <div class="fl"><label>&nbsp;</label><button class="btn bg2" id="gobtn" onclick="analyzeOne()">▶ ANALİZ ET</button></div>
+      <div class="fl"><label>&nbsp;</label><button class="btn btn-g" id="gobtn" onclick="analyzeOne()">▶ ANALİZ ET</button></div>
     </div>
-    <div style="display:flex;flex-wrap:wrap;gap:.22rem;margin-top:.55rem;align-items:center">
-      <span style="font-size:.5rem;color:#2d4060;text-transform:uppercase;letter-spacing:.12em;margin-right:.2rem">Hızlı:</span>
+    <div style="display:flex;gap:.22rem;flex-wrap:wrap;margin-top:.5rem;align-items:center">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:.47rem;color:var(--txt3);text-transform:uppercase;letter-spacing:.12em;margin-right:.1rem">Hızlı:</span>
       <span id="quick-chips"></span>
     </div>
   </div>
   <div class="back-btn" id="back-btn" style="display:none" onclick="nav('scan')">← Taramaya Dön</div>
   <div id="d-content" style="display:none">
-    <div style="background:rgba(0,220,110,.04);border:1px solid rgba(0,220,110,.12);border-radius:4px;padding:.55rem .88rem;margin-bottom:.7rem;display:flex;align-items:center;gap:.8rem;font-size:.6rem;flex-wrap:wrap">
-      <span>🤖</span>
-      <div><span style="color:#00dc6e;font-weight:700;font-family:'Bebas Neue',cursive;font-size:.76rem" id="d-tf-sel">—</span><span style="color:#2d4060;margin-left:.38rem" id="d-tf-why">—</span></div>
-      <span style="color:#2d4060" id="d-regime">—</span>
-      <span style="color:#4dabf7" id="d-hurst">—</span>
-      <span style="color:#ffaa00" id="d-adx">—</span>
+    <!-- TF Banner -->
+    <div class="tf-banner">
+      <span style="font-size:1.2rem">🤖</span>
+      <span class="tf-sel" id="d-tf-sel">—</span>
+      <span class="tf-why" id="d-tf-why">—</span>
+      <span class="tf-tag" style="background:rgba(79,195,247,.08);border:1px solid rgba(79,195,247,.2);color:var(--b)" id="d-hurst">—</span>
+      <span class="tf-tag" style="background:rgba(255,171,64,.08);border:1px solid rgba(255,171,64,.2);color:var(--a)" id="d-adx">—</span>
+      <span class="tf-tag" style="background:rgba(206,147,216,.08);border:1px solid rgba(206,147,216,.2);color:var(--p)" id="d-regime">—</span>
     </div>
-    <div class="vgrid">
-      <div class="vc" id="vc0">
-        <div class="vt vtg" id="vc0-bar"></div>
-        <div class="vlb">📊 GENEL TAVSİYE · LONG / SHORT</div>
-        <div class="vd cg" id="vdict">—</div>
-        <div class="vs" id="vsub">—</div>
-        <div style="margin-top:.38rem;display:flex;gap:.4rem;align-items:center;flex-wrap:wrap">
-          <span class="rel rhi" id="d-rel">—</span>
-          <span id="d-regime-chip" style="font-size:.52rem;padding:.07rem .3rem;border-radius:2px;background:#0d1520;border:1px solid #1a2a3a"></span>
+    <!-- Hero Row -->
+    <div class="hero-row">
+      <!-- Verdict -->
+      <div class="hero-card hc-g" id="hc-verdict">
+        <div class="hc-lbl">📊 Genel Tavsiye</div>
+        <div class="hc-val" id="vdict" style="color:var(--g)">—</div>
+        <div class="hc-sub" id="vsub">—</div>
+        <div style="margin-top:.35rem;display:flex;gap:.35rem;align-items:center;flex-wrap:wrap">
+          <span id="d-rel" style="font-family:'IBM Plex Mono',monospace;font-size:.55rem;padding:.07rem .32rem;border-radius:3px">—</span>
+          <span id="d-regime-chip" style="font-family:'IBM Plex Mono',monospace;font-size:.5rem;padding:.07rem .3rem;border-radius:3px;background:var(--bg2);border:1px solid var(--brd)"></span>
         </div>
-        <div class="sbars">
-          <div class="sbar"><div class="sblb">LONG <span id="sb-bv">0</span></div><div class="sbtr"><div class="sbfi sfg" id="sb-b" style="width:0%"></div></div></div>
-          <div class="sbar"><div class="sblb">BEKLE <span id="sb-hv">0</span></div><div class="sbtr"><div class="sbfi sfa" id="sb-h" style="width:0%"></div></div></div>
-          <div class="sbar"><div class="sblb">SHORT <span id="sb-sv">0</span></div><div class="sbtr"><div class="sbfi sfr" id="sb-s" style="width:0%"></div></div></div>
-        </div>
-      </div>
-      <div class="vc">
-        <div class="vt vtb"></div>
-        <div class="vlb">🎯 GİRİŞ / ÇIKIŞ SEVİYELERİ [Chan Ch7]</div>
-        <div class="ptg">
-          <div class="pti"><div class="ptk">📍 Giriş</div><div class="ptv ptg2" id="pt-ep">—</div></div>
-          <div class="pti"><div class="ptk">✅ Take Profit</div><div class="ptv pta" id="pt-tp">—</div></div>
-          <div class="pti"><div class="ptk">🛑 Stop-Loss</div><div class="ptv ptr" id="pt-sl">—</div></div>
-          <div class="pti"><div class="ptk">💰 Anlık Fiyat</div><div class="ptv ptb" id="pt-now">—</div></div>
-        </div>
-        <div class="rrnote" id="pt-rr">—</div>
-        <div class="kbox">
-          <div class="kboxt">⚡ KELLY KRİTERİ [Chan Ch6 s.97]</div>
-          <div class="kr"><span class="kk">f* = μ/σ²</span><span class="kv" id="kb-f">—</span></div>
-          <div class="kr"><span class="kk">½-Kelly (önerilen)</span><span class="kv ca" id="kb-h">—</span></div>
-          <div class="kr"><span class="kk">$10,000 pozisyon</span><span class="kv" style="color:#00dc6e" id="kb-p">—</span></div>
-          <div class="kr"><span class="kk">Yıllık μ (drift)</span><span class="kv" id="kb-mu">—</span></div>
+        <div class="score-bars">
+          <div class="sbar2"><div class="sbar2-lbl"><span>LONG</span><span id="sb-bv">0</span></div><div class="sbar2-track"><div class="sbar2-fill" id="sb-b" style="width:0%;background:var(--g)"></div></div></div>
+          <div class="sbar2"><div class="sbar2-lbl"><span>BEKLE</span><span id="sb-hv">0</span></div><div class="sbar2-track"><div class="sbar2-fill" id="sb-h" style="width:0%;background:var(--a)"></div></div></div>
+          <div class="sbar2"><div class="sbar2-lbl"><span>SHORT</span><span id="sb-sv">0</span></div><div class="sbar2-track"><div class="sbar2-fill" id="sb-s" style="width:0%;background:var(--r)"></div></div></div>
         </div>
       </div>
-      <div class="vc">
-        <div class="vt vta"></div>
-        <div class="vlb">📅 ARIMA ÖNGÖRÜsü [Tsay Ch2.4]</div>
-        <div style="font-size:.54rem;color:#2d4060;margin-bottom:.32rem" id="d-arima-model">—</div>
-        <div class="fcr"><span class="fck">5 Bar (Kısa)</span><span class="fcv" id="fc5">—</span></div>
-        <div class="fcr"><span class="fck">10 Bar (Orta)</span><span class="fcv" id="fc10">—</span></div>
-        <div class="fcr"><span class="fck">21 Bar (Uzun)</span><span class="fcv" id="fc21">—</span></div>
-        <div class="fcr" style="background:none;border-top:1px solid #0d1520;margin-top:.18rem;padding-top:.22rem"><span class="fck">%95 GA (21b)</span><span class="fcv nt" id="fc21-ci">—</span></div>
-        <div class="fcr" style="background:none"><span class="fck">ADF τ</span><span class="fcv" id="d-adf">—</span></div>
-        <div class="fcr" style="background:none"><span class="fck">Ljung-Box Q(10)</span><span class="fcv" id="d-lb">—</span></div>
+      <!-- Levels + Kelly -->
+      <div class="hero-card hc-b">
+        <div class="hc-lbl">🎯 Giriş / Çıkış Seviyeleri [Chan Ch7]</div>
+        <div class="level-grid">
+          <div class="lv-box"><div class="lv-k">📍 Giriş (Limit)</div><div class="lv-v" style="color:var(--a)" id="pt-ep">—</div></div>
+          <div class="lv-box"><div class="lv-k">✅ Take Profit</div><div class="lv-v" style="color:var(--g)" id="pt-tp">—</div></div>
+          <div class="lv-box"><div class="lv-k">🛑 Stop-Loss</div><div class="lv-v" style="color:var(--r)" id="pt-sl">—</div></div>
+          <div class="lv-box"><div class="lv-k">💰 Anlık Fiyat</div><div class="lv-v" style="color:var(--b)" id="pt-now">—</div></div>
+        </div>
+        <div class="rr-note" id="pt-rr">—</div>
+        <div style="margin-top:.4rem">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:.5rem;letter-spacing:.1em;color:var(--a);margin-bottom:.22rem;text-transform:uppercase">⚡ Kelly Kriteri [Chan Ch6]</div>
+          <div class="kelly-row"><span class="kelly-k">½-Kelly (önerilen)</span><span class="kelly-v" style="color:var(--a)" id="kb-h">—</span></div>
+          <div class="kelly-row"><span class="kelly-k">$10.000 pozisyon</span><span class="kelly-v" style="color:var(--g)" id="kb-p">—</span></div>
+          <div class="kelly-row"><span class="kelly-k">Yıllık μ (drift)</span><span class="kelly-v" id="kb-mu">—</span></div>
+        </div>
       </div>
-      <div class="vc">
-        <div class="vt vta" id="g-bar"></div>
-        <div class="vlb">⚡ GARCH(1,1) [Tsay Ch3.5]</div>
-        <div class="vd ca" id="g-curr">—</div>
-        <div class="vs" id="g-lbl">—</div>
-        <div style="margin-top:.44rem">
-          <div class="gvr"><span class="gk">LV = ω/(1-α-β)</span><span class="gv" id="g-lv">—</span></div>
-          <div class="gvr"><span class="gk">σt / LV Oranı</span><span class="gv ca" id="g-rat">—</span></div>
-          <div class="gvr"><span class="gk">α+β Kalıcılık</span><span class="gv" id="g-ps">—</span></div>
-          <div class="gvr"><span class="gk">VaR %99 (GARCH)</span><span class="gv cr" id="g-var">—</span></div>
-          <div class="gvr"><span class="gk">α (ARCH şok)</span><span class="gv" id="g-a">—</span></div>
-          <div class="gvr"><span class="gk">β (GARCH sön.)</span><span class="gv" id="g-b">—</span></div>
+      <!-- ARIMA card -->
+      <div class="hero-card hc-a">
+        <div class="hc-lbl">📅 ARIMA Öngörüsü [Tsay Ch2.4]</div>
+        <div class="arima-model-lbl" id="d-arima-model">—</div>
+        <div class="fc-row"><span class="fc-k">5 Bar (Kısa)</span><span class="fc-v" id="fc5">—</span></div>
+        <div class="fc-row"><span class="fc-k">10 Bar (Orta)</span><span class="fc-v" id="fc10">—</span></div>
+        <div class="fc-row"><span class="fc-k">21 Bar (Uzun)</span><span class="fc-v" id="fc21">—</span></div>
+        <div class="fc-row" style="background:none;border-top:1px solid var(--brd);margin-top:.1rem"><span class="fc-k">%95 GA (21 bar)</span><span class="fc-v kv-n" id="fc21-ci">—</span></div>
+        <div class="fc-row" style="background:none"><span class="fc-k">ADF τ (log getiri)</span><span class="fc-v" id="d-adf">—</span></div>
+        <div class="fc-row" style="background:none"><span class="fc-k">Ljung-Box Q(10)</span><span class="fc-v" id="d-lb">—</span></div>
+      </div>
+      <!-- GARCH card -->
+      <div class="hero-card hc-a" id="hc-garch">
+        <div class="hc-lbl">⚡ GARCH(1,1) Volatilite [Tsay Ch3.5]</div>
+        <div class="hc-val" id="g-curr" style="color:var(--a)">—</div>
+        <div class="hc-sub" id="g-lbl">—</div>
+        <div style="margin-top:.4rem">
+          <div class="gv-row"><span class="gv-k">Uzun-Vade (LV)</span><span class="gv-v" id="g-lv">—</span></div>
+          <div class="gv-row"><span class="gv-k">σt / LV Oranı</span><span class="gv-v" style="color:var(--a)" id="g-rat">—</span></div>
+          <div class="gv-row"><span class="gv-k">α+β Kalıcılık</span><span class="gv-v" id="g-ps">—</span></div>
+          <div class="gv-row"><span class="gv-k">VaR %99/gün</span><span class="gv-v" style="color:var(--r)" id="g-var">—</span></div>
         </div>
       </div>
     </div>
+    <!-- Timing Card -->
+    <div class="timing-card">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:.6rem;font-weight:700;color:var(--txt);margin-bottom:.55rem;letter-spacing:.06em">⏱ ZAMANLama TAHMİNİ — Ne Zaman Gerçekleşir?</div>
+      <div id="timing-card"></div>
+    </div>
+    <!-- MTF Grid -->
+    <div style="margin-bottom:.55rem;font-family:'IBM Plex Mono',monospace;font-size:.55rem;color:var(--txt3);text-transform:uppercase;letter-spacing:.12em">📊 Çoklu Timeframe Analizi — Grafik Görünümleri</div>
+    <div class="mtf-grid">
+      <div class="mtf-card"><div class="mtf-hdr"><span>15 DAKİKA (Giriş TF)</span><span id="mtf-lbl-15m" style="color:var(--txt3)">—</span></div><canvas id="mtf-15m" class="mtf-canvas"></canvas></div>
+      <div class="mtf-card"><div class="mtf-hdr"><span>1 SAAT</span><span id="mtf-lbl-1h" style="color:var(--txt3)">—</span></div><canvas id="mtf-1h" class="mtf-canvas"></canvas></div>
+      <div class="mtf-card"><div class="mtf-hdr"><span>4 SAAT (Ana TF)</span><span id="mtf-lbl-4h" style="color:var(--txt3)">—</span></div><canvas id="mtf-4h" class="mtf-canvas"></canvas></div>
+      <div class="mtf-card"><div class="mtf-hdr"><span>1 GÜN (Trend)</span><span id="mtf-lbl-1d" style="color:var(--txt3)">—</span></div><canvas id="mtf-1d" class="mtf-canvas"></canvas></div>
+    </div>
+    <!-- Main Chart -->
+    <div class="chart-panel">
+      <div class="chart-panel-hdr">
+        <span class="chart-panel-title" id="chart-title">Fiyat Grafikleri</span>
+        <div class="chart-tabs">
+          <button class="ctab on" onclick="setChTab('candle',this)">Mum Grafik</button>
+          <button class="ctab" onclick="setChTab('arima',this)">ARIMA Tahmin</button>
+          <button class="ctab" onclick="setChTab('vol',this)">GARCH Vol</button>
+          <button class="ctab" onclick="setChTab('adx',this)">ADX/DI</button>
+        </div>
+      </div>
+      <div class="chart-canvas-wrap h300" id="main-chart-wrap">
+        <canvas id="c-candle" class="full" style="display:block"></canvas>
+        <canvas id="c-arima-fc" class="full" style="display:none"></canvas>
+        <canvas id="c-vol-chart" class="full" style="display:none"></canvas>
+        <canvas id="c-adx-chart" class="full" style="display:none"></canvas>
+      </div>
+    </div>
+    <!-- MACD + RSI -->
+    <div class="chart-panel">
+      <div class="chart-panel-hdr"><span class="chart-panel-title">MACD (12·26·9) — Histogram + Sinyal</span><span class="panel-badge" id="macd-badge">—</span></div>
+      <div class="chart-canvas-wrap h150"><canvas id="c-macd" class="full"></canvas></div>
+    </div>
+    <div class="chart-panel">
+      <div class="chart-panel-hdr"><span class="chart-panel-title">RSI (14) — Wilder · Diverjans Tespiti</span><span class="panel-badge" id="rsi-badge">—</span></div>
+      <div class="chart-canvas-wrap h140"><canvas id="c-rsi" class="full"></canvas></div>
+    </div>
+    <!-- S/R + Pivots -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem">
-      <div class="pn">
-        <div class="pnhdr"><span class="pntl">📐 DESTEK / DİRENÇ [Chan Ch7]</span><span class="pnbg" id="sr-cnt">—</span></div>
-        <div id="sr-levels"></div>
+      <div class="panel">
+        <div class="panel-hdr"><span class="panel-title">📐 Destek / Direnç [Chan Ch7]</span><span class="panel-badge" id="sr-cnt">—</span></div>
+        <div class="panel-body" id="sr-levels"></div>
       </div>
-      <div class="pn">
-        <div class="pnhdr"><span class="pntl">📌 PIVOT NOKTALARI (Klasik)</span></div>
+      <div class="panel">
+        <div class="panel-hdr"><span class="panel-title">📌 Pivot Noktaları (Klasik)</span></div>
         <div class="pvgrid" id="pivot-grid"></div>
       </div>
     </div>
-    <div class="dash">
+    <!-- Dashboard Row -->
+    <div class="dash2">
       <div style="display:flex;flex-direction:column;gap:.75rem">
-        <div class="pn">
-          <div class="pnhdr">
-            <span class="pntl" id="chart-title">FİYAT + BB + SMA</span>
-            <div class="ctabs">
-              <button class="ctab on" onclick="setChTab('price',this)">Fiyat+BB</button>
-              <button class="ctab" onclick="setChTab('arima',this)">ARIMA</button>
-              <button class="ctab" onclick="setChTab('vol',this)">GARCH Vol</button>
-              <button class="ctab" onclick="setChTab('adx',this)">ADX/DI</button>
-            </div>
-          </div>
-          <div class="cw h260"><canvas id="c-price"></canvas></div>
+        <div class="panel">
+          <div class="panel-hdr"><span class="panel-title">İstatistiksel Testler</span></div>
+          <div class="panel-body"><div class="kv-table" id="sg-stat"></div></div>
         </div>
-        <div class="pn">
-          <div class="pnhdr"><span class="pntl">MACD (12·26·9)</span><span class="pnbg" id="macd-badge">—</span></div>
-          <div class="cw h145"><canvas id="c-macd"></canvas></div>
-        </div>
-        <div class="pn">
-          <div class="pnhdr"><span class="pntl">RSI (14) — Wilder · Divergence</span><span class="pnbg" id="rsi-badge">—</span></div>
-          <div class="cw h135"><canvas id="c-rsi"></canvas></div>
+        <div class="panel">
+          <div class="panel-hdr"><span class="panel-title">Performans Metrikleri [QS Ch10]</span></div>
+          <div class="panel-body"><div class="kv-table" id="sg-perf"></div></div>
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:.75rem">
-        <div class="pn">
-          <div class="pnhdr"><span class="pntl">ML ENSEMBLE [QS Ch11]</span><span class="pnbg hi" id="ml-best">—</span></div>
-          <div class="mlw">
-            <div class="rg">
-              <svg viewBox="0 0 100 100" width="78" height="78">
-                <circle class="rc" cx="50" cy="50" r="40"/>
-                <circle class="rf" id="ml-rf" cx="50" cy="50" r="40" stroke-dasharray="251.33" stroke-dashoffset="125.66" stroke="#00dc6e"/>
-              </svg>
-              <div class="rp" id="ml-pct" style="color:#00dc6e">50%</div>
+        <div class="panel">
+          <div class="panel-hdr"><span class="panel-title">ML Ensemble [QS Ch11]</span><span class="panel-badge hi" id="ml-best">—</span></div>
+          <div class="panel-body">
+            <div class="ml-ring-wrap">
+              <div class="rg">
+                <svg viewBox="0 0 100 100" width="76" height="76">
+                  <circle class="rc" cx="50" cy="50" r="40"/>
+                  <circle class="rf" id="ml-rf" cx="50" cy="50" r="40" stroke-dasharray="251.33" stroke-dashoffset="125.66" stroke="var(--g)"/>
+                </svg>
+                <div class="rp" id="ml-pct">50%</div>
+              </div>
+              <div class="ml-dir" id="ml-dir">—</div>
+              <div class="ml-conf" id="ml-conf">—</div>
             </div>
-            <div class="mld" id="ml-dir">—</div>
-            <div class="mlc" id="ml-conf">—</div>
+            <div class="ml-models" id="ml-bars"></div>
           </div>
-          <div class="mlbars" id="ml-bars"></div>
         </div>
-        <div class="pn">
-          <div class="pnhdr"><span class="pntl">İSTATİSTİKSEL TESTLER</span></div>
-          <div class="sg" id="sg-stat"></div>
-        </div>
-        <div class="pn">
-          <div class="pnhdr"><span class="pntl">PERFORMANS [QS Ch10]</span></div>
-          <div class="sg" id="sg-perf"></div>
-        </div>
-        <div class="pn">
-          <div class="pnhdr"><span class="pntl">SİNYAL LİSTESİ</span><span class="pnbg" id="sig-cnt">—</span></div>
-          <div class="sl2" id="siglist"></div>
+        <div class="panel">
+          <div class="panel-hdr"><span class="panel-title">Sinyal Listesi</span><span class="panel-badge" id="sig-cnt">—</span></div>
+          <div class="sig-list" id="siglist"></div>
         </div>
       </div>
     </div>
-    <div class="acnote">
-      <strong>[T Ch2.4]</strong> ARIMA r_t=ln(P_t/P_{t-1}), AIC AR(p), Ljung-Box WN test ·
-      <strong>[T Ch3.5]</strong> GARCH(1,1) σ²_t=ω+α·a²_{t-1}+β·σ²_{t-1}, LV=ω/(1-α-β) ·
-      <strong>[T Ch3.7]</strong> GARCH-VaR99=-2.326·σ_t ·
-      <strong>[C Ch6]</strong> Kelly f*=μ/σ², ½-Kelly ·
-      <strong>[C Ch7]</strong> ATR(14), S/R swing, Pivot · <strong>[QS Ch10.2]</strong> Hurst R/S → TF ·
-      <strong>[QS Ch11]</strong> LR+LDA+RF+GB, 14 features · <strong>[G Ch11]</strong> OLS HC0 White SE ·
-      <strong>⚠ Akademik — Yatırım tavsiyesi değildir</strong>
-    </div>
+    <div class="ac-note"><strong>[T Ch2.4]</strong> ARIMA AIC AR(p) · <strong>[T Ch3.5]</strong> GARCH(1,1) MLE · <strong>[T Ch3.7]</strong> GARCH-VaR99 · <strong>[C Ch6]</strong> Kelly f*=μ/σ² · <strong>[C Ch7]</strong> ATR+S/R · <strong>[QS10]</strong> Hurst R/S · <strong>[QS11]</strong> LR+LDA+RF+GB · <strong>[G11]</strong> HC0 SE · <strong>⚠ Akademik</strong></div>
   </div>
 </div>
 
-<!-- HISTORY -->
+<!-- ═══════════════ HISTORY ═══════════════ -->
 
 <div id="view-history" class="tv">
   <div class="set-sec">
-    <div class="set-title">📋 SİNYAL GEÇMİŞİ</div>
-    <div style="display:flex;gap:.55rem;margin-bottom:.75rem;flex-wrap:wrap;align-items:center">
-      <button class="btn br" onclick="clearHist()">🗑 Temizle</button>
-      <button class="btn by2" onclick="exportHist()">📤 CSV İndir</button>
-      <span style="font-size:.6rem;color:#2d4060">Toplam: <strong id="hist-total" style="color:#00dc6e">0</strong> sinyal</span>
+    <div class="set-sec-title">📋 Sinyal Geçmişi</div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.75rem">
+      <button class="btn btn-r" onclick="clearHist()">🗑 Temizle</button>
+      <button class="btn btn-a" onclick="exportHist()">📤 CSV İndir</button>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:var(--txt3)">Toplam: <strong id="hist-total" style="color:var(--g)">0</strong> sinyal</span>
     </div>
-    <div class="htbl" id="hist-container">
-      <div style="color:#2d4060;font-size:.66rem;padding:1rem">Henüz sinyal yok. Tarama başlatın.</div>
+    <div class="hist-tbl" id="hist-container">
+      <div style="color:var(--txt3);font-size:.65rem;padding:1rem">Henüz sinyal yok. Tarama başlatın.</div>
     </div>
   </div>
 </div>
 
-<!-- SETTINGS -->
+<!-- ═══════════════ SETTINGS ═══════════════ -->
 
 <div id="view-settings" class="tv">
   <div class="al ali" id="sa"><span>✓</span><span id="sm"></span></div>
   <div class="set-sec">
-    <div class="set-title">📱 TELEGRAM BİLDİRİMLERİ</div>
+    <div class="set-sec-title">📱 Telegram Bildirimleri</div>
     <div class="set-grid">
       <div>
-        <div class="set-row"><label>Bot Token (BotFather)</label>
-          <input id="tg-token" type="password" placeholder="123456789:ABCdef…">
-          <div class="set-hint">@BotFather → /newbot ile token alın</div>
+        <div class="set-row"><label>Bot Token (BotFather)</label><input id="tg-token" type="password" placeholder="123456789:ABCdef…"><div class="set-hint">@BotFather → /newbot</div></div>
+        <div class="set-row"><label>Chat ID</label><input id="tg-chat" type="text" placeholder="-100123456789"></div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <button class="btn btn-a" onclick="testTelegram()">📨 Test Gönder</button>
+          <button class="btn btn-g" onclick="saveTgCfg()">💾 Kaydet</button>
         </div>
-        <div class="set-row"><label>Chat ID</label>
-          <input id="tg-chat" type="text" placeholder="-100123456789">
-          <div class="set-hint">@userinfobot'a mesaj atın · Grup: başına - ekleyin</div>
-        </div>
-        <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.3rem">
-          <button class="btn by2" onclick="testTelegram()">📨 Test Mesajı</button>
-          <button class="btn bg2" onclick="saveTgCfg()">💾 Kaydet</button>
-        </div>
-        <div id="tg-result" style="display:none;margin-top:.45rem;font-size:.63rem;padding:.38rem .55rem;border-radius:3px"></div>
+        <div id="tg-result" style="display:none;margin-top:.45rem;font-size:.63rem;padding:.38rem .55rem;border-radius:4px"></div>
       </div>
       <div>
         <div class="set-row"><label>Bildirim Koşulları</label>
-          <div style="display:flex;flex-direction:column;gap:.32rem;margin-top:.2rem">
-            <label style="display:flex;align-items:center;gap:.45rem;font-size:.6rem;color:#c9d3de;text-transform:none;letter-spacing:0"><input type="checkbox" id="tg-c1" checked style="width:13px;height:13px"> LONG sinyalleri gönder</label>
-            <label style="display:flex;align-items:center;gap:.45rem;font-size:.6rem;color:#c9d3de;text-transform:none;letter-spacing:0"><input type="checkbox" id="tg-c2" checked style="width:13px;height:13px"> SHORT sinyalleri gönder</label>
-            <label style="display:flex;align-items:center;gap:.45rem;font-size:.6rem;color:#c9d3de;text-transform:none;letter-spacing:0"><input type="checkbox" id="tg-c3" checked style="width:13px;height:13px"> Tarama özet raporu</label>
-            <label style="display:flex;align-items:center;gap:.45rem;font-size:.6rem;color:#c9d3de;text-transform:none;letter-spacing:0"><input type="checkbox" id="tg-c4" style="width:13px;height:13px"> BEKLE dahil tüm sinyaller</label>
+          <div style="display:flex;flex-direction:column;gap:.3rem;margin-top:.2rem">
+            <label style="display:flex;align-items:center;gap:.45rem;font-size:.6rem;color:var(--txt);text-transform:none;letter-spacing:0"><input type="checkbox" id="tg-c1" checked> LONG sinyaller</label>
+            <label style="display:flex;align-items:center;gap:.45rem;font-size:.6rem;color:var(--txt);text-transform:none;letter-spacing:0"><input type="checkbox" id="tg-c2" checked> SHORT sinyaller</label>
+            <label style="display:flex;align-items:center;gap:.45rem;font-size:.6rem;color:var(--txt);text-transform:none;letter-spacing:0"><input type="checkbox" id="tg-c3" checked> Tarama özeti</label>
+            <label style="display:flex;align-items:center;gap:.45rem;font-size:.6rem;color:var(--txt);text-transform:none;letter-spacing:0"><input type="checkbox" id="tg-c4"> Tüm sinyaller</label>
           </div>
         </div>
-        <div class="set-row"><label>Min Güvenilirlik (TG gönderim)</label>
-          <select id="tg-minrel"><option value="60">%60+</option><option value="70" selected>%70+</option><option value="80">%80+</option><option value="90">%90+</option></select>
-        </div>
+        <div class="set-row"><label>Min Güvenilirlik</label><select id="tg-minrel"><option value="60">%60+</option><option value="70" selected>%70+</option><option value="80">%80+</option><option value="90">%90+</option></select></div>
       </div>
     </div>
   </div>
   <div class="set-sec">
-    <div class="set-title">⚙ ANALİZ AYARLARI</div>
+    <div class="set-sec-title">⚙ Analiz Ayarları</div>
     <div class="set-grid">
       <div>
-        <div class="set-row"><label>Binance API Base URL</label>
-          <input id="api-base" type="text" value="https://api.binance.com">
-          <div class="set-hint">CORS sorunu varsa proxy kullanın</div>
-        </div>
+        <div class="set-row"><label>Binance API Base URL</label><input id="api-base" type="text" value="https://api.binance.com"><div class="set-hint">CORS sorunu varsa proxy URL girin</div></div>
         <div class="set-row"><label>Min 24s Hacim (USDT)</label><input id="min-vol" type="number" value="5000000"></div>
-        <div class="set-row"><label>ARIMA Max Lag (p)</label>
-          <select id="arima-maxp"><option value="3">3 — Hızlı</option><option value="5" selected>5 — Dengeli</option><option value="7">7 — Hassas</option></select>
-        </div>
+        <div class="set-row"><label>ARIMA Max Lag (p)</label><select id="arima-maxp"><option value="3">3 — Hızlı</option><option value="5" selected>5 — Dengeli</option><option value="7">7 — Hassas</option></select></div>
       </div>
       <div>
-        <div class="set-row"><label>ML Eğitim / Test Oranı</label>
-          <select id="ml-split"><option value="0.70">70/30</option><option value="0.75" selected>75/25</option><option value="0.80">80/20</option></select>
-        </div>
-        <div class="set-row"><label>ATR Giriş Çarpanı</label><input id="atr-ep" type="number" value="1.5" step="0.1" min="0.5" max="5"></div>
-        <div class="set-row"><label>ATR TP Çarpanı</label><input id="atr-tp" type="number" value="2.5" step="0.1" min="1" max="10"></div>
-        <div class="set-row"><label>ATR SL Çarpanı</label><input id="atr-sl" type="number" value="2.0" step="0.1" min="0.5" max="8"></div>
+        <div class="set-row"><label>ML Eğitim/Test Oranı</label><select id="ml-split"><option value="0.70">70/30</option><option value="0.75" selected>75/25</option><option value="0.80">80/20</option></select></div>
+        <div class="set-row"><label>ATR Giriş Çarpanı</label><input id="atr-ep" type="number" value="1.5" step="0.1"></div>
+        <div class="set-row"><label>ATR TP Çarpanı</label><input id="atr-tp" type="number" value="2.5" step="0.1"></div>
+        <div class="set-row"><label>ATR SL Çarpanı</label><input id="atr-sl" type="number" value="2.0" step="0.1"></div>
       </div>
     </div>
     <div style="margin-top:.6rem;display:flex;gap:.5rem">
-      <button class="btn bg2" onclick="saveCfg()">💾 Tümünü Kaydet</button>
-      <button class="btn bn2" onclick="resetCfg()">↺ Varsayılan</button>
+      <button class="btn btn-g" onclick="saveCfg()">💾 Tümünü Kaydet</button>
+      <button class="btn btn-n" onclick="resetCfg()">↺ Varsayılan</button>
     </div>
   </div>
   <div class="set-sec">
-    <div class="set-title">ℹ HAKKINDA</div>
-    <div style="font-size:.6rem;color:#2d4060;line-height:2.3">
-      <strong style="color:#00dc6e">QuantAI Pro v5.0</strong> — Akademik Kripto Sinyal Motoru<br>
-      <strong style="color:#4dabf7">Veri:</strong> Binance Public REST API — /klines, /ticker/24hr (API key gerekmez)<br>
-      <strong style="color:#4dabf7">Kaynaklar:</strong> Tsay (2005) · Chan (2009) · QuantStart · Greene (2003)<br>
-      <strong style="color:#ffaa00">⚠</strong> Akademik ve eğitim amaçlıdır. Gerçek yatırım kararı için lisanslı danışmana başvurun.
+    <div class="set-sec-title">ℹ Hakkında</div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:.56rem;color:var(--txt3);line-height:2.3">
+      <strong style="color:var(--g)">QuantAI Pro v6.0</strong> — Akademik Kripto Sinyal Motoru + Zamanlama Tahmini<br>
+      Veri: Binance Public API · Tsay(2005) · Chan(2009) · QuantStart · Greene(2003)<br>
+      <strong style="color:var(--a)">⚠ Akademik amaçlıdır. Gerçek para işlemlerinde lisanslı finansal danışmana başvurun.</strong>
     </div>
   </div>
 </div>
@@ -1282,6 +1322,8 @@ function sigText(cls){
 // ── ANALYZE COIN ──────────────────────────────────────────────────────────────
 async function analyzeCoin(sym,tfOv){
   var pilot=await fetchKlines(sym,'1h',100);
+  var mtf={};
+  try{mtf=await fetchMultiTF(sym);}catch(e){}
   var pc2=pilot.map(function(k){return k.c;}),ph=pilot.map(function(k){return k.h;}),pl=pilot.map(function(k){return k.l;});
   var patr=atrWilder(ph,pl,pc2,14),atrPct=(patr[patr.length-1]||pc2[pc2.length-1]*.02)/pc2[pc2.length-1]*100;
   var tfInfo=tfOv&&tfOv!=='auto'
@@ -1308,6 +1350,7 @@ async function analyzeCoin(sym,tfOv){
   var cVerdict=sig.verdict.includes('LONG')?'LONG':sig.verdict.includes('SHORT')?'SHORT':'BEKLE';
   var n=klines.length;
   var ch24=n>24?+((cl[n-1]-cl[n-25])/cl[n-25]*100).toFixed(2):0;
+  d.klines=klines;
   return{
     sym,tf,regime:tfInfo.regime,tfReason:tfInfo.reason,hurst:tfInfo.hurst,
     adxInfo:feat.adx,price,atrPct:+atrPctFull.toFixed(2),ch24,
@@ -1316,7 +1359,7 @@ async function analyzeCoin(sym,tfOv){
     verdict:cVerdict,sigCls:sClass,sigText:sText,rel,
     ep:sig.ep,tp:sig.tp,sl:sig.sl,rr:sig.rr,
     B:sig.B,S:sig.S,Hw:sig.W,
-    analysis:sig,arima,garch,ml,kf,pf,feat,sr,pivots,
+    analysis:sig,arima,garch,ml,kf,pf,feat,sr,pivots,mtf,
     stats:{adfR:arima?{stat:arima.adfStat,pval:arima.adfPval,stationary:arima.adfOk}:{stat:0,pval:1,stationary:false},archR:archLM(lr,5),hurst:tfInfo.hurst}
   };
 }
@@ -1586,6 +1629,7 @@ function renderDetail(d){
   }).join('');
 
   drawCharts(d,CTAB);
+  setTimeout(function(){initCanvases(d);},50);
 }
 function setFC(id,val,pct){
   var e=E(id);if(!e)return;
@@ -1669,6 +1713,345 @@ function drawCharts(d,tab){
     ]},options:{...bOpts(),scales:{x:xAx(),y:yAx({min:0,max:100})}}});
   }
 }
+
+
+var TF_MINS={'1m':1,'3m':3,'5m':5,'15m':15,'30m':30,'1h':60,'2h':120,'4h':240,'6h':360,'12h':720,'1d':1440,'3d':4320,'1w':10080};
+function estTime(tf,bars){var m=(TF_MINS[tf]||60)*Math.max(1,bars);if(m<60)return '~'+Math.round(m)+'dk';if(m<1440)return '~'+(m/60).toFixed(1)+'s';if(m<10080)return '~'+(m/1440).toFixed(1)+'g';return '~'+(m/10080).toFixed(1)+'h';}
+function calcTiming(d){
+  if(!d||!d.arima||!d.arima.fc)return null;
+  var tf=d.tf,fc=d.arima.fc,price=d.price,tp=d.analysis.tp,sl=d.analysis.sl;
+  var tpBar=null,slBar=null;var isLong=d.verdict==='LONG';
+  for(var i=0;i<fc.length;i++){if(tpBar===null&&isLong&&fc[i]>=tp)tpBar=i+1;if(tpBar===null&&!isLong&&fc[i]<=tp)tpBar=i+1;if(slBar===null&&isLong&&fc[i]<=sl)slBar=i+1;if(slBar===null&&!isLong&&fc[i]>=sl)slBar=i+1;}
+  var entryTF=tf==='4h'?'15m – 1h':tf==='1d'?'1h – 4h':tf==='1h'?'5m – 15m':tf==='15m'?'1m – 5m':'5m – 15m';
+  return{tpEst:tpBar?estTime(tf,tpBar):estTime(tf,12),slEst:slBar?estTime(tf,slBar):estTime(tf,4),tpBar,slBar,
+    signalValid:estTime(tf,3),entryTF,
+    confirmTFs:tf==='4h'?['15m','1h','4h','1d']:tf==='1h'?['5m','15m','1h','4h']:tf==='15m'?['1m','5m','15m','1h']:['1h','4h','1d','1w']};
+}
+function fmtPShort(v){if(!v||!isFinite(v))return '—';if(v>=10000)return '$'+(v/1000).toFixed(1)+'K';if(v>=1000)return '$'+v.toFixed(0);if(v>=1)return '$'+v.toFixed(3);if(v>=0.01)return '$'+v.toFixed(5);return '$'+v.toExponential(3);}
+function drawCandles(canvasId,klines,opts){
+  opts=opts||{};var canvas=E(canvasId);if(!canvas)return;
+  var ctx=canvas.getContext('2d');
+  var W=canvas.clientWidth||canvas.offsetWidth||400,H=canvas.clientHeight||canvas.offsetHeight||200;
+  var dpr=window.devicePixelRatio||1;canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.scale(dpr,dpr);
+  var n=Math.min(opts.n||80,klines.length),data=klines.slice(-n);if(!data.length)return;
+  var highs=data.map(function(k){return k.h;}),lows=data.map(function(k){return k.l;});
+  var maxP=Math.max.apply(null,highs)*1.002,minP=Math.min.apply(null,lows)*0.998,pRange=maxP-minP||maxP*0.01;
+  var volH=opts.vol?Math.round(H*0.16):0;
+  var pL=opts.mini?44:66,pR=8,pT=opts.mini?8:14,pB=opts.mini?16:22;
+  var cW=W-pL-pR,cH=H-pT-pB-volH,cw=Math.max(1.5,cW/n*0.62);
+  function xS(i){return pL+(i+0.5)*(cW/n);}function yS(p){return pT+cH-Math.max(0,(p-minP)/pRange*cH);}
+  ctx.fillStyle='#0b1120';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(255,255,255,0.04)';ctx.lineWidth=0.5;
+  for(var g=0;g<=4;g++){var gy=pT+g*(cH/4);ctx.beginPath();ctx.moveTo(pL,gy);ctx.lineTo(W-pR,gy);ctx.stroke();if(!opts.mini){ctx.fillStyle='rgba(120,140,180,0.45)';ctx.font='9px "IBM Plex Mono",monospace';ctx.textAlign='right';ctx.fillText(fmtPShort(maxP-g*(pRange/4)),pL-3,gy+3);}}
+  if(opts.mini){ctx.fillStyle='rgba(120,140,180,0.4)';ctx.font='8px "IBM Plex Mono",monospace';ctx.textAlign='right';ctx.fillText(fmtPShort(maxP),pL-2,pT+10);ctx.fillText(fmtPShort(minP),pL-2,pT+cH);}
+  if(opts.bb&&opts.bb.bbu){var bN=Math.min(n,opts.bb.bbu.length);ctx.strokeStyle='rgba(77,171,247,0.2)';ctx.lineWidth=1;ctx.beginPath();for(var i=0;i<bN;i++){var bi=opts.bb.bbu.length-bN+i;if(isNaN(opts.bb.bbu[bi]))continue;if(i===0)ctx.moveTo(xS(i),yS(opts.bb.bbu[bi]));else ctx.lineTo(xS(i),yS(opts.bb.bbu[bi]));}ctx.stroke();ctx.beginPath();for(var i=0;i<bN;i++){var bi=opts.bb.bbl.length-bN+i;if(isNaN(opts.bb.bbl[bi]))continue;if(i===0)ctx.moveTo(xS(i),yS(opts.bb.bbl[bi]));else ctx.lineTo(xS(i),yS(opts.bb.bbl[bi]));}ctx.stroke();}
+  if(opts.sma20){var sN=Math.min(n,opts.sma20.length);ctx.strokeStyle='rgba(0,230,118,0.3)';ctx.lineWidth=1;ctx.beginPath();var fs=true;for(var i=0;i<sN;i++){var si=opts.sma20.length-sN+i;if(isNaN(opts.sma20[si]))continue;if(fs){ctx.moveTo(xS(i),yS(opts.sma20[si]));fs=false;}else ctx.lineTo(xS(i),yS(opts.sma20[si]));}ctx.stroke();}
+  data.forEach(function(k,i){var bull=k.c>=k.o,gc=bull?'rgba(0,230,118,0.88)':'rgba(255,82,82,0.88)',wc=bull?'rgba(0,230,118,0.55)':'rgba(255,82,82,0.55)';ctx.strokeStyle=wc;ctx.lineWidth=opts.mini?0.8:1;ctx.beginPath();ctx.moveTo(xS(i),yS(k.h));ctx.lineTo(xS(i),yS(k.l));ctx.stroke();var by=yS(Math.max(k.o,k.c)),bh=Math.max(1,Math.abs(yS(k.o)-yS(k.c)));ctx.fillStyle=gc;ctx.fillRect(xS(i)-cw/2,by,cw,bh);});
+  function hLine(price,color,lbl){var y=yS(price);if(y<pT-2||y>pT+cH+2)return;ctx.strokeStyle=color;ctx.lineWidth=1;ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(pL,y);ctx.lineTo(W-pR,y);ctx.stroke();ctx.setLineDash([]);if(!opts.mini){ctx.fillStyle=color;ctx.font='bold 8px "IBM Plex Mono",monospace';ctx.textAlign='left';ctx.fillText(lbl+' '+fmtPShort(price),pL+4,y-2);}}
+  if(opts.tp)hLine(opts.tp,'rgba(0,230,118,0.75)','TP');if(opts.sl)hLine(opts.sl,'rgba(255,82,82,0.75)','SL');if(opts.ep)hLine(opts.ep,'rgba(255,171,64,0.85)','EP');
+  var cp=data[data.length-1].c;ctx.strokeStyle='rgba(255,255,255,0.18)';ctx.lineWidth=0.7;ctx.setLineDash([2,4]);ctx.beginPath();ctx.moveTo(pL,yS(cp));ctx.lineTo(W-pR,yS(cp));ctx.stroke();ctx.setLineDash([]);
+  if(!opts.mini){ctx.fillStyle='rgba(200,210,230,0.6)';ctx.font='8px "IBM Plex Mono",monospace';ctx.textAlign='left';ctx.fillText(fmtPShort(cp),pL+3,yS(cp)-3);}
+  if(opts.vol&&volH>3){var vols=data.map(function(k){return k.v;}),maxV=Math.max.apply(null,vols)||1;var vBase=H-pB;data.forEach(function(k,i){var vH2=Math.max(1,(k.v/maxV)*(volH-2));ctx.fillStyle=k.c>=k.o?'rgba(0,230,118,0.18)':'rgba(255,82,82,0.15)';ctx.fillRect(xS(i)-cw/2,vBase-vH2,cw,vH2);});}
+  if(opts.signal){var lk=data[data.length-1],ax=xS(data.length-1);if(opts.signal==='LONG'){var ay=yS(lk.l)+10;ctx.fillStyle='#00e676';ctx.beginPath();ctx.moveTo(ax,ay-10);ctx.lineTo(ax-5,ay);ctx.lineTo(ax+5,ay);ctx.closePath();ctx.fill();}else if(opts.signal==='SHORT'){var ay=yS(lk.h)-10;ctx.fillStyle='#ff5252';ctx.beginPath();ctx.moveTo(ax,ay+10);ctx.lineTo(ax-5,ay);ctx.lineTo(ax+5,ay);ctx.closePath();ctx.fill();}}
+  if(opts.tf){ctx.fillStyle='rgba(0,0,0,0.5)';ctx.beginPath();if(ctx.roundRect)ctx.roundRect(pL+4,pT+3,opts.tf.length*7+8,15,3);else ctx.rect(pL+4,pT+3,opts.tf.length*7+8,15);ctx.fill();ctx.fillStyle='#00e676';ctx.font='bold 9px "IBM Plex Mono",monospace';ctx.textAlign='left';ctx.fillText(opts.tf.toUpperCase(),pL+8,pT+13);}
+  // Date labels on x-axis
+  if(!opts.mini&&data.length>0){var step=Math.ceil(n/6);ctx.fillStyle='rgba(120,140,180,0.4)';ctx.font='7px "IBM Plex Mono",monospace';ctx.textAlign='center';for(var i=0;i<n;i+=step){var dt=data[i]&&data[i].date?data[i].date.slice(5,16):'';ctx.fillText(dt,xS(i),pT+cH+14);}}
+}
+function drawARIMAChart(canvasId,d){
+  var canvas=E(canvasId);if(!canvas||!d||!d.arima||!d.klines)return;
+  var ctx=canvas.getContext('2d');var W=canvas.clientWidth||600,H=canvas.clientHeight||180;
+  var dpr=window.devicePixelRatio||1;canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.scale(dpr,dpr);
+  var ar=d.arima,price=d.price,hist=d.klines.slice(-40).map(function(k){return k.c;});
+  var fc=ar.fc.slice(0,21),u=ar.u95.slice(0,21),l=ar.l95.slice(0,21);
+  var allP=hist.concat(fc,u,l);var maxP=Math.max.apply(null,allP)*1.002,minP=Math.min.apply(null,allP)*0.998,pRange=maxP-minP||maxP*0.01;
+  var pL=66,pR=10,pT=14,pB=22,cW=W-pL-pR,cH=H-pT-pB,nH=hist.length,nF=fc.length,nAll=nH+nF;
+  function xS(i){return pL+i*(cW/nAll);}function yS(p){return pT+cH-((p-minP)/pRange*cH);}
+  ctx.fillStyle='#0b1120';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(255,255,255,0.04)';ctx.lineWidth=0.5;
+  for(var g=0;g<=4;g++){var gy=pT+g*(cH/4);ctx.beginPath();ctx.moveTo(pL,gy);ctx.lineTo(W-pR,gy);ctx.stroke();ctx.fillStyle='rgba(120,140,180,0.45)';ctx.font='9px "IBM Plex Mono",monospace';ctx.textAlign='right';ctx.fillText(fmtPShort(maxP-g*(pRange/4)),pL-3,gy+3);}
+  // CI fill
+  ctx.beginPath();for(var i=0;i<nF;i++)i===0?ctx.moveTo(xS(nH+i),yS(u[i])):ctx.lineTo(xS(nH+i),yS(u[i]));for(var i=nF-1;i>=0;i--)ctx.lineTo(xS(nH+i),yS(l[i]));ctx.closePath();ctx.fillStyle='rgba(0,230,118,0.05)';ctx.fill();
+  ctx.strokeStyle='rgba(0,230,118,0.15)';ctx.lineWidth=0.8;
+  ctx.beginPath();for(var i=0;i<nF;i++){if(i===0)ctx.moveTo(xS(nH+i),yS(u[i]));else ctx.lineTo(xS(nH+i),yS(u[i]));}ctx.stroke();
+  ctx.beginPath();for(var i=0;i<nF;i++){if(i===0)ctx.moveTo(xS(nH+i),yS(l[i]));else ctx.lineTo(xS(nH+i),yS(l[i]));}ctx.stroke();
+  // Hist line
+  ctx.strokeStyle='rgba(77,171,247,0.65)';ctx.lineWidth=1.4;ctx.setLineDash([]);
+  ctx.beginPath();hist.forEach(function(p,i){if(i===0)ctx.moveTo(xS(i),yS(p));else ctx.lineTo(xS(i),yS(p));});ctx.stroke();
+  // Forecast
+  ctx.strokeStyle='#00e676';ctx.lineWidth=1.8;ctx.setLineDash([5,3]);
+  ctx.beginPath();ctx.moveTo(xS(nH-1),yS(hist[hist.length-1]));fc.forEach(function(p,i){ctx.lineTo(xS(nH+i),yS(p));});ctx.stroke();ctx.setLineDash([]);
+  // Divider
+  ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(xS(nH),pT);ctx.lineTo(xS(nH),pT+cH);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,255,255,0.25)';ctx.font='7px "IBM Plex Mono",monospace';ctx.textAlign='center';ctx.fillText('ŞİMDİ',xS(nH),pT+cH+13);
+  // TP/SL
+  var tp=d.analysis.tp,sl=d.analysis.sl;
+  function hL(p,c,lbl){var y=yS(p);if(y<pT-2||y>pT+cH+2)return;ctx.strokeStyle=c;ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(xS(nH),y);ctx.lineTo(W-pR,y);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=c;ctx.font='bold 8px "IBM Plex Mono",monospace';ctx.textAlign='left';ctx.fillText(lbl+' '+fmtPShort(p),xS(nH)+4,y-2);}
+  hL(tp,'rgba(0,230,118,0.75)','TP');hL(sl,'rgba(255,82,82,0.75)','SL');
+  // TP timing marker
+  var timing=calcTiming(d);
+  if(timing&&timing.tpBar&&timing.tpBar<=nF){var tx=xS(nH+timing.tpBar-1);ctx.strokeStyle='rgba(255,171,64,0.4)';ctx.lineWidth=1;ctx.setLineDash([2,3]);ctx.beginPath();ctx.moveTo(tx,pT);ctx.lineTo(tx,pT+cH);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='rgba(255,171,64,0.7)';ctx.font='bold 8px "IBM Plex Mono",monospace';ctx.textAlign='center';ctx.fillText('TP? '+timing.tpEst,tx,pT+10);}
+  // Labels
+  ctx.fillStyle='rgba(77,171,247,0.55)';ctx.font='8px "IBM Plex Mono",monospace';ctx.textAlign='left';ctx.fillText('Geçmiş ('+d.tf+')',pL+4,pT+10);
+  ctx.fillStyle='rgba(0,230,118,0.65)';ctx.fillText('ARIMA AR('+ar.p+','+ar.d+',0)',xS(nH)+4,pT+10);
+  // X-axis forecast bar labels
+  [5,10,21].forEach(function(b){if(b<nF){ctx.fillStyle='rgba(120,140,180,0.4)';ctx.font='7px "IBM Plex Mono",monospace';ctx.textAlign='center';ctx.fillText('+'+b,xS(nH+b-1),pT+cH+13);}});
+}
+async function fetchMultiTF(sym){
+  var tfs=['15m','1h','4h','1d'],result={};
+  for(var i=0;i<tfs.length;i++){try{result[tfs[i]]=await fetchKlines(sym,tfs[i],60);}catch(e){}await sleep(100);}
+  return result;
+}
+function drawMTFGrid(d){
+  ['15m','1h','4h','1d'].forEach(function(tf2){
+    var cid='mtf-'+tf2;var kl=(d.mtf&&d.mtf[tf2])||(tf2===d.tf?d.klines:null);
+    if(!kl||!kl.length){var c=E(cid);if(c){var cx=c.getContext('2d');c.width=c.clientWidth||180;c.height=c.clientHeight||100;cx.fillStyle='#0b1120';cx.fillRect(0,0,c.width,c.height);cx.fillStyle='#1a2a3a';cx.font='9px monospace';cx.textAlign='center';cx.fillText('Yükleniyor...',c.width/2,c.height/2);}return;}
+    drawCandles(cid,kl,{n:40,mini:true,tf:tf2,vol:false,ep:tf2===d.tf?d.analysis.ep:null,tp:tf2===d.tf?d.analysis.tp:null,sl:tf2===d.tf?d.analysis.sl:null,signal:tf2===d.tf?d.verdict:null});
+  });
+}
+function initCanvases(d){
+  if(!d)return;
+  if(d.klines&&d.klines.length){var f=d.feat;drawCandles('c-candle',d.klines,{n:80,tf:d.tf,vol:true,bb:{bbu:f.bbu,bbl:f.bbl},sma20:f.sma20,ep:d.analysis.ep,tp:d.analysis.tp,sl:d.analysis.sl,signal:d.verdict});}
+  drawARIMAChart('c-arima-fc',d);
+  drawMTFGrid(d);
+}
+function renderTimingCard(d){
+  var el=E('timing-card');if(!el||!d)return;
+  var t=calcTiming(d);if(!t){el.innerHTML='<div style="color:#1a2a3a;font-size:.6rem">Zamanlama hesaplanamadı</div>';return;}
+  var v=d.verdict,vc=v==='LONG'?'#00e676':'#ff5252';
+  el.innerHTML=
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem">'+
+    '<div class="t-box"><div class="t-lbl">✅ TP Tahmini</div><div class="t-val" style="color:#00e676">'+t.tpEst+'</div><div class="t-sub">'+(t.tpBar?t.tpBar+'. bar (ARIMA)':'ARIMA hedef yok')+'</div></div>'+
+    '<div class="t-box"><div class="t-lbl">🛑 SL Tahmini</div><div class="t-val" style="color:#ff5252">'+t.slEst+'</div><div class="t-sub">'+(t.slBar?t.slBar+'. bar':'ARIMA teyidi yok')+'</div></div>'+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">'+
+    '<div class="t-box"><div class="t-lbl">⏰ Sinyal Geçerliliği</div><div class="t-val" style="color:#ffab40">'+t.signalValid+'</div><div class="t-sub">3 bar içinde giriş beklenir</div></div>'+
+    '<div class="t-box"><div class="t-lbl">🔍 Giriş Teyit TF</div><div class="t-val" style="color:#4dabf7">'+t.entryTF+'</div><div class="t-sub">Alt TF ile giriş onayı</div></div>'+
+    '</div>'+
+    '<div style="margin-top:.55rem;padding:.4rem .6rem;background:rgba(255,255,255,.03);border-radius:4px;font-size:.56rem;color:#2d4060;line-height:1.8">'+
+    '📐 <strong style="color:#c9d3de">Bakılacak Timeframe\'ler:</strong> '+
+    t.confirmTFs.map(function(tf,i){return '<span style="padding:.07rem .3rem;border-radius:2px;background:'+(tf===d.tf?'rgba(0,230,118,.12)':'rgba(26,42,58,.8)')+';border:1px solid '+(tf===d.tf?'#00773d':'#1a2a3a')+';color:'+(tf===d.tf?'#00e676':'#4d6070')+'">'+tf+(tf===d.tf?' ★':'')+'</span>';}).join(' ')+
+    '</div>';
+}
+
+
+// Override renderScanTable with new design
+renderScanTable = function(results,filt,minRel){
+  filt=filt||'all';minRel=minRel||0;
+  var filtered=results.filter(function(r){
+    if(minRel&&r.rel<minRel)return false;
+    if(filt==='long'&&r.verdict!=='LONG')return false;
+    if(filt==='short'&&r.verdict!=='SHORT')return false;
+    if(filt==='strong'&&r.rel<70)return false;
+    if(filt==='vstrong'&&r.rel<80)return false;
+    return true;
+  }).sort(function(a,b){return b.rel-a.rel;});
+  var body=E('scan-body');if(!body)return;
+  if(!filtered.length){body.innerHTML='<div class="scan-empty">Filtre kriterine uygun sonuç yok</div>';return;}
+  var maxR=Math.max.apply(null,filtered.map(function(r){return r.rel;}));
+  body.innerHTML=filtered.map(function(r,idx){
+    var barC=r.verdict==='LONG'?'var(--g)':r.verdict==='SHORT'?'var(--r)':'var(--txt3)';
+    var rCls=r.rel>=80?'kv-g':r.rel>=65?'kv-b':r.rel>=50?'kv-a':'kv-r';
+    var timing=calcTiming(r);var tpStr=timing?timing.tpEst:'—';
+    var ch24Str=(r.ch24>=0?'+':'')+r.ch24.toFixed(2)+'%';
+    return '<div class="srow" onclick="drillDown(\''+r.sym+'\',\''+r.tf+'\')">'+
+      '<div class="sr-rk">'+(idx+1)+'</div>'+
+      '<div><div class="sr-sym '+(r.verdict==='LONG'?'up':r.verdict==='SHORT'?'dn':'nt')+'">'+r.sym+'</div><div class="sr-sub">'+r.regime.split(' (')[0].slice(0,16)+'</div></div>'+
+      '<div class="sr-price '+(r.ch24>=0?'up':'dn')+'">'+fmtP(r.price)+'</div>'+
+      '<div class="sr-num '+(r.ch24>=0?'up':'dn')+'">'+ch24Str+'</div>'+
+      '<div class="sr-num '+(r.rsi>70?'dn':r.rsi<30?'up':'nt')+'">'+r.rsi.toFixed(0)+'</div>'+
+      '<div class="sr-num '+(r.adx>25?'up':'nt')+'">'+r.adx.toFixed(0)+'</div>'+
+      '<div style="text-align:center"><span class="tpill'+(r.tf==='4h'||r.tf==='1d'?' hi':'')+'">'+r.tf+'</span></div>'+
+      '<div><div class="rel-wrap"><div class="rel-track"><div class="rel-fill" style="width:'+(r.rel/maxR*100).toFixed(0)+'%;background:'+barC+'"></div></div><span class="rel-num '+rCls+'">'+r.rel+'%</span></div></div>'+
+      '<div style="text-align:center"><span class="sig-pill '+r.sigCls+'">'+r.sigText+'</span></div>'+
+      '<div class="sr-num" style="color:var(--a)">'+fmtP(r.ep)+'</div>'+
+      '<div class="sr-num" style="color:var(--g)">'+fmtP(r.tp)+'</div>'+
+      '<div class="sr-num" style="color:var(--r)">'+fmtP(r.sl)+'</div>'+
+      '<div class="scan-timing '+(r.verdict==='LONG'?'up':r.verdict==='SHORT'?'dn':'nt')+'">'+r.rr+':1<br><span style="color:var(--txt3);font-size:.48rem">~'+tpStr+'</span></div>'+
+    '</div>';
+  }).join('');
+};
+
+// Override setChTab to handle canvas tabs
+setChTab = function(t,btn){
+  CTAB=t;
+  document.querySelectorAll('.ctab').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  var ids=['c-candle','c-arima-fc','c-vol-chart','c-adx-chart'];
+  var show={'candle':'c-candle','arima':'c-arima-fc','vol':'c-vol-chart','adx':'c-adx-chart'};
+  ids.forEach(function(id){var el=E(id);if(el)el.style.display='none';});
+  var active=E(show[t]);if(active)active.style.display='block';
+  if(D){
+    if(t==='candle'&&D.klines){var f=D.feat;setTimeout(function(){drawCandles('c-candle',D.klines,{n:80,tf:D.tf,vol:true,bb:{bbu:f.bbu,bbl:f.bbl},sma20:f.sma20,ep:D.analysis.ep,tp:D.analysis.tp,sl:D.analysis.sl,signal:D.verdict});},30);}
+    else if(t==='arima')setTimeout(function(){drawARIMAChart('c-arima-fc',D);},30);
+    else if(t==='vol'||t==='adx')setTimeout(function(){drawCharts(D,t);},30);
+  }
+};
+
+// Override renderDetail with new design
+renderDetail = function(d){
+  if(!d||!d.analysis||!d.feat)return;
+  var a=d.analysis,g=d.garch,ml=d.ml,pf=d.pf,ar=d.arima,kf=d.kf,sr=d.sr,pivots=d.pivots;
+
+  if(E('d-tf-sel'))E('d-tf-sel').textContent=d.tf.toUpperCase()+' TIMEFRAME — Optimal Seçim';
+  if(E('d-tf-why'))E('d-tf-why').textContent=d.tfReason;
+  if(E('d-regime'))E('d-regime').textContent=d.regime;
+  if(E('d-hurst'))E('d-hurst').textContent='Hurst H='+d.hurst.toFixed(3);
+  if(E('d-adx'))E('d-adx').textContent='ADX='+d.adxInfo.adx+' · DI+='+d.adxInfo.pdi+' DI-='+d.adxInfo.ndi;
+
+  // Verdict card color
+  var hcv=E('hc-verdict');
+  if(hcv){hcv.className='hero-card hc-'+(a.vc==='g'?'g':a.vc==='r'?'r':'a');}
+  if(E('vdict')){E('vdict').textContent=a.verdict;E('vdict').style.color=a.vc==='g'?'var(--g)':a.vc==='r'?'var(--r)':'var(--a)';}
+  if(E('vsub'))E('vsub').textContent=a.vsub;
+  var tot=(a.B+a.S+a.W)||1;
+  if(E('sb-b'))E('sb-b').style.width=(a.B/tot*100)+'%';
+  if(E('sb-h'))E('sb-h').style.width=(a.W/tot*100)+'%';
+  if(E('sb-s'))E('sb-s').style.width=(a.S/tot*100)+'%';
+  if(E('sb-bv'))E('sb-bv').textContent=a.B;if(E('sb-hv'))E('sb-hv').textContent=a.W;if(E('sb-sv'))E('sb-sv').textContent=a.S;
+  var rEl=E('d-rel');if(rEl){var rc=d.rel>=80?'var(--g)':d.rel>=65?'var(--b)':d.rel>=50?'var(--a)':'var(--r)';rEl.style.cssText='font-family:"IBM Plex Mono",monospace;font-size:.58rem;padding:.07rem .38rem;border-radius:3px;background:rgba(255,255,255,.04);border:1px solid '+rc+';color:'+rc;rEl.textContent=(d.rel>=80?'🟢 ':d.rel>=65?'🔵 ':d.rel>=50?'🟡 ':'🔴 ')+d.rel+'% Güvenilirlik';}
+  var rChip=E('d-regime-chip');if(rChip){var H=d.hurst;rChip.textContent=H>0.60?'📈 Trend':H<0.42?'↕ Mean-Rev':'🔀 RandomWalk';rChip.style.color=H>0.60?'var(--g)':H<0.42?'var(--b)':'var(--a)';}
+
+  // Price levels
+  if(E('pt-now'))E('pt-now').textContent=fmtP(a.price);
+  if(E('pt-ep'))E('pt-ep').textContent=fmtP(a.ep);
+  if(E('pt-tp'))E('pt-tp').textContent=fmtP(a.tp);
+  if(E('pt-sl'))E('pt-sl').textContent=fmtP(a.sl);
+  if(E('pt-rr'))E('pt-rr').textContent=(d.verdict==='LONG'?'📈 LONG':d.verdict==='SHORT'?'📉 SHORT':'⏸ BEKLE')+' · R/R: '+a.rr+':1 · ATR='+fmtP(a.atr)+' ('+d.atrPct+'%)';
+  if(kf){if(E('kb-h'))E('kb-h').textContent=(kf.half*100).toFixed(2)+'%';if(E('kb-p'))E('kb-p').textContent='$'+(10000*Math.min(Math.abs(kf.half),1)).toFixed(0);if(E('kb-mu'))E('kb-mu').textContent=kf.annMu+'%/yıl';}
+
+  // ARIMA
+  if(ar){if(E('d-arima-model'))E('d-arima-model').textContent='ARIMA('+ar.p+','+ar.d+',0) AIC · σ²='+ar.sigma2.toExponential(2);
+    function setFC(id,v,p){var e=E(id);if(!e)return;e.textContent=fmtP(v)+' ('+(p>=0?'+':'')+p+'%)';e.className='fc-v '+(p>0?'kv-g':p<0?'kv-r':'kv-n');}
+    setFC('fc5',a.fc5,a.c5);setFC('fc10',a.fc10,a.c10);setFC('fc21',a.fc21,a.c21);
+    if(E('fc21-ci')&&a.fc21u)E('fc21-ci').textContent='['+fmtP(a.fc21l)+' – '+fmtP(a.fc21u)+']';
+    if(E('d-adf')){E('d-adf').textContent='τ='+ar.adfStat+' (p≈'+ar.adfPval+')';E('d-adf').className='fc-v '+(ar.adfOk?'kv-g':'kv-n');}
+    if(E('d-lb')){E('d-lb').textContent='Q='+ar.lbQ+' p='+ar.lbPval+(ar.residWN?' ✓':' ✗');E('d-lb').className='fc-v '+(ar.residWN?'kv-g':'kv-a');}}
+
+  // GARCH
+  if(g){if(E('g-curr')){E('g-curr').textContent=g.currAnn.toFixed(2)+'%/yıl';E('g-curr').style.color=g.currAnn>60?'var(--r)':g.currAnn>30?'var(--a)':'var(--g)';}
+    if(E('g-lbl'))E('g-lbl').textContent=g.currAnn>60?'⚠ Aşırı Volatilite':g.currAnn>30?'↑ Yüksek Volatilite':'✓ Normal Volatilite';
+    if(E('g-lv'))E('g-lv').textContent=g.lrAnn.toFixed(2)+'%/yıl';if(E('g-rat'))E('g-rat').textContent=g.ratio+'x';
+    if(E('g-ps'))E('g-ps').textContent=g.persist+' '+(g.persist>0.95?'⚠ Kalıcı':'✓');if(E('g-var'))E('g-var').textContent=g.var99.toFixed(3)+'%/gün';}
+
+  // Timing card
+  renderTimingCard(d);
+
+  // MTF labels
+  ['15m','1h','4h','1d'].forEach(function(tf2){
+    var lbl=E('mtf-lbl-'+tf2);if(!lbl)return;
+    var active=tf2===d.tf;lbl.textContent=active?'★ SEÇİLİ TF':'';lbl.style.color=active?'var(--g)':'var(--txt3)';
+  });
+
+  // S/R
+  var srDiv=E('sr-levels');if(srDiv&&sr){
+    var h='',price=a.price;
+    if(sr.R&&sr.R.length)sr.R.slice(0,3).reverse().forEach(function(r){h+='<div class="sr-row sr-res"><span class="sr-type">DİRENÇ</span><span style="font-weight:700;color:var(--r)">'+fmtP(r)+'</span><span class="sr-pct up">+'+(((r-price)/price)*100).toFixed(1)+'%</span></div>';});
+    h+='<div class="sr-row sr-cur"><span class="sr-type">ŞU AN</span><span style="font-weight:700;color:var(--b)">'+fmtP(price)+'</span><span class="sr-pct" style="color:var(--b)">—</span></div>';
+    if(sr.S&&sr.S.length)sr.S.slice(-3).reverse().forEach(function(s){h+='<div class="sr-row sr-sup"><span class="sr-type">DESTEK</span><span style="font-weight:700;color:var(--g)">'+fmtP(s)+'</span><span class="sr-pct dn">-'+(((price-s)/price)*100).toFixed(1)+'%</span></div>';});
+    srDiv.innerHTML=h;if(E('sr-cnt'))E('sr-cnt').textContent=(sr.R?sr.R.length:0)+' Dir · '+(sr.S?sr.S.length:0)+' Des';}
+
+  // Pivots
+  if(pivots){var pvEl=E('pivot-grid');if(pvEl){pvEl.innerHTML=[{k:'R3',v:pivots.R3,c:'kv-r'},{k:'R2',v:pivots.R2,c:'kv-r'},{k:'R1',v:pivots.R1,c:'kv-a'},{k:'PP',v:pivots.P,c:'kv-b'},{k:'S1',v:pivots.S1,c:'kv-g'},{k:'S2',v:pivots.S2,c:'kv-g'},{k:'S3',v:pivots.S3,c:'kv-g'}].map(function(p){return '<div class="pvtile"><div class="pvtile-k">'+p.k+'</div><div class="pvtile-v '+p.c+'">'+fmtP(p.v)+'</div></div>';}).join('');}}
+
+  // ML Ring
+  var up=ml.up||0.5;
+  var rfEl=E('ml-rf');if(rfEl){rfEl.style.strokeDashoffset=251.33*(1-up);rfEl.style.stroke=up>0.55?'var(--g)':up<0.45?'var(--r)':'var(--a)';}
+  if(E('ml-pct')){E('ml-pct').textContent=Math.round(up*100)+'%';E('ml-pct').style.color=up>0.55?'var(--g)':up<0.45?'var(--r)':'var(--a)';}
+  if(E('ml-dir'))E('ml-dir').textContent=ml.dir;if(E('ml-conf'))E('ml-conf').textContent='Güven: '+ml.conf;if(E('ml-best'))E('ml-best').textContent=ml.best||'—';
+  var maxSc=Math.max.apply(null,Object.values(ml.scores||{}).concat([0.5]));
+  if(E('ml-bars'))E('ml-bars').innerHTML=Object.entries(ml.scores||{}).map(function(e){return '<div class="ml-bar-row"><span class="ml-bar-lbl">'+e[0]+'</span><div class="ml-bar-track"><div class="ml-bar-fill" style="width:'+(maxSc>0?e[1]/maxSc*100:50).toFixed(0)+'%"></div></div><span class="ml-bar-val">'+(e[1]*100).toFixed(1)+'%</span></div>';}).join('');
+
+  // Stats grid
+  var st=d.stats;
+  if(E('sg-stat'))E('sg-stat').innerHTML=[
+    ['ADF τ',st.adfR.stat,st.adfR.stationary?'kv-g':'kv-n'],
+    ['Durağanlık',st.adfR.stationary?'✓ Durağan':'✗ BRK',st.adfR.stationary?'kv-g':'kv-r'],
+    ['Ljung-Box Q',ar?ar.lbQ:'—',ar&&ar.residWN?'kv-g':'kv-n'],
+    ['Artık WN',ar?(ar.residWN?'✓ Beyaz Gürültü':'✗ Otokorelasyon'):'—',ar&&ar.residWN?'kv-g':'kv-r'],
+    ['ARCH-LM p',st.archR.pval,st.archR.hasArch?'kv-a':'kv-g'],
+    ['ARCH Etkisi',st.archR.hasArch?'✓ Var (GARCH uygun)':'Yok',st.archR.hasArch?'kv-a':'kv-g'],
+    ['Hurst H',d.hurst.toFixed(3),d.hurst>0.60?'kv-g':d.hurst<0.42?'kv-b':'kv-a'],
+    ['Rejim Tipi',d.hurst>0.60?'Trend':'d.hurst<0.42'?'Mean-Rev':'RandWalk',d.hurst>0.60?'kv-g':d.hurst<0.42?'kv-b':'kv-a'],
+    ['ADX',d.adxInfo.adx,d.adxInfo.adx>25?'kv-g':d.adxInfo.adx>15?'kv-a':'kv-r'],
+    ['DI+ / DI-',d.adxInfo.pdi+' / '+d.adxInfo.ndi,d.adxInfo.bullTrend?'kv-g':'kv-r'],
+  ].map(function(r){return '<div class="kv-row"><span class="kv-k">'+r[0]+'</span><span class="kv-v '+r[2]+'">'+r[1]+'</span></div>';}).join('');
+
+  if(pf&&pf.sharpe!==undefined&&E('sg-perf'))E('sg-perf').innerHTML=[
+    ['Yıllık Getiri',(pf.annR*100).toFixed(1)+'%',pf.annR>0?'kv-g':'kv-r'],
+    ['Yıllık Vol',(pf.annV*100).toFixed(1)+'%','kv-a'],
+    ['Sharpe Oranı',pf.sharpe.toFixed(3),pf.sharpe>1?'kv-g':pf.sharpe>0.5?'kv-b':'kv-r'],
+    ['Max Drawdown',(pf.mdd*100).toFixed(1)+'%','kv-r'],
+    ['Calmar',pf.calmar.toFixed(3),pf.calmar>1?'kv-g':'kv-a'],
+    ['½-Kelly',(kf?(kf.half*100):0).toFixed(2)+'%',kf&&kf.half>0?'kv-g':'kv-a'],
+    ['VaR %95',(pf.var95*100).toFixed(2)+'%','kv-r'],
+    ['Win Oranı',(pf.win*100).toFixed(1)+'%',pf.win>0.5?'kv-g':'kv-a'],
+  ].map(function(r){return '<div class="kv-row"><span class="kv-k">'+r[0]+'</span><span class="kv-v '+r[2]+'">'+r[1]+'</span></div>';}).join('');
+
+  // RSI/MACD badges
+  var rsiV=d.feat.rsi[d.feat.n-1]||50;
+  var rb=E('rsi-badge');if(rb){rb.textContent='RSI: '+rsiV.toFixed(1);rb.className='panel-badge'+(rsiV>70||rsiV<30?' hi':'');rb.style.color=rsiV>70?'var(--r)':rsiV<30?'var(--g)':'';}
+  var mhV=d.feat.mhist[d.feat.n-1]||0;
+  var mb=E('macd-badge');if(mb){mb.textContent=(mhV>=0?'+':'')+mhV.toFixed(6);mb.style.color=mhV>=0?'var(--g)':'var(--r)';}
+
+  // Signal list
+  if(E('sig-cnt'))E('sig-cnt').textContent=(a.sigs||[]).length+' sinyal';
+  if(E('siglist'))E('siglist').innerHTML=(a.sigs||[]).map(function(s){var cls=s.t==='L'?'L':s.t==='S'?'S':'W';return '<div class="sig-item '+cls+'"><div class="sig-top"><div style="display:flex;gap:.22rem;align-items:center"><span class="sig-badge '+cls+'">'+(s.t==='L'?'LONG':s.t==='S'?'SHORT':'BEKLE')+'</span><span class="sig-src">'+s.src+'</span></div><span class="sig-tf2">'+s.tf+'</span></div><div class="sig-desc">'+s.d+'</div></div>';}).join('');
+
+  // Draw charts
+  setTimeout(function(){
+    // Show candle canvas
+    ['c-candle','c-arima-fc','c-vol-chart','c-adx-chart'].forEach(function(id){var el=E(id);if(el)el.style.display='none';});
+    var active=E('c-candle');if(active)active.style.display='block';
+    if(E('chart-title'))E('chart-title').textContent=d.sym+'USDT '+d.tf.toUpperCase()+' — Mum Grafik + BB + SMA (ATR-tabanlı EP/TP/SL)';
+    initCanvases(d);
+    drawCharts(d,'macd');drawCharts(d,'rsi');
+  },80);
+};
+
+// Override drawCharts to handle vol/adx tabs AND macd/rsi
+var _origDrawCharts=drawCharts;
+drawCharts=function(d,tab){
+  if(!d||!d.feat)return;
+  var ch=d.feat;
+  if(tab==='macd'){
+    killC('macd');var N=Math.min(120,ch.n),mhC=ch.mhist.slice(-N),macC=ch.macd.slice(-N),msC=ch.msig.slice(-N);
+    var mc=document.getElementById('c-macd');if(!mc)return;
+    CHARTS['macd']=new Chart(mc.getContext('2d'),{type:'bar',data:{labels:ch.dates.slice(-N),datasets:[{type:'line',data:macC,borderColor:'var(--b)',borderWidth:1.2,pointRadius:0,tension:.3,fill:false},{type:'line',data:msC,borderColor:'var(--a)',borderWidth:1.2,pointRadius:0,tension:.3,fill:false},{type:'bar',data:mhC,backgroundColor:mhC.map(function(v){return v>=0?'rgba(0,230,118,.45)':'rgba(255,82,82,.45)';}),borderColor:mhC.map(function(v){return v>=0?'var(--g)':'var(--r)';}),borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:200},plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'rgba(120,140,180,.5)',font:{size:8,family:'IBM Plex Mono'},maxTicksLimit:6,maxRotation:0}},y:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'rgba(120,140,180,.5)',font:{size:8,family:'IBM Plex Mono'},maxTicksLimit:5}}}}});
+    return;
+  }
+  if(tab==='rsi'){
+    killC('rsi');var N=Math.min(120,ch.n),rsiC=ch.rsi.slice(-N);
+    var rc=document.getElementById('c-rsi');if(!rc)return;
+    CHARTS['rsi']=new Chart(rc.getContext('2d'),{type:'line',data:{labels:ch.dates.slice(-N),datasets:[{data:rsiC,borderColor:'rgba(206,147,216,.8)',borderWidth:1.3,pointRadius:0,fill:false,tension:.3},{data:Array(N).fill(70),borderColor:'rgba(255,82,82,.35)',borderWidth:1,pointRadius:0,borderDash:[3,3],fill:false},{data:Array(N).fill(50),borderColor:'rgba(79,195,247,.2)',borderWidth:1,pointRadius:0,borderDash:[2,4],fill:false},{data:Array(N).fill(30),borderColor:'rgba(0,230,118,.35)',borderWidth:1,pointRadius:0,borderDash:[3,3],fill:false}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:200},plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'rgba(120,140,180,.5)',font:{size:8,family:'IBM Plex Mono'},maxTicksLimit:6,maxRotation:0}},y:{min:0,max:100,grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'rgba(120,140,180,.5)',font:{size:8,family:'IBM Plex Mono'},maxTicksLimit:5}}}}});
+    return;
+  }
+  if(tab==='vol'){
+    killC('vol');var N=Math.min(120,ch.n);var gs=d.garch?d.garch.cvSeries.slice(-N):[];
+    var vc=E('c-vol-chart');if(!vc)return;
+    CHARTS['vol']=new Chart(vc.getContext('2d'),{type:'line',data:{labels:ch.dates.slice(-N),datasets:[{data:gs,borderColor:'var(--a)',borderWidth:1.4,pointRadius:0,fill:true,backgroundColor:'rgba(255,171,64,.06)',tension:.3},{data:Array(N).fill(d.garch?d.garch.lrAnn:0),borderColor:'rgba(0,230,118,.35)',borderWidth:1,borderDash:[5,4],pointRadius:0,fill:false}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:200},plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'rgba(120,140,180,.5)',font:{size:8},maxTicksLimit:6,maxRotation:0}},y:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'rgba(120,140,180,.5)',font:{size:8},maxTicksLimit:5}}}}});
+    if(E('chart-title'))E('chart-title').textContent='GARCH(1,1) Yıllık Volatilite — LV='+(d.garch?d.garch.lrAnn:0)+'%';
+    return;
+  }
+  if(tab==='adx'){
+    killC('adx');var adxR=ch.adx,N=Math.min(100,adxR.adxArr.length);
+    var ac=E('c-adx-chart');if(!ac)return;
+    CHARTS['adx']=new Chart(ac.getContext('2d'),{type:'line',data:{labels:ch.dates.slice(-N),datasets:[{data:adxR.adxArr.slice(-N),label:'ADX',borderColor:'var(--a)',borderWidth:1.5,pointRadius:0},{data:adxR.pdiArr.slice(-N),label:'DI+',borderColor:'var(--g)',borderWidth:1.2,pointRadius:0},{data:adxR.ndiArr.slice(-N),label:'DI-',borderColor:'var(--r)',borderWidth:1.2,pointRadius:0},{data:Array(N).fill(25),borderColor:'rgba(255,171,64,.25)',borderWidth:1,borderDash:[3,4],pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:200},plugins:{legend:{display:true,labels:{color:'rgba(120,140,180,.7)',font:{size:8,family:'IBM Plex Mono'},boxWidth:8}}},scales:{x:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'rgba(120,140,180,.5)',font:{size:8},maxTicksLimit:6,maxRotation:0}},y:{min:0,grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'rgba(120,140,180,.5)',font:{size:8},maxTicksLimit:6}}}}});
+    if(E('chart-title'))E('chart-title').textContent='ADX + DI+/DI- [Chan Ch3]';
+    return;
+  }
+};
+
+// Override renderHist
+renderHist=function(){
+  var c=E('hist-container'),t=E('hist-total');if(!c)return;if(t)t.textContent=HISTORY.length;
+  if(!HISTORY.length){c.innerHTML='<div style="color:var(--txt3);font-size:.65rem;padding:1rem">Sinyal yok.</div>';return;}
+  var h='<div class="hist-row hdr"><div>Zaman</div><div>Sembol</div><div>TF</div><div>Sinyal</div><div>Güven</div><div>Fiyat</div><div>Hedef</div><div>Stop</div></div>';
+  HISTORY.slice(0,200).forEach(function(r){
+    var e=r.verdict==='LONG'?'🟢':r.verdict==='SHORT'?'🔴':'⚪';
+    h+='<div class="hist-row"><div style="color:var(--txt3);font-size:.49rem">'+r.time+'</div><div style="color:var(--g);font-weight:700">'+r.sym+'</div><div style="color:var(--b)">'+r.tf+'</div><div>'+e+' <span style="font-size:.5rem">'+r.sigText+'</span></div><span style="color:'+(r.rel>=80?'var(--g)':r.rel>=65?'var(--b)':r.rel>=50?'var(--a)':'var(--r)')+';font-size:.54rem">'+r.rel+'%</span><div>'+fmtP(r.price)+'</div><div style="color:var(--g)">'+fmtP(r.tp)+'</div><div style="color:var(--r)">'+fmtP(r.sl)+'</div></div>';
+  });
+  c.innerHTML=h;
+};
 
 </script>
 
