@@ -616,19 +616,6 @@ canvas.full{display:block;width:100%;height:100%}
 var CHARTS={},D=null,CTAB='price',SCAN_RES=[],HISTORY=[],AUTO_TIMER=null,AUTO_CD=null,SCANNING=false;
 var CFG={tgToken:'',tgChat:'',tgMinRel:70,tgL:true,tgS:true,tgSum:true,tgAll:false,apiBase:'https://api.binance.com',minVol:5e6,arimaMaxP:5,mlSplit:0.75,atrEP:1.5,atrTP:2.5,atrSL:2.0};
 
-(function(){
-  loadCfg();loadHist();
-  if(!window.__chartOK&&typeof Chart==='undefined'){
-    var w=document.createElement('div');
-    w.style.cssText='position:fixed;bottom:1rem;right:1rem;z-index:9999;background:#0f0a00;border:1px solid #ff6d00;color:#ffab40;font-family:monospace;font-size:.62rem;padding:.55rem .85rem;border-radius:6px;line-height:1.8;max-width:280px';
-    w.innerHTML='<strong>&#9888; Chart.js yuklenmedi</strong><br>Grafik ozellikleri devre disi.<br>Baglantiyi kontrol edin.';
-    document.body.appendChild(w);
-  }
-  var chips=['BTC','ETH','BNB','SOL','XRP','AVAX','LINK','DOT','DOGE','ADA','NEAR','INJ','ARB','OP','WLD'];
-  var el=document.getElementById('quick-chips');
-  if(el)el.innerHTML=chips.map(function(s){return '<span onclick="qd(\''+s+'\')" style="padding:.09rem .38rem;border:1px solid #1a2a3a;border-radius:2px;cursor:pointer;font-size:.6rem;color:#2d4060;transition:all .12s" onmouseover="this.style.cssText=\'padding:.09rem .38rem;border:1px solid #00773d;border-radius:2px;cursor:pointer;font-size:.6rem;color:#00dc6e;transition:all .12s\'" onmouseout="this.style.cssText=\'padding:.09rem .38rem;border:1px solid #1a2a3a;border-radius:2px;cursor:pointer;font-size:.6rem;color:#2d4060;transition:all .12s\'">'+s+'</span>';}).join('');
-  setInterval(function(){var e=document.getElementById('hclock');if(e)e.textContent=new Date().toLocaleTimeString('tr-TR');},1000);
-})();
 
 function E(id){return document.getElementById(id);}
 function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
@@ -1815,6 +1802,20 @@ renderHist=function(){
   c.innerHTML=h;
 };
 
+// ── INIT (runs after all functions defined) ──
+(function(){
+  loadCfg();loadHist();
+  if(!window.__chartOK&&typeof Chart==='undefined'){
+    var w=document.createElement('div');
+    w.style.cssText='position:fixed;bottom:1rem;right:1rem;z-index:9999;background:#0f0a00;border:1px solid #ff6d00;color:#ffab40;font-family:monospace;font-size:.62rem;padding:.55rem .85rem;border-radius:6px;line-height:1.8;max-width:280px';
+    w.innerHTML='<strong>&#9888; Chart.js yuklenmedi</strong><br>Grafik ozellikleri devre disi.<br>Baglantiyi kontrol edin.';
+    document.body.appendChild(w);
+  }
+  var chips=['BTC','ETH','BNB','SOL','XRP','AVAX','LINK','DOT','DOGE','ADA','NEAR','INJ','ARB','OP','WLD'];
+  var el=document.getElementById('quick-chips');
+  if(el)el.innerHTML=chips.map(function(s){return '<span onclick="qd(\''+s+'\')" style="padding:.09rem .38rem;border:1px solid #1a2a3a;border-radius:2px;cursor:pointer;font-size:.6rem;color:#2d4060;transition:all .12s" onmouseover="this.style.cssText=\'padding:.09rem .38rem;border:1px solid #00773d;border-radius:2px;cursor:pointer;font-size:.6rem;color:#00dc6e;transition:all .12s\'" onmouseout="this.style.cssText=\'padding:.09rem .38rem;border:1px solid #1a2a3a;border-radius:2px;cursor:pointer;font-size:.6rem;color:#2d4060;transition:all .12s\'">'+s+'</span>';}).join('');
+  setInterval(function(){var e=document.getElementById('hclock');if(e)e.textContent=new Date().toLocaleTimeString('tr-TR');},1000);
+})();
 </script>
 
 </body>
