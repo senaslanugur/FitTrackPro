@@ -747,17 +747,6 @@ function addHist(c){
   HISTORY.unshift({time:nowFull(),sym:c.sym,tf:c.tf,verdict:c.verdict,sigText:c.sigText,rel:c.rel,price:c.price,ep:c.ep,tp:c.tp,sl:c.sl,rr:c.rr,regime:c.regime});
   saveHist();renderHist();
 }
-function renderHist(){
-  var c=E('hist-container'),t=E('hist-total');
-  if(!c)return;if(t)t.textContent=HISTORY.length;
-  if(!HISTORY.length){c.innerHTML='<div style="color:#2d4060;font-size:.66rem;padding:1rem">Sinyal yok. Tarama başlatın.</div>';return;}
-  var h='<div class="hrow hdr"><div>Zaman</div><div>Sembol</div><div>TF</div><div>Sinyal</div><div>Güven</div><div>Fiyat</div><div>Hedef</div><div>Stop</div></div>';
-  HISTORY.slice(0,200).forEach(function(r){
-    var e2=r.verdict==='LONG'?'🟢':r.verdict==='SHORT'?'🔴':'⚪';
-    h+='<div class="hrow"><div style="color:#1a2a3a;font-size:.52rem">'+r.time+'</div><div style="color:#00dc6e;font-weight:700">'+r.sym+'</div><div style="color:#4dabf7">'+r.tf+'</div><div>'+e2+' <span style="color:#c9d3de;font-size:.55rem">'+r.sigText+'</span></div><span class="'+relCls(r.rel)+'" style="padding:.03rem .22rem;border-radius:2px;font-size:.54rem">'+r.rel+'%</span><div>'+fmtP(r.price)+'</div><div style="color:#00dc6e">'+fmtP(r.tp)+'</div><div style="color:#ff4444">'+fmtP(r.sl)+'</div></div>';
-  });
-  c.innerHTML=h;
-}
 function clearHist(){HISTORY=[];saveHist();renderHist();}
 function exportHist(){
   var csv='Zaman,Sembol,TF,Sinyal,Güven,Fiyat,Giriş,Hedef,Stop,RR,Rejim\n';
@@ -1365,7 +1354,6 @@ async function analyzeCoin(sym,tfOv){
   var cVerdict=sig.verdict.includes('LONG')?'LONG':sig.verdict.includes('SHORT')?'SHORT':'BEKLE';
   var n=klines.length;
   var ch24=n>24?+((cl[n-1]-cl[n-25])/cl[n-25]*100).toFixed(2):0;
-  d.klines=klines;
   return{
     sym,tf,regime:tfInfo.regime,tfReason:tfInfo.reason,hurst:tfInfo.hurst,
     adxInfo:feat.adx,price,atrPct:+atrPctFull.toFixed(2),ch24,
@@ -1373,8 +1361,8 @@ async function analyzeCoin(sym,tfOv){
     volRatio:+(feat.vrat[feat.n-1]||1).toFixed(2),
     verdict:cVerdict,sigCls:sClass,sigText:sText,rel,
     ep:sig.ep,tp:sig.tp,sl:sig.sl,rr:sig.rr,
-    B:sig.B,S:sig.S,Hw:sig.W,
-    analysis:sig,arima,garch,ml,kf,pf,feat,sr,pivots,mtf,
+    B:sig.B,S:sig.S,W:sig.W,
+    analysis:sig,arima,garch,ml,kf,pf,feat,sr,pivots,mtf,klines,
     stats:{adfR:arima?{stat:arima.adfStat,pval:arima.adfPval,stationary:arima.adfOk}:{stat:0,pval:1,stationary:false},archR:archLM(lr,5),hurst:tfInfo.hurst}
   };
 }
@@ -1442,38 +1430,6 @@ function updScanMeta(r){
   if(E('ssht'))E('ssht').textContent=r.filter(function(x){return x.verdict==='SHORT';}).length;
   if(E('sstg'))E('sstg').textContent=r.filter(function(x){return x.rel>=80;}).length;
 }
-function renderScanTable(results,filt,minRel){
-  filt=filt||'all';minRel=minRel||0;
-  var filtered=results.filter(function(r){
-    if(minRel&&r.rel<minRel)return false;
-    if(filt==='long'&&r.verdict!=='LONG')return false;
-    if(filt==='short'&&r.verdict!=='SHORT')return false;
-    if(filt==='strong'&&r.rel<70)return false;
-    if(filt==='vstrong'&&r.rel<80)return false;
-    return true;
-  }).sort(function(a,b){return b.rel-a.rel;});
-  var body=E('scan-body');if(!body)return;
-  if(!filtered.length){body.innerHTML='<div class="scan-load">Filtre kriterine uyan sonuç yok</div>';return;}
-  var maxR=Math.max.apply(null,filtered.map(function(r){return r.rel;}));
-  body.innerHTML=filtered.map(function(r,idx){
-    var barC=r.verdict==='LONG'?'#00dc6e':r.verdict==='SHORT'?'#ff4444':'#2d4060';
-    return '<div class="srow" onclick="drillDown(\''+r.sym+'\',\''+r.tf+'\')">'+
-      '<div class="sr-rk">'+(idx+1)+'</div>'+
-      '<div><div class="sr-sym">'+r.sym+'</div><div class="sr-nm">'+r.regime.split(' (')[0].slice(0,14)+'</div></div>'+
-      '<div class="sr-pr '+pc(r.ch24)+'">'+fmtP(r.price)+'</div>'+
-      '<div class="pct '+pc(r.ch24)+'">'+fmtPct(r.ch24)+'</div>'+
-      '<div class="pct '+(r.rsi>70?'dn':r.rsi<30?'up':'nt')+'">'+r.rsi.toFixed(0)+'</div>'+
-      '<div class="pct '+(r.adx>25?'up':'nt')+'">'+r.adx.toFixed(0)+'</div>'+
-      '<div style="text-align:center"><span class="tpill auto">'+r.tf+'</span></div>'+
-      '<div><div class="bw"><div class="bg3"><div class="bf" style="width:'+(r.rel/maxR*100).toFixed(0)+'%;background:'+barC+'"></div></div><span class="bv '+relCls(r.rel)+'">'+r.rel+'%</span></div></div>'+
-      '<div style="text-align:center"><span class="spl '+r.sigCls+'">'+r.sigText+'</span></div>'+
-      '<div style="text-align:right;font-size:.61rem;color:#00dc6e">'+fmtP(r.ep)+'</div>'+
-      '<div style="text-align:right;font-size:.61rem;color:#ffaa00">'+fmtP(r.tp)+'</div>'+
-      '<div style="text-align:right;font-size:.61rem;color:#ff4444">'+fmtP(r.sl)+'</div>'+
-      '<div style="text-align:right;font-size:.6rem;color:#4dabf7">'+r.rr+':1</div>'+
-    '</div>';
-  }).join('');
-}
 
 // ── DETAIL ────────────────────────────────────────────────────────────────────
 async function drillDown(sym,tf){E('d-sym').value=sym;E('d-tf').value=tf||'auto';nav('detail');if(E('back-btn'))E('back-btn').style.display='flex';await analyzeOne();}
@@ -1496,156 +1452,6 @@ async function analyzeOne(){
 }
 
 // ── RENDER DETAIL ─────────────────────────────────────────────────────────────
-function renderDetail(d){
-  if(!d||!d.analysis||!d.feat)return;
-  var a=d.analysis,g=d.garch,ml=d.ml,pf=d.pf,ar=d.arima,kf=d.kf,sr=d.sr,pivots=d.pivots;
-
-  if(E('d-tf-sel'))E('d-tf-sel').textContent=d.tf.toUpperCase()+' TIMEFRAME';
-  if(E('d-tf-why'))E('d-tf-why').textContent='— '+d.tfReason;
-  if(E('d-regime'))E('d-regime').textContent='Rejim: '+d.regime;
-  if(E('d-hurst'))E('d-hurst').textContent='Hurst H='+d.hurst.toFixed(3);
-  if(E('d-adx'))E('d-adx').textContent='ADX='+d.adxInfo.adx+' · DI+='+d.adxInfo.pdi+' · DI-='+d.adxInfo.ndi;
-
-  // Verdict
-  var vcBar=E('vc0-bar');if(vcBar)vcBar.className='vt vt'+(a.vc==='g'?'g':a.vc==='r'?'r':'a');
-  if(E('vdict')){E('vdict').textContent=a.verdict;E('vdict').className='vd c'+(a.vc==='g'?'g':a.vc==='r'?'r':'a');}
-  if(E('vsub'))E('vsub').textContent=a.vsub;
-  var tot=(a.B+a.S+a.W)||1;
-  if(E('sb-b'))E('sb-b').style.width=(a.B/tot*100)+'%';
-  if(E('sb-h'))E('sb-h').style.width=(a.W/tot*100)+'%';
-  if(E('sb-s'))E('sb-s').style.width=(a.S/tot*100)+'%';
-  if(E('sb-bv'))E('sb-bv').textContent=a.B;
-  if(E('sb-hv'))E('sb-hv').textContent=a.W;
-  if(E('sb-sv'))E('sb-sv').textContent=a.S;
-  var rEl=E('d-rel');if(rEl){rEl.className='rel '+relCls(d.rel);rEl.textContent=relLbl(d.rel)+' Güvenilirlik';}
-  var rChip=E('d-regime-chip');
-  if(rChip){var H=d.hurst;rChip.textContent=H>0.60?'Trend':H<0.42?'Mean-Rev':'RandomWalk';rChip.style.color=H>0.60?'#00dc6e':H<0.42?'#4dabf7':'#ffaa00';}
-
-  // Price levels
-  if(E('pt-now'))E('pt-now').textContent=fmtP(a.price);
-  if(E('pt-ep'))E('pt-ep').textContent=fmtP(a.ep);
-  if(E('pt-tp'))E('pt-tp').textContent=fmtP(a.tp);
-  if(E('pt-sl'))E('pt-sl').textContent=fmtP(a.sl);
-  if(E('pt-rr'))E('pt-rr').textContent=(d.verdict==='LONG'?'📈 LONG':d.verdict==='SHORT'?'📉 SHORT':'⏸ BEKLE')+' · R/R: '+a.rr+':1 · ATR='+fmtP(a.atr)+' ('+d.atrPct+'%)';
-
-  // Kelly
-  if(kf){
-    if(E('kb-f'))E('kb-f').textContent=(kf.f*100).toFixed(2)+'%';
-    if(E('kb-h'))E('kb-h').textContent=(kf.half*100).toFixed(2)+'%';
-    if(E('kb-p'))E('kb-p').textContent='$'+(10000*Math.min(Math.abs(kf.half),1)).toFixed(0);
-    if(E('kb-mu'))E('kb-mu').textContent=kf.annMu+'%/yıl';
-  }
-
-  // ARIMA
-  if(ar){
-    if(E('d-arima-model'))E('d-arima-model').textContent='ARIMA('+ar.p+','+ar.d+',0) AIC seçimi · σ²='+ar.sigma2.toExponential(3);
-    setFC('fc5',a.fc5,a.c5);setFC('fc10',a.fc10,a.c10);setFC('fc21',a.fc21,a.c21);
-    if(E('fc21-ci')&&a.fc21u&&a.fc21l)E('fc21-ci').textContent='['+fmtP(a.fc21l)+' — '+fmtP(a.fc21u)+']';
-    if(E('d-adf')){E('d-adf').textContent='τ='+ar.adfStat+' (p≈'+ar.adfPval+')';E('d-adf').className='fcv '+(ar.adfOk?'up':'nt');}
-    if(E('d-lb')){E('d-lb').textContent='Q='+ar.lbQ+' p='+ar.lbPval+(ar.residWN?' ✓':' ✗ otokor');E('d-lb').className='fcv '+(ar.residWN?'up':'a');}
-  }
-
-  // GARCH
-  if(g){
-    if(E('g-curr')){E('g-curr').textContent=g.currAnn.toFixed(2)+'%/yıl';E('g-curr').className='vd '+(g.currAnn>60?'cr':g.currAnn>30?'ca':'cg');}
-    if(E('g-lbl'))E('g-lbl').textContent=g.currAnn>60?'⚠ Aşırı Risk Volatilitesi':g.currAnn>30?'↑ Yüksek Volatilite':'✓ Normal Volatilite';
-    var gBar=E('g-bar');if(gBar)gBar.className='vt '+(g.currAnn>60?'vtr':g.currAnn>30?'vta':'vtg');
-    if(E('g-lv'))E('g-lv').textContent=g.lrAnn.toFixed(2)+'%/yıl';
-    if(E('g-rat'))E('g-rat').textContent=g.ratio+'x';
-    if(E('g-ps'))E('g-ps').textContent=g.persist+' '+(g.persist>0.95?'⚠':'✓');
-    if(E('g-var'))E('g-var').textContent=g.var99.toFixed(3)+'%/gün';
-    if(E('g-a'))E('g-a').textContent=g.alpha;
-    if(E('g-b'))E('g-b').textContent=g.beta;
-  }
-
-  // S/R Levels
-  var srDiv=E('sr-levels');
-  if(srDiv&&sr){
-    var srHtml='';
-    var price=a.price;
-    if(sr.R&&sr.R.length)sr.R.slice(0,3).reverse().forEach(function(r){
-      var pct=((r-price)/price*100).toFixed(1);
-      srHtml+='<div class="srl srl-r"><span class="srlk">DİRENÇ</span><span class="srlv cr">'+fmtP(r)+'</span><span class="srlp up">+'+pct+'%</span></div>';
-    });
-    srHtml+='<div class="srl srl-c"><span class="srlk">ŞU AN</span><span class="srlv cb">'+fmtP(price)+'</span><span class="srlp" style="color:#4dabf7">—</span></div>';
-    if(sr.S&&sr.S.length)sr.S.slice(-3).reverse().forEach(function(s){
-      var pct=((price-s)/price*100).toFixed(1);
-      srHtml+='<div class="srl srl-s"><span class="srlk">DESTEK</span><span class="srlv cg">'+fmtP(s)+'</span><span class="srlp dn">-'+pct+'%</span></div>';
-    });
-    srDiv.innerHTML=srHtml;
-    var srCnt=E('sr-cnt');if(srCnt)srCnt.textContent=(sr.R?sr.R.length:0)+' Dir · '+(sr.S?sr.S.length:0)+' Des';
-  }
-
-  // Pivot grid
-  if(pivots){
-    var pvEl=E('pivot-grid');
-    if(pvEl){
-      pvEl.innerHTML=[
-        {k:'R3',v:pivots.R3,c:'cr'},{k:'R2',v:pivots.R2,c:'cr'},{k:'R1',v:pivots.R1,c:'ca'},{k:'PP',v:pivots.P,c:'cb'},
-        {k:'S1',v:pivots.S1,c:'cg'},{k:'S2',v:pivots.S2,c:'cg'},{k:'S3',v:pivots.S3,c:'cg'}
-      ].map(function(p){return '<div class="pvt"><div class="pvtk">'+p.k+'</div><div class="pvtv '+p.c+'">'+fmtP(p.v)+'</div></div>';}).join('');
-    }
-  }
-
-  // ML Ring
-  var up=ml.up||0.5;
-  var rfEl=E('ml-rf');if(rfEl){rfEl.style.strokeDashoffset=251.33*(1-up);rfEl.style.stroke=up>0.55?'#00dc6e':up<0.45?'#ff4444':'#ffaa00';}
-  if(E('ml-pct')){E('ml-pct').textContent=Math.round(up*100)+'%';E('ml-pct').style.color=up>0.55?'#00dc6e':up<0.45?'#ff4444':'#ffaa00';}
-  if(E('ml-dir'))E('ml-dir').textContent=ml.dir;
-  if(E('ml-conf'))E('ml-conf').textContent='Güven: '+ml.conf;
-  if(E('ml-best'))E('ml-best').textContent=ml.best||'—';
-  var maxSc=Math.max.apply(null,Object.values(ml.scores||{}).concat([0.5]));
-  if(E('ml-bars'))E('ml-bars').innerHTML=Object.entries(ml.scores||{}).map(function(e){
-    return '<div class="mlbar"><span class="mlbl">'+e[0]+'</span><div class="mlbt"><div class="mlbf" style="width:'+(maxSc>0?e[1]/maxSc*100:50).toFixed(0)+'%"></div></div><span class="mlbv">'+(e[1]*100).toFixed(1)+'%</span></div>';
-  }).join('');
-
-  // Stats grid
-  var st=d.stats;
-  if(E('sg-stat'))E('sg-stat').innerHTML=[
-    ['ADF τ',st.adfR.stat,st.adfR.stationary?'g':'a'],
-    ['ADF Duruğ.',st.adfR.stationary?'Durağan ✓':'BRK ✗',st.adfR.stationary?'g':'r'],
-    ['Ljung-Box Q',ar?ar.lbQ:'—',ar&&ar.residWN?'g':'a'],
-    ['Artık WN',ar?(ar.residWN?'✓ Beyaz':'✗ Otokor'):'—',ar&&ar.residWN?'g':'r'],
-    ['ARCH-LM p',st.archR.pval,st.archR.hasArch?'a':'g'],
-    ['ARCH Etkisi',st.archR.hasArch?'Var ✓':'Yok',st.archR.hasArch?'a':'g'],
-    ['Hurst H',d.hurst.toFixed(3),d.hurst>0.60?'g':d.hurst<0.42?'b':'a'],
-    ['Rejim',d.hurst>0.60?'Trend':d.hurst<0.42?'Mean-Rev':'RandWalk',d.hurst>0.60?'g':d.hurst<0.42?'b':'a'],
-    ['ADX',d.adxInfo.adx,d.adxInfo.adx>25?'g':d.adxInfo.adx>15?'a':'r'],
-    ['DI+ / DI-',d.adxInfo.pdi+' / '+d.adxInfo.ndi,d.adxInfo.bullTrend?'g':'r'],
-    ['Güvenilirlik',relLbl(d.rel),d.rel>=80?'g':d.rel>=65?'b':d.rel>=50?'a':'r'],
-    ['OBV Trend',d.feat.obv&&d.feat.obv[d.feat.n-1]>d.feat.obvEma[d.feat.n-1]?'↑ Yukarı':'↓ Aşağı',d.feat.obv&&d.feat.obv[d.feat.n-1]>d.feat.obvEma[d.feat.n-1]?'g':'r'],
-  ].map(function(r){return '<div class="sr2"><span class="sk">'+r[0]+'</span><span class="sv '+r[2]+'">'+r[1]+'</span></div>';}).join('');
-
-  if(pf&&pf.sharpe!==undefined&&E('sg-perf'))E('sg-perf').innerHTML=[
-    ['Yıllık Getiri',(pf.annR*100).toFixed(1)+'%',pf.annR>0?'g':'r'],
-    ['Yıllık Vol',(pf.annV*100).toFixed(1)+'%','a'],
-    ['Sharpe',pf.sharpe.toFixed(3),pf.sharpe>1?'g':pf.sharpe>0.5?'b':'r'],
-    ['Max Drawdown',(pf.mdd*100).toFixed(1)+'%','r'],
-    ['Calmar',pf.calmar.toFixed(3),pf.calmar>1?'g':'a'],
-    ['½-Kelly',(kf?(kf.half*100):0).toFixed(2)+'%',kf&&kf.half>0?'g':'a'],
-    ['VaR %95',(pf.var95*100).toFixed(2)+'%','r'],
-    ['CVaR %95',(pf.cvar95*100).toFixed(2)+'%','r'],
-    ['Win Oranı',(pf.win*100).toFixed(1)+'%',pf.win>0.5?'g':'a'],
-    ['Bar Sayısı',pf.n,'b'],
-  ].map(function(r){return '<div class="sr2"><span class="sk">'+r[0]+'</span><span class="sv '+r[2]+'">'+r[1]+'</span></div>';}).join('');
-
-  // RSI badge
-  var rsiV=d.feat.rsi[d.feat.n-1]||50;
-  var rb=E('rsi-badge');if(rb){rb.textContent='RSI: '+rsiV.toFixed(1);rb.className='pnbg'+(rsiV>70||rsiV<30?' hi':'');rb.style.color=rsiV>70?'#ff4444':rsiV<30?'#00dc6e':'';}
-  var mhV=d.feat.mhist[d.feat.n-1]||0;
-  var mb=E('macd-badge');if(mb){mb.textContent=(mhV>=0?'+':'')+mhV.toFixed(6);mb.style.color=mhV>=0?'#00dc6e':'#ff4444';}
-
-  // Signal list
-  if(E('sig-cnt'))E('sig-cnt').textContent=(a.sigs||[]).length+' sinyal';
-  if(E('siglist'))E('siglist').innerHTML=(a.sigs||[]).map(function(s){
-    var cls=s.t==='L'?'L':s.t==='S'?'S':'W';
-    var lbl=s.t==='L'?'LONG':s.t==='S'?'SHORT':'BEKLE';
-    return '<div class="si '+cls+'"><div class="sih"><div style="display:flex;gap:.24rem;align-items:center"><span class="sit '+cls+'">'+lbl+'</span><span class="sisrc">'+s.src+'</span></div><span class="sitf">'+s.tf+'</span></div><div class="sid">'+s.d+'</div></div>';
-  }).join('');
-
-  drawCharts(d,CTAB);
-  setTimeout(function(){initCanvases(d);},50);
-}
 function setFC(id,val,pct){
   var e=E(id);if(!e)return;
   if(!val||!isFinite(val)){e.textContent='—';e.className='fcv nt';return;}
@@ -1668,73 +1474,6 @@ function bOpts(ex){return Object.assign({responsive:true,maintainAspectRatio:fal
 function ln(lb,data,color,bw,ex){return Object.assign({type:'line',label:lb,data:data,borderColor:color,borderWidth:bw||1.4,pointRadius:0,fill:false,tension:.2},ex||{});}
 function fl(lb,data,bg,ex){return Object.assign({type:'line',label:lb,data:data,borderWidth:1,pointRadius:0,tension:.2,fill:true,backgroundColor:bg},ex||{});}
 
-function setChTab(t,btn){CTAB=t;document.querySelectorAll('.ctab').forEach(function(b){b.classList.remove('on');});btn.classList.add('on');if(D)drawCharts(D,t);}
-
-function drawCharts(d,tab){
-  if(!d||!d.feat)return;
-  if(typeof Chart==='undefined')return;
-  var ch=d.feat,a=d.analysis;
-  var N=Math.min(150,ch.n),labels=ch.dates.slice(-N),closes=ch.cl.slice(-N);
-
-  killC('price');
-  var ctx=document.getElementById('c-price');if(!ctx)return;ctx=ctx.getContext('2d');
-  var ds;
-  if(tab==='arima'){
-    var ar2=d.arima||{fc:[],u95:[],l95:[],p:1,d:0};
-    var xL=[];for(var i=1;i<=21;i++)xL.push('+'+i);
-    var allL=[...labels,...xL];
-    ds=[ln('Fiyat',[...closes,...Array(21).fill(null)],'#4dabf7',1.5),
-        ln('ARIMA',[...Array(labels.length).fill(null),...(ar2.fc||[]).slice(0,21)],'#00dc6e',2,{borderDash:[5,3]}),
-        ln('CI Üst',[...Array(labels.length).fill(null),...(ar2.u95||[]).slice(0,21)],'rgba(0,220,110,.3)',1,{borderDash:[2,4]}),
-        fl('CI Alt',[...Array(labels.length).fill(null),...(ar2.l95||[]).slice(0,21)],'rgba(0,220,110,.04)',{borderColor:'rgba(0,220,110,.15)',fill:'+1'})];
-    if(E('chart-title'))E('chart-title').textContent='ARIMA AR('+ar2.p+','+ar2.d+',0) — 21 Bar Öngörü + %95 GA [T Ch2.4]';
-    CHARTS['price']=mkChart(ctx,{type:'line',data:{labels:allL,datasets:ds},options:{...bOpts(),plugins:{legend:{display:true,labels:{color:'#2d4060',font:{size:8,family:'Space Mono'},boxWidth:9}}},scales:{x:xAx(),y:yAx()}}});
-  }else if(tab==='vol'){
-    var gN=Math.min(120,ch.n),gs=d.garch?d.garch.cvSeries.slice(-gN):[];
-    ds=[fl('GARCH σt',gs,'rgba(255,170,0,.08)',{borderColor:'#ffaa00',borderWidth:1.4}),
-        ln('LV',Array(gN).fill(d.garch?d.garch.lrAnn:0),'rgba(0,220,110,.4)',1,{borderDash:[5,4]})];
-    if(E('chart-title'))E('chart-title').textContent='GARCH(1,1) Yıllık Volatilite — LV='+((d.garch&&d.garch.lrAnn)||0)+'% [T Ch3.5]';
-    CHARTS['price']=mkChart(ctx,{type:'line',data:{labels:ch.dates.slice(-gN),datasets:ds},options:{...bOpts(),plugins:{legend:{display:true,labels:{color:'#2d4060',font:{size:8},boxWidth:9}}},scales:{x:xAx(),y:yAx()}}});
-  }else if(tab==='adx'){
-    var adxR2=ch.adx,adxN=Math.min(100,adxR2.adxArr.length),adxL=ch.dates.slice(-adxN);
-    ds=[ln('ADX',adxR2.adxArr.slice(-adxN),'#ffaa00',1.5),
-        ln('DI+',adxR2.pdiArr.slice(-adxN),'#00dc6e',1.2),
-        ln('DI-',adxR2.ndiArr.slice(-adxN),'#ff4444',1.2),
-        ln('20',Array(adxN).fill(20),'rgba(255,170,0,.25)',1,{borderDash:[3,4]})];
-    if(E('chart-title'))E('chart-title').textContent='ADX + DI+ / DI- [Chan Ch3] — Trend Gücü ve Yön';
-    CHARTS['price']=mkChart(ctx,{type:'line',data:{labels:adxL,datasets:ds},options:{...bOpts(),plugins:{legend:{display:true,labels:{color:'#2d4060',font:{size:8},boxWidth:9}}},scales:{x:xAx(),y:yAx({min:0})}}});
-  }else{
-    ds=[ln('Fiyat',closes,'#4dabf7',1.5),
-        ln('SMA9',ch.sma9.slice(-N),'rgba(0,220,110,.4)',1),
-        ln('SMA20',ch.sma20.slice(-N),'#00dc6e',1.1,{borderDash:[3,2]}),
-        ln('SMA50',ch.sma50.slice(-N),'#ffaa00',1.1,{borderDash:[4,2]}),
-        fl('BB Üst',ch.bbu.slice(-N),'rgba(77,171,247,.03)',{borderColor:'rgba(77,171,247,.22)',borderWidth:1}),
-        fl('BB Alt',ch.bbl.slice(-N),'transparent',{borderColor:'rgba(77,171,247,.22)',borderWidth:1,fill:'+1'})];
-    if(E('chart-title'))E('chart-title').textContent=d.sym+'USDT '+d.tf.toUpperCase()+' — Fiyat + Bollinger + SMA 9/20/50';
-    CHARTS['price']=mkChart(ctx,{type:'line',data:{labels,datasets:ds},options:{...bOpts(),scales:{x:xAx(),y:yAx()}}});
-  }
-
-  killC('macd');
-  var mN=Math.min(N,ch.mhist.length),mhC=ch.mhist.slice(-mN),macC=ch.macd.slice(-mN),msC=ch.msig.slice(-mN);
-  var mc=document.getElementById('c-macd');if(mc){
-    CHARTS['macd']=mkChart(mc.getContext('2d'),{type:'bar',data:{labels:labels.slice(-mN),datasets:[
-      {type:'line',data:macC,borderColor:'#4dabf7',borderWidth:1.2,pointRadius:0,tension:.3,fill:false},
-      {type:'line',data:msC,borderColor:'#ffaa00',borderWidth:1.2,pointRadius:0,tension:.3,fill:false},
-      {type:'bar',data:mhC,backgroundColor:mhC.map(function(v){return v>=0?'rgba(0,220,110,.5)':'rgba(255,68,68,.5)';}),borderColor:mhC.map(function(v){return v>=0?'#00dc6e':'#ff4444';}),borderWidth:1}
-    ]},options:{...bOpts(),scales:{x:xAx(),y:yAx()}}});
-  }
-
-  killC('rsi');
-  var rc=document.getElementById('c-rsi');if(rc){
-    var rsiC=ch.rsi.slice(-N);
-    CHARTS['rsi']=mkChart(rc.getContext('2d'),{type:'line',data:{labels,datasets:[
-      {data:rsiC,borderColor:'#bb86fc',borderWidth:1.3,pointRadius:0,fill:false,tension:.3},
-      {data:Array(N).fill(70),borderColor:'rgba(255,68,68,.4)',borderWidth:1,pointRadius:0,borderDash:[3,3],fill:false},
-      {data:Array(N).fill(50),borderColor:'rgba(77,171,247,.2)',borderWidth:1,pointRadius:0,borderDash:[2,4],fill:false},
-      {data:Array(N).fill(30),borderColor:'rgba(0,220,110,.4)',borderWidth:1,pointRadius:0,borderDash:[3,3],fill:false}
-    ]},options:{...bOpts(),scales:{x:xAx(),y:yAx({min:0,max:100})}}});
-  }
-}
 
 
 var TF_MINS={'1m':1,'3m':3,'5m':5,'15m':15,'30m':30,'1h':60,'2h':120,'4h':240,'6h':360,'12h':720,'1d':1440,'3d':4320,'1w':10080};
