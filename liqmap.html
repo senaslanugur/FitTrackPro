@@ -492,11 +492,11 @@ function renderLiq(){
   var html="";
   for(i=0;i<Math.min(liqs.length,35);i++){
     var l=liqs[i],isL=l.side==="SELL";
-    html+="<div class="lrow"><span class="lside "+(isL?"llong":"lshort")+"">"+(isL?"LONG LIK.":"SHORT LIK.")+"</span>"+
-      "<span style="color:var(--t3);font-size:9px">"+l.sym.replace("USDT","")+"</span>"+
-      "<span style="color:var(--t2)">$"+fp(l.price)+"</span>"+
-      "<span style="color:var(--t3)">$"+fmtK(l.usd)+"</span>"+
-      "<span style="color:var(--t3)">"+ago(l.ts)+"</span></div>";
+    html+='<div class="lrow"><span class="lside '+(isL?'llong':'lshort')+'">'+(isL?'LONG LIK.':'SHORT LIK.')+'</span>'+
+      '<span style="color:var(--t3);font-size:9px">'+l.sym.replace('USDT','')+'</span>'+
+      '<span style="color:var(--t2)">$'+fp(l.price)+'</span>'+
+      '<span style="color:var(--t3)">$'+fmtK(l.usd)+'</span>'+
+      '<span style="color:var(--t3)">'+ago(l.ts)+'</span></div>';
   }
   g("liqlist").innerHTML=html;
 }
@@ -506,9 +506,9 @@ function updTick(){
     for(i=0;i<TSYMS.length;i++){
       var s=TSYMS[i],t=tmap[s];if(!t)continue;
       var ch=parseFloat(t.priceChangePercent);
-      html+="<div class="ti" onclick="window._loadSym('"+s+"')"><span class="tsym">"+s.replace("USDT","")+"</span>"+
-        "<span class="tpr">"+fp(parseFloat(t.lastPrice))+"</span>"+
-        "<span class="tch "+(ch>=0?"up":"dn")+"">"+(ch>=0?"+":"")+ch.toFixed(2)+"%</span></div>";
+      html+='<div class="ti" onclick="window._loadSym(\''+ s +'\')"><span class="tsym">'+s.replace('USDT','')+'</span>'+
+        '<span class="tpr">'+fp(parseFloat(t.lastPrice))+'</span>'+
+        '<span class="tch '+(ch>=0?'up':'dn')+'">'+(ch>=0?'+':'')+ch.toFixed(2)+'%</span></div>';
     }
     g("ts").innerHTML=html;
   });
@@ -522,10 +522,10 @@ si2.addEventListener("input",function(){
   var html="";
   for(i=0;i<m.length;i++){
     var sym=m[i],t=tmap[sym.sym],ps=t?fp(parseFloat(t.lastPrice)):"...",ch=t?parseFloat(t.priceChangePercent):0;
-    html+="<div class="sg" onclick="window._loadSym('"+sym.sym+"')">"+
-      "<span style="color:var(--t2)">"+sym.base+" <span style="color:var(--t3);font-size:10px">/USDT PERP</span></span>"+
-      "<span style="color:var(--t3);font-size:11px">"+ps+"</span>"+
-      "<span class=""+(ch>=0?"up":"dn")+"" style="font-size:10px">"+(t?(ch>=0?"+":"")+ch.toFixed(2)+"%":"")+"</span></div>";
+    html+='<div class="sg" onclick="window._loadSym(\''+ sym.sym +'\')">'+
+      '<span style="color:var(--t2)">'+sym.base+' <span style="color:var(--t3);font-size:10px">/USDT PERP</span></span>'+
+      '<span style="color:var(--t3);font-size:11px">'+ps+'</span>'+
+      '<span class="'+(ch>=0?'up':'dn')+'" style="font-size:10px">'+(t?(ch>=0?'+':'')+ch.toFixed(2)+'%':'')+'</span></div>';
   }
   sug2.innerHTML=html;sug2.classList.add("show");
 });
