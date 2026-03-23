@@ -187,11 +187,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text2);fo
   </div>
 </div>
 <script>
-/* ═══════════════════════════════════════════════════════════════════════
-   LIQMAP — Full Trading Signal System
+/* =======================================================================
+   LIQMAP -- Full Trading Signal System
    Binance Futures Public APIs (no key required)
-   fapi.binance.com · fstream.binance.com
-   ═══════════════════════════════════════════════════════════════════════ */
+   fapi.binance.com . fstream.binance.com
+   ======================================================================= */
 
 const FAPI    = ‘https://fapi.binance.com’;
 const WS_BASE = ‘wss://fstream.binance.com/stream’;
@@ -199,7 +199,7 @@ const TICKER_SYMS = [‘BTCUSDT’,‘ETHUSDT’,‘SOLUSDT’,‘BNBUSDT’,‘
 const MAX_COLS    = 180;
 const OB_DEPTH    = 100;
 
-// ── Global state ─────────────────────────────────────────────────────────────
+// – Global state ———————————————————––
 let currentSymbol = ‘BTCUSDT’;
 let allSymbols    = [];
 let currentWS     = null;
@@ -220,10 +220,10 @@ let oiHistory     = [];
 let liqScore60s   = 0;
 let rafId         = 0;
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// – Helpers —————————————————————––
 const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
 const fmtK = n => {
-if(!n && n!==0) return ‘—’;
+if(!n && n!==0) return ‘–’;
 const a = Math.abs(n);
 if(a>=1e9) return (n/1e9).toFixed(2)+‘B’;
 if(a>=1e6) return (n/1e6).toFixed(2)+‘M’;
@@ -236,7 +236,7 @@ if(s<60) return s+‘s’;
 return Math.round(s/60)+‘m’;
 };
 function formatPrice(p, sym) {
-if(!p) return ‘—’;
+if(!p) return ‘–’;
 if(p>=10000) return p.toLocaleString(‘en-US’,{minimumFractionDigits:1,maximumFractionDigits:1});
 if(p>=100)   return p.toLocaleString(‘en-US’,{minimumFractionDigits:2,maximumFractionDigits:2});
 if(p>=1)     return p.toLocaleString(‘en-US’,{minimumFractionDigits:3,maximumFractionDigits:3});
@@ -248,7 +248,7 @@ if(p>50000) return 150; if(p>10000) return 50; if(p>1000) return 5;
 if(p>100)  return 0.5;  if(p>10)   return 0.05; return 0.001;
 }
 
-// ── Color scale (navy→teal→green→yellow→orange) ───────────────────────────────
+// – Color scale (navy-teal-green-yellow-orange) —————————––
 const CS = [
 {at:0.00,r:5,g:8,b:15},{at:0.12,r:10,g:20,b:60},{at:0.28,r:15,g:55,b:150},
 {at:0.45,r:20,g:140,b:180},{at:0.62,r:40,g:200,b:80},{at:0.80,r:255,g:190,b:0},
@@ -265,7 +265,7 @@ return [Math.round(p.r+t*(c.r-p.r)),Math.round(p.g+t*(c.g-p.g)),Math.round(p.b+t
 return [CS[CS.length-1].r,CS[CS.length-1].g,CS[CS.length-1].b];
 }
 
-// ── REST fetchers ─────────────────────────────────────────────────────────────
+// – REST fetchers ———————————————————––
 async function fetchExchangeInfo() {
 try {
 const r = await fetch(`${FAPI}/fapi/v1/exchangeInfo`);
@@ -343,7 +343,7 @@ return await r.json();
 } catch(e){return [];}
 }
 
-// ── Symbol bar ────────────────────────────────────────────────────────────────
+// – Symbol bar ––––––––––––––––––––––––––––––––
 function updateSymbolBar(d) {
 const price = parseFloat(d.lastPrice);
 const chg   = parseFloat(d.priceChangePercent);
@@ -355,7 +355,7 @@ document.getElementById(‘sym-high’).textContent   = formatPrice(parseFloat(d
 document.getElementById(‘sym-low’).textContent    = formatPrice(parseFloat(d.lowPrice),currentSymbol);
 }
 
-// ── WebSocket ─────────────────────────────────────────────────────────────────
+// – WebSocket —————————————————————–
 function connectWS(symbol) {
 if(currentWS){currentWS.close();currentWS=null;}
 const s  = symbol.toLowerCase();
@@ -373,14 +373,14 @@ else if(strm.includes(’@forceOrder’)) handleForceOrder(d);
 else if(strm.includes(’@markPrice’))  handleMarkPrice(d);
 };
 ws.onerror  = ()=>setConn(‘error’,‘HATA’);
-ws.onclose  = ()=>{ setConn(’’,‘YENİDEN BAĞLANIYOR’); setTimeout(()=>connectWS(symbol),3000); };
+ws.onclose  = ()=>{ setConn(’’,‘YEN\u0130DEN BA\u011eLANIYOR’); setTimeout(()=>connectWS(symbol),3000); };
 }
 function setConn(cls,txt){
 document.getElementById(‘conn-dot’).className=cls;
 document.getElementById(‘conn-label’).textContent=txt;
 }
 
-// ── Depth update ─────────────────────────────────────────────────────────────
+// – Depth update ———————————————————––
 function handleDepth(data) {
 if(!obSnapshot) return;
 if(data.u<=orderBook.lastUpdateId) return;
@@ -402,7 +402,7 @@ heatMatrix.push({ts,bidBins,askBins});
 if(heatMatrix.length>MAX_COLS) heatMatrix.shift();
 }
 
-// ── AggTrade (CVD) ────────────────────────────────────────────────────────────
+// – AggTrade (CVD) ————————————————————
 function handleTrade(data) {
 const qty   = parseFloat(data.q);
 const delta = data.m ? -qty : qty;
@@ -418,7 +418,7 @@ if(klines1m.length>0){klines1m[klines1m.length-1].c=currentPrice;closes1m[closes
 document.getElementById(‘sym-price’).textContent = formatPrice(currentPrice,currentSymbol);
 }
 
-// ── Force order (liquidation) ─────────────────────────────────────────────────
+// – Force order (liquidation) ———————————————––
 function handleForceOrder(data) {
 const o = data.o;
 const liq={symbol:o.s,side:o.S,price:parseFloat(o.p),qty:parseFloat(o.q),usd:parseFloat(o.p)*parseFloat(o.q),ts:o.T};
@@ -428,7 +428,7 @@ updateLiqScore();
 renderLiqList();
 }
 
-// ── Mark price ────────────────────────────────────────────────────────────────
+// – Mark price ––––––––––––––––––––––––––––––––
 function handleMarkPrice(data) {
 if(data.r===undefined) return;
 fundingRate = parseFloat(data.r);
@@ -438,10 +438,10 @@ el.textContent = (fundingRate>=0?’+’:’’)+pct+’%’;
 el.className   = ‘sv’+(fundingRate>0.0001?’ up’:fundingRate<-0.00005?’ down’:’’);
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ===============================================================================
 //  SIGNAL ENGINE
-//  7 factors → weighted composite → LONG / SHORT / BEKLE
-// ═══════════════════════════════════════════════════════════════════════════════
+//  7 factors - weighted composite - LONG / SHORT / BEKLE
+// ===============================================================================
 
 /* Factor 1: Order Book Imbalance (OBI)
 Measures bid vs ask volume in top 20 price levels from current price.
@@ -475,7 +475,7 @@ return clamp(slope/range,-1,1);
 
 /* Factor 3: RSI-14
 Classic RSI on 1m closes. Contrarian at extremes.
-<30 oversold → bullish, >70 overbought → bearish                         */
+<30 oversold - bullish, >70 overbought - bearish                         */
 function calcRSI14() {
 if(closes1m.length<15) return null;
 const data = closes1m.slice(-30);
@@ -503,7 +503,7 @@ return -1.0;
 }
 
 /* Factor 4: EMA Crossover (9/21 on 1m closes)
-EMA9>EMA21 → uptrend (bullish), EMA9<EMA21 → downtrend (bearish)         */
+EMA9>EMA21 - uptrend (bullish), EMA9<EMA21 - downtrend (bearish)         */
 function calcEMA(arr,p) {
 if(arr.length<p) return null;
 const k = 2/(p+1);
@@ -519,9 +519,9 @@ return clamp((e9-e21)/e21*300,-1,1);
 }
 
 /* Factor 5: Open Interest trend
-OI rising + price rising  → longs entering → bullish
-OI rising + price falling → shorts entering → bearish
-OI falling → uncertainty → weak signal                                    */
+OI rising + price rising  - longs entering - bullish
+OI rising + price falling - shorts entering - bearish
+OI falling - uncertainty - weak signal                                    */
 function calcOIScore() {
 if(oiHistory.length<4) return 0;
 const old   = oiHistory[Math.max(0,oiHistory.length-6)];
@@ -534,16 +534,16 @@ return pctCh*10;
 }
 
 /* Factor 6: Funding rate (contrarian signal)
-Extremely positive → market too long → short bias
-Extremely negative → market too short → long bias                         */
+Extremely positive - market too long - short bias
+Extremely negative - market too short - long bias                         */
 function calcFundScore() {
 if(Math.abs(fundingRate)<0.0001) return 0;
 return -clamp(fundingRate/0.0008,-1,1);
 }
 
 /* Factor 7: Liquidation pressure (last 60 seconds)
-Large short liquidations (forced buys) → price ran up → contrarian short
-Large long liquidations (forced sells) → price crashed → contrarian long  */
+Large short liquidations (forced buys) - price ran up - contrarian short
+Large long liquidations (forced sells) - price crashed - contrarian long  */
 function updateLiqScore() {
 const since   = Date.now()-60000;
 const recent  = liquidations.filter(l=>l.ts>since);
@@ -554,7 +554,7 @@ if(total<5000){liqScore60s=0;return;}
 liqScore60s = clamp((shortL-longL)/total*1.5,-1,1);
 }
 
-// ── Composite signal ──────────────────────────────────────────────────────────
+// – Composite signal –––––––––––––––––––––––––––––
 function computeSignal() {
 const obi   = calcOBI();
 const obiSc = obi.score;
@@ -612,7 +612,7 @@ function updateVerdictUI(verdict,cls,score,conf,rsi,levels) {
 const vl = document.getElementById(‘verdict-label’);
 vl.textContent = verdict; vl.className = cls;
 const ss = score>=0?’+’:’’;
-document.getElementById(‘verdict-sub’).textContent = `Skor: ${ss}${(score*100).toFixed(1)} · RSI: ${rsi?rsi.toFixed(1):'—'}`;
+document.getElementById(‘verdict-sub’).textContent = `Skor: ${ss}${(score*100).toFixed(1)} . RSI: ${rsi?rsi.toFixed(1):'--'}`;
 const cb = document.getElementById(‘confidence-bar’);
 cb.style.width      = conf+’%’;
 cb.style.background = cls===‘long’?‘var(–long)’:cls===‘short’?‘var(–short)’:‘var(–neutral)’;
@@ -622,7 +622,7 @@ document.getElementById(‘level-entry’).textContent = formatPrice(levels.entr
 document.getElementById(‘level-sl’).textContent    = formatPrice(levels.sl,currentSymbol);
 document.getElementById(‘level-tp’).textContent    = formatPrice(levels.tp,currentSymbol);
 } else {
-[‘level-entry’,‘level-sl’,‘level-tp’].forEach(id=>document.getElementById(id).textContent=’—’);
+[‘level-entry’,‘level-sl’,‘level-tp’].forEach(id=>document.getElementById(id).textContent=’–’);
 }
 }
 
@@ -648,7 +648,7 @@ val.style.color=‘var(–short)’;val.textContent=(sc*100).toFixed(0);
 });
 }
 
-// ── Heatmap Renderer (Canvas2D putImageData) ──────────────────────────────────
+// – Heatmap Renderer (Canvas2D putImageData) –––––––––––––––––
 function renderHeatmap() {
 const canvas = document.getElementById(‘heatmap-canvas’);
 const cont   = document.getElementById(‘canvas-container’);
@@ -744,7 +744,7 @@ return `<div>${formatPrice(p,currentSymbol)}</div>`;
 }).join(’’);
 }
 
-// ── CVD Chart ─────────────────────────────────────────────────────────────────
+// – CVD Chart —————————————————————–
 function renderCVD() {
 const canvas=document.getElementById(‘cvd-canvas’);
 const par=canvas.parentElement;
@@ -779,7 +779,7 @@ data.forEach((d,i)=>i===0?ctx.moveTo(toX(i),toY(d.v)):ctx.lineTo(toX(i),toY(d.v)
 ctx.stroke();
 }
 
-// ── Order Book Side Chart ─────────────────────────────────────────────────────
+// – Order Book Side Chart —————————————————–
 function renderOBChart() {
 const canvas=document.getElementById(‘ob-canvas’);
 const W=290, H=110;
@@ -840,7 +840,7 @@ obEl.textContent=`BID ${(rat*100).toFixed(1)}% / ASK ${((1-rat)*100).toFixed(1)}
 obEl.style.color=rat>0.55?‘var(–long)’:rat<0.45?‘var(–short)’:‘var(–text3)’;
 }
 
-// ── Liq list ──────────────────────────────────────────────────────────────────
+// – Liq list ——————————————————————
 function renderLiqList() {
 const list=document.getElementById(‘liq-list’);
 const since=Date.now()-5*60*1000;
@@ -849,11 +849,11 @@ const tot=recent.reduce((s,l)=>s+l.usd,0);
 document.getElementById(‘liq-total’).textContent=’$’+fmtK(tot)+’ (5dk)’;
 list.innerHTML=liquidations.slice(0,35).map(l=>{
 const isLong=l.side===‘SELL’;
-return `<div class="liq-row"> <span class="liq-side ${isLong?'long-liq':'short-liq'}">${isLong?'LONG LİK.':'SHORT LİK.'}</span> <span style="color:var(--text3);font-size:9px">${l.symbol.replace('USDT','')}</span> <span class="liq-price">$${formatPrice(l.price,l.symbol)}</span> <span class="liq-usd">$${fmtK(l.usd)}</span> <span class="liq-time">${timeAgo(l.ts)}</span> </div>`;
+return `<div class="liq-row"> <span class="liq-side ${isLong?'long-liq':'short-liq'}">${isLong?'LONG L\u0130K.':'SHORT L\u0130K.'}</span> <span style="color:var(--text3);font-size:9px">${l.symbol.replace('USDT','')}</span> <span class="liq-price">$${formatPrice(l.price,l.symbol)}</span> <span class="liq-usd">$${fmtK(l.usd)}</span> <span class="liq-time">${timeAgo(l.ts)}</span> </div>`;
 }).join(’’);
 }
 
-// ── Ticker strip ──────────────────────────────────────────────────────────────
+// – Ticker strip –––––––––––––––––––––––––––––––
 async function updateTickerStrip() {
 const all=await fetchAllTickers();
 const map={}; all.forEach(t=>{map[t.symbol]=t;});
@@ -865,7 +865,7 @@ return `<div class="tick-item" onclick="loadSymbol('${sym}')"> <span class="t-sy
 }).join(’’);
 }
 
-// ── Search ────────────────────────────────────────────────────────────────────
+// – Search ––––––––––––––––––––––––––––––––––
 const srchIn  = document.getElementById(‘search-input’);
 const suggs   = document.getElementById(‘suggestions’);
 let   tickMap = {};
@@ -896,11 +896,11 @@ if(sym){loadSymbol(sym.symbol);suggs.classList.remove(‘show’);}
 });
 document.addEventListener(‘click’,e=>{if(!e.target.closest(’#search-wrap’)) suggs.classList.remove(‘show’);});
 
-// ── Load symbol ───────────────────────────────────────────────────────────────
+// – Load symbol —————————————————————
 async function loadSymbol(symbol) {
 const ldiv=document.getElementById(‘loading’);
 ldiv.style.opacity=‘1’; ldiv.style.display=‘flex’; ldiv.classList.remove(‘done’);
-document.getElementById(‘load-text’).textContent=symbol+’ YÜKLENİYOR…’;
+document.getElementById(‘load-text’).textContent=symbol+’ Y\u00dcKLEN\u0130YOR…’;
 suggs.classList.remove(‘show’); srchIn.value=’’;
 
 currentSymbol=symbol; obSnapshot=false;
@@ -911,7 +911,7 @@ klines1m=[]; closes1m=[]; currentPrice=0; oiHistory=[]; liqScore60s=0;
 document.getElementById(‘sym-name’).textContent=symbol;
 document.getElementById(‘liq-list’).innerHTML=’’;
 document.getElementById(‘price-line-label’).style.display=‘none’;
-[‘level-entry’,‘level-sl’,‘level-tp’].forEach(id=>document.getElementById(id).textContent=’—’);
+[‘level-entry’,‘level-sl’,‘level-tp’].forEach(id=>document.getElementById(id).textContent=’–’);
 
 await Promise.all([fetchTicker(symbol),fetchKlines(symbol),fetchFunding(symbol),fetchOI(symbol),fetchOIHistory(symbol)]);
 await fetchOBSnapshot(symbol);
@@ -920,14 +920,14 @@ ldiv.classList.add(‘done’); setTimeout(()=>{ldiv.style.display=‘none’;},
 computeSignal();
 }
 
-// ── Render loop ───────────────────────────────────────────────────────────────
+// – Render loop —————————————————————
 function startLoop() {
 cancelAnimationFrame(rafId);
 function loop(){renderHeatmap();renderCVD();rafId=requestAnimationFrame(loop);}
 rafId=requestAnimationFrame(loop);
 }
 
-// ── Periodic tasks ────────────────────────────────────────────────────────────
+// – Periodic tasks ————————————————————
 function startPeriodic() {
 setInterval(()=>{if(currentPrice)computeSignal();},2000);
 setInterval(()=>{if(currentSymbol){fetchOI(currentSymbol);fetchOIHistory(currentSymbol);}},30000);
@@ -935,13 +935,13 @@ setInterval(()=>{if(currentSymbol) fetchKlines(currentSymbol);},60000);
 setInterval(updateTickerStrip,15000);
 }
 
-// ── Boot ──────────────────────────────────────────────────────────────────────
+// – Boot –––––––––––––––––––––––––––––––––––
 async function boot() {
-document.getElementById(‘load-text’).textContent=‘SEMBOLLER YÜKLENIYOR…’;
+document.getElementById(‘load-text’).textContent=‘SEMBOLLER Y\u00dcKLENIYOR…’;
 await fetchExchangeInfo();
 // Pre-cache ticker prices for search
 try{const all=await fetchAllTickers();all.forEach(t=>{tickMap[t.symbol]=t;});}catch(e){}
-document.getElementById(‘load-text’).textContent=‘TICKER GÜNCELLENİYOR…’;
+document.getElementById(‘load-text’).textContent=‘TICKER G\u00dcNCELLEN\u0130YOR…’;
 await updateTickerStrip();
 await loadSymbol(‘BTCUSDT’);
 startLoop();
