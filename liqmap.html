@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIQMAP — Liquidation & Order Book Signal System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#05080f;--bg2:#080d1a;--bg3:#0b1020;--border:#111d35;--border2:#1a2d52;--text:#8a9ab8;--text2:#c8d6f0;--text3:#4a5a7a;--accent:#1e6fff;--long:#00e676;--short:#ff3d57;--neutral:#ffab00;--mono:'Share Tech Mono',monospace;--sans:'Rajdhani',sans-serif}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text2);font-family:var(--mono)}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border2)}
+#app{display:flex;flex-direction:column;height:100vh}
+#header{display:flex;align-items:center;gap:16px;padding:0 16px;height:48px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;position:relative;z-index:100}
+.logo{display:flex;align-items:center;gap:8px;font-family:var(--sans);font-weight:700;font-size:16px;letter-spacing:0.2em;color:var(--text2);white-space:nowrap}
+.logo-bars{display:flex;align-items:flex-end;gap:2px;height:18px}
+.logo-bars span{width:4px;border-radius:1px}
+.logo-bars span:nth-child(1){height:40%;background:#1e6fff}
+.logo-bars span:nth-child(2){height:65%;background:#00b4b4}
+.logo-bars span:nth-child(3){height:85%;background:#ffab00}
+.logo-bars span:nth-child(4){height:100%;background:#ff5000}
+#search-wrap{position:relative;display:flex;align-items:center}
+#search-input{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:var(--mono);font-size:13px;padding:6px 36px 6px 12px;width:220px;outline:none;letter-spacing:0.08em;transition:border-color 0.15s}
+#search-input:focus{border-color:var(--accent)}
+#search-input::placeholder{color:var(--text3)}
+#search-icon{position:absolute;right:10px;color:var(--text3);font-size:14px;pointer-events:none}
+#suggestions{position:absolute;top:calc(100% + 4px);left:0;width:290px;background:var(--bg2);border:1px solid var(--border2);max-height:260px;overflow-y:auto;z-index:999;display:none}
+#suggestions.show{display:block}
+.sug-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border);transition:background 0.1s;font-size:12px}
+.sug-item:hover{background:var(--bg3)}
+.sug-sym{color:var(--text2);letter-spacing:0.06em}
+.sug-price{color:var(--text3);font-size:11px}
+#ticker-strip{display:flex;align-items:center;gap:24px;padding:0 16px;flex:1;overflow:hidden}
+.tick-item{display:flex;align-items:baseline;gap:6px;white-space:nowrap;cursor:pointer}
+.t-sym{font-size:11px;color:var(--text3);letter-spacing:0.08em;font-family:var(--sans);font-weight:600}
+.t-price{font-size:12px;color:var(--text2)}
+.t-chg{font-size:10px}
+#conn-status{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text3);white-space:nowrap}
+#conn-dot{width:6px;height:6px;border-radius:50%;background:var(--neutral);transition:background 0.3s}
+#conn-dot.live{background:var(--long);box-shadow:0 0 6px var(--long)}
+#conn-dot.error{background:var(--short)}
+#body{display:flex;flex:1;overflow:hidden;min-height:0}
+#chart-area{display:flex;flex-direction:column;flex:1;overflow:hidden;min-width:0}
+#sym-bar{display:flex;align-items:center;gap:20px;padding:6px 14px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;font-size:11px}
+#sym-name{font-family:var(--sans);font-size:18px;font-weight:700;color:var(--text2);letter-spacing:0.06em}
+#sym-price{font-size:20px;font-weight:700;color:var(--text2);letter-spacing:0.02em}
+.sym-stat{display:flex;flex-direction:column;gap:1px}
+.sym-stat .sl{color:var(--text3);font-size:9px;letter-spacing:0.1em}
+.sym-stat .sv{color:var(--text2);font-size:12px}
+#heatmap-wrap{display:flex;flex:1;overflow:hidden;min-height:0}
+#price-axis{width:72px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:space-between;padding:4px 6px;font-size:9px;color:var(--text3);text-align:right;background:var(--bg2);overflow:hidden}
+#canvas-container{flex:1;position:relative;overflow:hidden}
+#heatmap-canvas{display:block;width:100%;height:100%}
+#price-line-label{position:absolute;right:4px;background:rgba(30,111,255,0.9);color:#fff;font-size:10px;padding:1px 5px;pointer-events:none;transform:translateY(-50%);border:1px solid var(--accent);display:none}
+#time-axis{height:18px;flex-shrink:0;display:flex;align-items:center;border-top:1px solid var(--border);font-size:9px;color:var(--text3);padding-left:72px;background:var(--bg2)}
+.time-label{flex:1;text-align:center}
+#cvd-area{height:72px;flex-shrink:0;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column}
+#cvd-header{display:flex;align-items:center;gap:12px;padding:3px 8px 3px 80px;border-bottom:1px solid var(--border);font-size:9px;color:var(--text3);letter-spacing:0.1em}
+#cvd-canvas{flex:1;width:100%;display:block}
+#signal-panel{width:290px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg2);overflow-y:auto}
+#verdict-box{padding:16px 14px 12px;border-bottom:1px solid var(--border);text-align:center}
+#verdict-label{font-family:var(--sans);font-size:42px;font-weight:700;letter-spacing:0.15em;line-height:1;transition:color 0.3s,text-shadow 0.3s}
+#verdict-label.long{color:var(--long);text-shadow:0 0 30px rgba(0,230,118,0.4)}
+#verdict-label.short{color:var(--short);text-shadow:0 0 30px rgba(255,61,87,0.4)}
+#verdict-label.neutral{color:var(--neutral);text-shadow:0 0 20px rgba(255,171,0,0.3)}
+#confidence-wrap{margin:8px auto 0;width:100%}
+#confidence-bar-bg{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+#confidence-bar{height:100%;width:0%;border-radius:2px;transition:width 0.5s,background 0.3s}
+#confidence-val{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px;letter-spacing:0.08em}
+#trade-levels{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--border)}
+.level-cell{padding:10px 10px 8px;border-right:1px solid var(--border);text-align:center}
+.level-cell:last-child{border-right:none}
+.lc-label{font-size:9px;color:var(--text3);letter-spacing:0.12em;margin-bottom:3px}
+.lc-val{font-size:12px;color:var(--text2);letter-spacing:0.02em}
+.entry-val{color:var(--accent)!important}
+.sl-val{color:var(--short)!important}
+.tp-val{color:var(--long)!important}
+#factors-header{padding:8px 14px 4px;font-size:9px;color:var(--text3);letter-spacing:0.14em;border-bottom:1px solid var(--border)}
+.factor-row{display:flex;align-items:center;gap:8px;padding:6px 14px;border-bottom:1px solid var(--border);font-size:11px}
+.f-name{width:84px;color:var(--text3);font-size:10px;letter-spacing:0.04em;flex-shrink:0}
+.f-bar-bg{flex:1;height:3px;background:var(--bg3);border-radius:2px;position:relative;overflow:visible}
+.f-bar{height:100%;border-radius:2px;transition:width 0.4s,background 0.3s;position:absolute;top:0}
+.f-bar.bull{background:var(--long);left:50%}
+.f-bar.bear{background:var(--short);right:50%}
+.f-val{width:36px;text-align:right;font-size:10px;letter-spacing:0.04em}
+.factor-center{position:absolute;left:50%;top:50%;width:1px;height:7px;background:var(--border2);transform:translate(-50%,-50%)}
+#ob-section{border-bottom:1px solid var(--border)}
+#ob-header{padding:6px 14px;font-size:9px;color:var(--text3);letter-spacing:0.14em;border-bottom:1px solid var(--border);display:flex;justify-content:space-between}
+#ob-canvas{width:100%;display:block}
+#liq-section{overflow:hidden;display:flex;flex-direction:column;min-height:120px;flex:1}
+#liq-header{padding:6px 14px;font-size:9px;color:var(--text3);letter-spacing:0.14em;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;justify-content:space-between;align-items:center}
+#liq-list{flex:1;overflow-y:auto}
+.liq-row{display:flex;align-items:center;justify-content:space-between;padding:4px 10px;border-bottom:1px solid rgba(17,29,53,0.6);font-size:9px;animation:liqFlash 0.4s ease}
+@keyframes liqFlash{from{background:rgba(255,255,255,0.06)}to{background:transparent}}
+.liq-side{font-weight:700;font-size:10px;letter-spacing:0.04em;flex-shrink:0}
+.long-liq{color:var(--short)}
+.short-liq{color:var(--long)}
+.liq-price{color:var(--text2)}
+.liq-usd{color:var(--text3)}
+.liq-time{color:var(--text3)}
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:16px;transition:opacity 0.5s}
+#loading.done{opacity:0;pointer-events:none}
+.load-bars{display:flex;align-items:flex-end;gap:4px;height:32px}
+.load-bar{width:8px;border-radius:2px;animation:loadBounce 0.8s ease-in-out infinite alternate}
+.load-bar:nth-child(1){background:#1e6fff;animation-delay:0s}
+.load-bar:nth-child(2){background:#00b4b4;animation-delay:0.15s}
+.load-bar:nth-child(3){background:#ffab00;animation-delay:0.3s}
+.load-bar:nth-child(4){background:#ff5000;animation-delay:0.45s}
+@keyframes loadBounce{from{height:8px}to{height:32px}}
+#load-text{font-size:12px;color:var(--text3);letter-spacing:0.2em}
+.up{color:var(--long)}.down{color:var(--short)}.nc{color:var(--neutral)}
+.sep{width:1px;height:20px;background:var(--border);flex-shrink:0}
+</style>
+</head>
+<body>
+<div id="loading">
+  <div class="load-bars"><div class="load-bar"></div><div class="load-bar"></div><div class="load-bar"></div><div class="load-bar"></div></div>
+  <div id="load-text">BAĞLANIYOR...</div>
+</div>
+<div id="app">
+  <div id="header">
+    <div class="logo"><div class="logo-bars"><span></span><span></span><span></span><span></span></div>LIQMAP</div>
+    <div class="sep"></div>
+    <div id="search-wrap">
+      <input id="search-input" type="text" placeholder="Coin ara: BTC, ETH, SOL..." autocomplete="off" spellcheck="false">
+      <span id="search-icon">⌕</span>
+      <div id="suggestions"></div>
+    </div>
+    <div id="ticker-strip"></div>
+    <div id="conn-status"><div id="conn-dot"></div><span id="conn-label">BAĞLANIYOR</span></div>
+  </div>
+  <div id="body">
+    <div id="chart-area">
+      <div id="sym-bar">
+        <span id="sym-name">BTCUSDT</span>
+        <span id="sym-price">—</span>
+        <span id="sym-change" class="nc">—</span>
+        <div class="sep"></div>
+        <div class="sym-stat"><span class="sl">24H VOL</span><span class="sv" id="sym-vol">—</span></div>
+        <div class="sym-stat"><span class="sl">FUNDING</span><span class="sv" id="sym-funding">—</span></div>
+        <div class="sym-stat"><span class="sl">AÇIK POZ.</span><span class="sv" id="sym-oi">—</span></div>
+        <div class="sym-stat"><span class="sl">24H HIGH</span><span class="sv" id="sym-high">—</span></div>
+        <div class="sym-stat"><span class="sl">24H LOW</span><span class="sv" id="sym-low">—</span></div>
+      </div>
+      <div id="heatmap-wrap">
+        <div id="price-axis"></div>
+        <div id="canvas-container"><canvas id="heatmap-canvas"></canvas><div id="price-line-label"></div></div>
+      </div>
+      <div id="time-axis">
+        <div class="time-label">-3m</div><div class="time-label">-2.5m</div><div class="time-label">-2m</div>
+        <div class="time-label">-1.5m</div><div class="time-label">-1m</div><div class="time-label">-45s</div>
+        <div class="time-label">-30s</div><div class="time-label">-15s</div><div class="time-label">NOW</div>
+      </div>
+      <div id="cvd-area">
+        <div id="cvd-header">CVD · CUMULATIVE VOLUME DELTA <span id="cvd-val" style="color:var(--text2)">—</span><span style="margin-left:auto;color:var(--text3)">OBI: <span id="obi-val">—</span></span></div>
+        <canvas id="cvd-canvas"></canvas>
+      </div>
+    </div>
+    <div id="signal-panel">
+      <div id="verdict-box">
+        <div style="font-size:9px;color:var(--text3);letter-spacing:0.2em;margin-bottom:6px">SİNYAL ANALİZİ</div>
+        <div id="verdict-label" class="neutral">BEKLE</div>
+        <div id="verdict-sub" style="font-size:10px;color:var(--text3);margin-top:4px;letter-spacing:0.06em">Veri yükleniyor...</div>
+        <div id="confidence-wrap">
+          <div id="confidence-bar-bg"><div id="confidence-bar"></div></div>
+          <div id="confidence-val"><span>GÜVENİLİRLİK</span><span id="confidence-pct">0%</span></div>
+        </div>
+      </div>
+      <div id="trade-levels">
+        <div class="level-cell"><div class="lc-label">GİRİŞ</div><div class="lc-val entry-val" id="level-entry">—</div></div>
+        <div class="level-cell"><div class="lc-label">STOP LOSS</div><div class="lc-val sl-val" id="level-sl">—</div></div>
+        <div class="level-cell"><div class="lc-label">HEDEF (2R)</div><div class="lc-val tp-val" id="level-tp">—</div></div>
+      </div>
+      <div id="factors-header">FAKTÖR ANALİZİ — 7 INDIKATÖR</div>
+      <div class="factor-row"><span class="f-name">EM.DEF.(OBI)</span><div class="f-bar-bg"><div class="factor-center"></div><div class="f-bar" id="f-obi"></div></div><span class="f-val" id="fv-obi">—</span></div>
+      <div class="factor-row"><span class="f-name">CVD TREND</span><div class="f-bar-bg"><div class="factor-center"></div><div class="f-bar" id="f-cvd"></div></div><span class="f-val" id="fv-cvd">—</span></div>
+      <div class="factor-row"><span class="f-name">RSI-14</span><div class="f-bar-bg"><div class="factor-center"></div><div class="f-bar" id="f-rsi"></div></div><span class="f-val" id="fv-rsi">—</span></div>
+      <div class="factor-row"><span class="f-name">EMA 9/21</span><div class="f-bar-bg"><div class="factor-center"></div><div class="f-bar" id="f-ema"></div></div><span class="f-val" id="fv-ema">—</span></div>
+      <div class="factor-row"><span class="f-name">AÇIK POZ.</span><div class="f-bar-bg"><div class="factor-center"></div><div class="f-bar" id="f-oi"></div></div><span class="f-val" id="fv-oi">—</span></div>
+      <div class="factor-row"><span class="f-name">FİNANSMAN</span><div class="f-bar-bg"><div class="factor-center"></div><div class="f-bar" id="f-fund"></div></div><span class="f-val" id="fv-fund">—</span></div>
+      <div class="factor-row"><span class="f-name">LİKİDASYON</span><div class="f-bar-bg"><div class="factor-center"></div><div class="f-bar" id="f-liq"></div></div><span class="f-val" id="fv-liq">—</span></div>
+      <div id="ob-section"><div id="ob-header"><span>EMİR DEFTERİ YOĞUNLUĞU</span><span id="ob-ratio">—</span></div><canvas id="ob-canvas" height="110"></canvas></div>
+      <div id="liq-section"><div id="liq-header"><span>SON LİKİDASYONLAR</span><span id="liq-total">—</span></div><div id="liq-list"></div></div>
+    </div>
+  </div>
+</div>
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   LIQMAP — Full Trading Signal System
+   Binance Futures Public APIs (no key required)
+   fapi.binance.com · fstream.binance.com
+   ═══════════════════════════════════════════════════════════════════════ */
+
+const FAPI    = ‘https://fapi.binance.com’;
+const WS_BASE = ‘wss://fstream.binance.com/stream’;
+const TICKER_SYMS = [‘BTCUSDT’,‘ETHUSDT’,‘SOLUSDT’,‘BNBUSDT’,‘XRPUSDT’];
+const MAX_COLS    = 180;
+const OB_DEPTH    = 100;
+
+// ── Global state ─────────────────────────────────────────────────────────────
+let currentSymbol = ‘BTCUSDT’;
+let allSymbols    = [];
+let currentWS     = null;
+let orderBook     = { bids:{}, asks:{}, lastUpdateId:0 };
+let obSnapshot    = false;
+let heatMatrix    = [];
+let cvdValue      = 0;
+let cvdHistory    = [];
+let liquidations  = [];
+let klines1m      = [];
+let closes1m      = [];
+let currentPrice  = 0;
+let prevPrice     = 0;
+let ticker24h     = {};
+let openInterest  = 0;
+let fundingRate   = 0;
+let oiHistory     = [];
+let liqScore60s   = 0;
+let rafId         = 0;
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+const fmtK = n => {
+if(!n && n!==0) return ‘—’;
+const a = Math.abs(n);
+if(a>=1e9) return (n/1e9).toFixed(2)+‘B’;
+if(a>=1e6) return (n/1e6).toFixed(2)+‘M’;
+if(a>=1e3) return (n/1e3).toFixed(1)+‘K’;
+return n.toFixed(2);
+};
+const timeAgo = ms => {
+const s = Math.round((Date.now()-ms)/1000);
+if(s<60) return s+‘s’;
+return Math.round(s/60)+‘m’;
+};
+function formatPrice(p, sym) {
+if(!p) return ‘—’;
+if(p>=10000) return p.toLocaleString(‘en-US’,{minimumFractionDigits:1,maximumFractionDigits:1});
+if(p>=100)   return p.toLocaleString(‘en-US’,{minimumFractionDigits:2,maximumFractionDigits:2});
+if(p>=1)     return p.toLocaleString(‘en-US’,{minimumFractionDigits:3,maximumFractionDigits:3});
+return p.toLocaleString(‘en-US’,{minimumFractionDigits:5,maximumFractionDigits:5});
+}
+function getBinSize() {
+const p = currentPrice;
+if(p>50000) return 150; if(p>10000) return 50; if(p>1000) return 5;
+if(p>100)  return 0.5;  if(p>10)   return 0.05; return 0.001;
+}
+
+// ── Color scale (navy→teal→green→yellow→orange) ───────────────────────────────
+const CS = [
+{at:0.00,r:5,g:8,b:15},{at:0.12,r:10,g:20,b:60},{at:0.28,r:15,g:55,b:150},
+{at:0.45,r:20,g:140,b:180},{at:0.62,r:40,g:200,b:80},{at:0.80,r:255,g:190,b:0},
+{at:1.00,r:255,g:60,b:0}
+];
+function iRGB(v) {
+v=clamp(v,0,1);
+for(let i=1;i<CS.length;i++) {
+if(v<=CS[i].at) {
+const p=CS[i-1],c=CS[i],t=(v-p.at)/(c.at-p.at);
+return [Math.round(p.r+t*(c.r-p.r)),Math.round(p.g+t*(c.g-p.g)),Math.round(p.b+t*(c.b-p.b))];
+}
+}
+return [CS[CS.length-1].r,CS[CS.length-1].g,CS[CS.length-1].b];
+}
+
+// ── REST fetchers ─────────────────────────────────────────────────────────────
+async function fetchExchangeInfo() {
+try {
+const r = await fetch(`${FAPI}/fapi/v1/exchangeInfo`);
+const d = await r.json();
+allSymbols = d.symbols
+.filter(s=>s.contractType===‘PERPETUAL’&&s.quoteAsset===‘USDT’&&s.status===‘TRADING’)
+.map(s=>({symbol:s.symbol,base:s.baseAsset}));
+} catch(e){console.error(‘exchangeInfo:’,e);}
+}
+
+async function fetchTicker(symbol) {
+try {
+const r = await fetch(`${FAPI}/fapi/v1/ticker/24hr?symbol=${symbol}`);
+ticker24h = await r.json();
+currentPrice = parseFloat(ticker24h.lastPrice);
+updateSymbolBar(ticker24h);
+} catch(e){}
+}
+
+async function fetchKlines(symbol) {
+try {
+const r = await fetch(`${FAPI}/fapi/v1/klines?symbol=${symbol}&interval=1m&limit=100`);
+const d = await r.json();
+klines1m = d.map(k=>({t:k[0],o:parseFloat(k[1]),h:parseFloat(k[2]),l:parseFloat(k[3]),c:parseFloat(k[4]),v:parseFloat(k[5])}));
+closes1m = klines1m.map(k=>k.c);
+} catch(e){}
+}
+
+async function fetchOBSnapshot(symbol) {
+try {
+const r = await fetch(`${FAPI}/fapi/v1/depth?symbol=${symbol}&limit=${OB_DEPTH}`);
+const d = await r.json();
+orderBook.bids={}; orderBook.asks={}; orderBook.lastUpdateId=d.lastUpdateId;
+d.bids.forEach(([p,q])=>{if(parseFloat(q)>0) orderBook.bids[p]=parseFloat(q);});
+d.asks.forEach(([p,q])=>{if(parseFloat(q)>0) orderBook.asks[p]=parseFloat(q);});
+obSnapshot=true;
+} catch(e){console.error(‘OB snapshot:’,e);}
+}
+
+async function fetchOI(symbol) {
+try {
+const r = await fetch(`${FAPI}/fapi/v1/openInterest?symbol=${symbol}`);
+const d = await r.json();
+openInterest = parseFloat(d.openInterest)*currentPrice;
+document.getElementById(‘sym-oi’).textContent = fmtK(openInterest);
+} catch(e){}
+}
+
+async function fetchOIHistory(symbol) {
+try {
+const r = await fetch(`${FAPI}/futures/data/openInterestHist?symbol=${symbol}&period=5m&limit=12`);
+const d = await r.json();
+oiHistory = d.map(x=>parseFloat(x.sumOpenInterest));
+} catch(e){}
+}
+
+async function fetchFunding(symbol) {
+try {
+const r = await fetch(`${FAPI}/fapi/v1/fundingRate?symbol=${symbol}&limit=1`);
+const d = await r.json();
+if(d&&d.length>0) {
+fundingRate = parseFloat(d[0].fundingRate);
+const pct   = (fundingRate*100).toFixed(4);
+const el    = document.getElementById(‘sym-funding’);
+el.textContent = (fundingRate>=0?’+’:’’)+pct+’%’;
+el.className   = ‘sv’+(fundingRate>0.0001?’ up’:fundingRate<-0.00005?’ down’:’’);
+}
+} catch(e){}
+}
+
+async function fetchAllTickers() {
+try {
+const r = await fetch(`${FAPI}/fapi/v1/ticker/24hr`);
+return await r.json();
+} catch(e){return [];}
+}
+
+// ── Symbol bar ────────────────────────────────────────────────────────────────
+function updateSymbolBar(d) {
+const price = parseFloat(d.lastPrice);
+const chg   = parseFloat(d.priceChangePercent);
+document.getElementById(‘sym-price’).textContent  = formatPrice(price,currentSymbol);
+document.getElementById(‘sym-change’).textContent = (chg>=0?’+’:’’)+chg.toFixed(2)+’%’;
+document.getElementById(‘sym-change’).className   = chg>=0?‘up’:‘down’;
+document.getElementById(‘sym-vol’).textContent    = fmtK(parseFloat(d.quoteVolume));
+document.getElementById(‘sym-high’).textContent   = formatPrice(parseFloat(d.highPrice),currentSymbol);
+document.getElementById(‘sym-low’).textContent    = formatPrice(parseFloat(d.lowPrice),currentSymbol);
+}
+
+// ── WebSocket ─────────────────────────────────────────────────────────────────
+function connectWS(symbol) {
+if(currentWS){currentWS.close();currentWS=null;}
+const s  = symbol.toLowerCase();
+const streams = [`${s}@depth@100ms`,`${s}@aggTrade`,`${s}@forceOrder`,`${s}@markPrice@1s`].join(’/’);
+const ws = new WebSocket(`${WS_BASE}?streams=${streams}`);
+currentWS = ws;
+ws.onopen  = ()=>setConn(‘live’,‘CANLI’);
+ws.onmessage = (evt)=>{
+const msg  = JSON.parse(evt.data);
+const d    = msg.data;
+const strm = msg.stream||’’;
+if(strm.includes(’@depth’))     handleDepth(d);
+else if(strm.includes(’@aggTrade’))  handleTrade(d);
+else if(strm.includes(’@forceOrder’)) handleForceOrder(d);
+else if(strm.includes(’@markPrice’))  handleMarkPrice(d);
+};
+ws.onerror  = ()=>setConn(‘error’,‘HATA’);
+ws.onclose  = ()=>{ setConn(’’,‘YENİDEN BAĞLANIYOR’); setTimeout(()=>connectWS(symbol),3000); };
+}
+function setConn(cls,txt){
+document.getElementById(‘conn-dot’).className=cls;
+document.getElementById(‘conn-label’).textContent=txt;
+}
+
+// ── Depth update ─────────────────────────────────────────────────────────────
+function handleDepth(data) {
+if(!obSnapshot) return;
+if(data.u<=orderBook.lastUpdateId) return;
+orderBook.lastUpdateId = data.u;
+data.b.forEach(([p,q])=>{const v=parseFloat(q);if(v===0)delete orderBook.bids[p];else orderBook.bids[p]=v;});
+data.a.forEach(([p,q])=>{const v=parseFloat(q);if(v===0)delete orderBook.asks[p];else orderBook.asks[p]=v;});
+const now  = Date.now();
+const last = heatMatrix.length>0?heatMatrix[heatMatrix.length-1].ts:0;
+if(now-last>=400) pushHeatCol(now);
+renderOBChart();
+}
+
+function pushHeatCol(ts) {
+const bs = getBinSize();
+const bidBins={}, askBins={};
+Object.entries(orderBook.bids).forEach(([p,q])=>{ const b=Math.floor(parseFloat(p)/bs)*bs; bidBins[b]=(bidBins[b]||0)+q; });
+Object.entries(orderBook.asks).forEach(([p,q])=>{ const b=Math.floor(parseFloat(p)/bs)*bs; askBins[b]=(askBins[b]||0)+q; });
+heatMatrix.push({ts,bidBins,askBins});
+if(heatMatrix.length>MAX_COLS) heatMatrix.shift();
+}
+
+// ── AggTrade (CVD) ────────────────────────────────────────────────────────────
+function handleTrade(data) {
+const qty   = parseFloat(data.q);
+const delta = data.m ? -qty : qty;
+cvdValue   += delta;
+cvdHistory.push({ts:Date.now(),v:cvdValue});
+if(cvdHistory.length>500) cvdHistory.shift();
+const el = document.getElementById(‘cvd-val’);
+el.textContent = (cvdValue>=0?’+’:’’)+fmtK(cvdValue);
+el.style.color  = cvdValue>=0?‘var(–long)’:‘var(–short)’;
+prevPrice    = currentPrice;
+currentPrice = parseFloat(data.p);
+if(klines1m.length>0){klines1m[klines1m.length-1].c=currentPrice;closes1m[closes1m.length-1]=currentPrice;}
+document.getElementById(‘sym-price’).textContent = formatPrice(currentPrice,currentSymbol);
+}
+
+// ── Force order (liquidation) ─────────────────────────────────────────────────
+function handleForceOrder(data) {
+const o = data.o;
+const liq={symbol:o.s,side:o.S,price:parseFloat(o.p),qty:parseFloat(o.q),usd:parseFloat(o.p)*parseFloat(o.q),ts:o.T};
+liquidations.unshift(liq);
+if(liquidations.length>100) liquidations.pop();
+updateLiqScore();
+renderLiqList();
+}
+
+// ── Mark price ────────────────────────────────────────────────────────────────
+function handleMarkPrice(data) {
+if(data.r===undefined) return;
+fundingRate = parseFloat(data.r);
+const pct   = (fundingRate*100).toFixed(4);
+const el    = document.getElementById(‘sym-funding’);
+el.textContent = (fundingRate>=0?’+’:’’)+pct+’%’;
+el.className   = ‘sv’+(fundingRate>0.0001?’ up’:fundingRate<-0.00005?’ down’:’’);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  SIGNAL ENGINE
+//  7 factors → weighted composite → LONG / SHORT / BEKLE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/* Factor 1: Order Book Imbalance (OBI)
+Measures bid vs ask volume in top 20 price levels from current price.
+ratio = bidVol / (bidVol + askVol)  [0..1]
+Maps to score [-1..+1]: 0.5=neutral, >0.5=bullish, <0.5=bearish         */
+function calcOBI() {
+const bids = Object.entries(orderBook.bids).map(([p,q])=>[parseFloat(p),q]).sort((a,b)=>b[0]-a[0]).slice(0,20);
+const asks = Object.entries(orderBook.asks).map(([p,q])=>[parseFloat(p),q]).sort((a,b)=>a[0]-b[0]).slice(0,20);
+const bidVol = bids.reduce((s,[,q])=>s+q,0);
+const askVol = asks.reduce((s,[,q])=>s+q,0);
+if(bidVol+askVol===0) return {score:0,ratio:0.5,bidVol:0,askVol:0};
+const ratio = bidVol/(bidVol+askVol);
+const score = clamp((ratio-0.5)*4,-1,1);
+document.getElementById(‘obi-val’).textContent = ratio.toFixed(3);
+return {score,ratio,bidVol,askVol};
+}
+
+/* Factor 2: CVD Trend
+Compares first-half vs second-half avg of last 30 CVD data points.
+Rising slope = buy pressure (bullish), falling = sell pressure.          */
+function calcCVD() {
+if(cvdHistory.length<10) return 0;
+const recent = cvdHistory.slice(-30);
+const half   = Math.floor(recent.length/2);
+const f = recent.slice(0,half).reduce((s,x)=>s+x.v,0)/half;
+const s = recent.slice(half).reduce((s,x)=>s+x.v,0)/(recent.length-half);
+const slope = s-f;
+const range = Math.abs(recent[recent.length-1].v-recent[0].v)||1;
+return clamp(slope/range,-1,1);
+}
+
+/* Factor 3: RSI-14
+Classic RSI on 1m closes. Contrarian at extremes.
+<30 oversold → bullish, >70 overbought → bearish                         */
+function calcRSI14() {
+if(closes1m.length<15) return null;
+const data = closes1m.slice(-30);
+const P    = 14;
+let ag=0,al=0;
+for(let i=1;i<=P;i++){const d=data[i]-data[i-1];if(d>0)ag+=d;else al-=d;}
+ag/=P; al/=P;
+for(let i=P+1;i<data.length;i++){
+const d=data[i]-data[i-1];
+ag=(ag*(P-1)+Math.max(d,0))/P;
+al=(al*(P-1)+Math.max(-d,0))/P;
+}
+if(al===0) return 100;
+return 100-(100/(1+ag/al));
+}
+function rsiScore(rsi) {
+if(rsi==null) return 0;
+if(rsi<=20) return 1.0;
+if(rsi<=30) return 0.5+(30-rsi)/10*0.5;
+if(rsi<=45) return (45-rsi)/15*0.5;
+if(rsi<=55) return 0;
+if(rsi<=70) return -(rsi-55)/15*0.5;
+if(rsi<=80) return -0.5-(rsi-70)/10*0.5;
+return -1.0;
+}
+
+/* Factor 4: EMA Crossover (9/21 on 1m closes)
+EMA9>EMA21 → uptrend (bullish), EMA9<EMA21 → downtrend (bearish)         */
+function calcEMA(arr,p) {
+if(arr.length<p) return null;
+const k = 2/(p+1);
+let e = arr.slice(0,p).reduce((s,v)=>s+v,0)/p;
+for(let i=p;i<arr.length;i++) e=arr[i]*k+e*(1-k);
+return e;
+}
+function calcEMAScore() {
+if(closes1m.length<22) return 0;
+const e9=calcEMA(closes1m,9), e21=calcEMA(closes1m,21);
+if(!e9||!e21) return 0;
+return clamp((e9-e21)/e21*300,-1,1);
+}
+
+/* Factor 5: Open Interest trend
+OI rising + price rising  → longs entering → bullish
+OI rising + price falling → shorts entering → bearish
+OI falling → uncertainty → weak signal                                    */
+function calcOIScore() {
+if(oiHistory.length<4) return 0;
+const old   = oiHistory[Math.max(0,oiHistory.length-6)];
+const cur   = oiHistory[oiHistory.length-1];
+const pctCh = (cur-old)/old;
+const prUp  = currentPrice>prevPrice;
+if(Math.abs(pctCh)<0.001) return 0;
+if(pctCh>0) return prUp ? clamp(pctCh*25,0,1) : clamp(-pctCh*25,-1,0);
+return pctCh*10;
+}
+
+/* Factor 6: Funding rate (contrarian signal)
+Extremely positive → market too long → short bias
+Extremely negative → market too short → long bias                         */
+function calcFundScore() {
+if(Math.abs(fundingRate)<0.0001) return 0;
+return -clamp(fundingRate/0.0008,-1,1);
+}
+
+/* Factor 7: Liquidation pressure (last 60 seconds)
+Large short liquidations (forced buys) → price ran up → contrarian short
+Large long liquidations (forced sells) → price crashed → contrarian long  */
+function updateLiqScore() {
+const since   = Date.now()-60000;
+const recent  = liquidations.filter(l=>l.ts>since);
+let longL=0, shortL=0;
+recent.forEach(l=>{if(l.side===‘SELL’)longL+=l.usd;else shortL+=l.usd;});
+const total = longL+shortL;
+if(total<5000){liqScore60s=0;return;}
+liqScore60s = clamp((shortL-longL)/total*1.5,-1,1);
+}
+
+// ── Composite signal ──────────────────────────────────────────────────────────
+function computeSignal() {
+const obi   = calcOBI();
+const obiSc = obi.score;
+const cvdSc = calcCVD();
+const rsi   = calcRSI14();
+const rsiSc = rsiScore(rsi);
+const emaSc = calcEMAScore();
+const oiSc  = calcOIScore();
+const fundSc= calcFundScore();
+const liqSc = liqScore60s;
+
+const raw = obiSc*0.25 + cvdSc*0.20 + rsiSc*0.15 + emaSc*0.15 + oiSc*0.15 + fundSc*0.10;
+const total = clamp(raw + liqSc*0.05,-1,1);
+
+let verdict,cls;
+if(total>0.25){verdict=‘LONG’;cls=‘long’;}
+else if(total<-0.25){verdict=‘SHORT’;cls=‘short’;}
+else{verdict=‘BEKLE’;cls=‘neutral’;}
+
+const conf = Math.round(Math.min(Math.abs(total)/0.6,1)*100);
+const levels = computeLevels(verdict,obi);
+
+updateVerdictUI(verdict,cls,total,conf,rsi,levels);
+updateFactorBars({obi:obiSc,cvd:cvdSc,rsi:rsiSc,ema:emaSc,oi:oiSc,fund:fundSc,liq:liqSc});
+}
+
+function computeLevels(verdict, obi) {
+if(!currentPrice||verdict===‘BEKLE’) return null;
+const bs = getBinSize()*3;
+
+if(verdict===‘LONG’) {
+// SL: largest bid cluster below current price
+const bbins={};
+Object.entries(orderBook.bids).forEach(([p,q])=>{
+if(parseFloat(p)<currentPrice){const b=Math.floor(parseFloat(p)/bs)*bs;bbins[b]=(bbins[b]||0)+q;}
+});
+const sorted = Object.entries(bbins).sort((a,b)=>b[1]-a[1]);
+const slPrice = sorted.length>0 ? parseFloat(sorted[0][0])*0.998 : currentPrice*0.985;
+const risk    = currentPrice-slPrice;
+return {entry:currentPrice, sl:slPrice, tp:currentPrice+risk*2};
+} else {
+// SL: largest ask cluster above current price
+const abins={};
+Object.entries(orderBook.asks).forEach(([p,q])=>{
+if(parseFloat(p)>currentPrice){const b=Math.floor(parseFloat(p)/bs)*bs;abins[b]=(abins[b]||0)+q;}
+});
+const sorted = Object.entries(abins).sort((a,b)=>b[1]-a[1]);
+const slPrice = sorted.length>0 ? parseFloat(sorted[0][0])*1.002 : currentPrice*1.015;
+const risk    = slPrice-currentPrice;
+return {entry:currentPrice, sl:slPrice, tp:currentPrice-risk*2};
+}
+}
+
+function updateVerdictUI(verdict,cls,score,conf,rsi,levels) {
+const vl = document.getElementById(‘verdict-label’);
+vl.textContent = verdict; vl.className = cls;
+const ss = score>=0?’+’:’’;
+document.getElementById(‘verdict-sub’).textContent = `Skor: ${ss}${(score*100).toFixed(1)} · RSI: ${rsi?rsi.toFixed(1):'—'}`;
+const cb = document.getElementById(‘confidence-bar’);
+cb.style.width      = conf+’%’;
+cb.style.background = cls===‘long’?‘var(–long)’:cls===‘short’?‘var(–short)’:‘var(–neutral)’;
+document.getElementById(‘confidence-pct’).textContent = conf+’%’;
+if(levels) {
+document.getElementById(‘level-entry’).textContent = formatPrice(levels.entry,currentSymbol);
+document.getElementById(‘level-sl’).textContent    = formatPrice(levels.sl,currentSymbol);
+document.getElementById(‘level-tp’).textContent    = formatPrice(levels.tp,currentSymbol);
+} else {
+[‘level-entry’,‘level-sl’,‘level-tp’].forEach(id=>document.getElementById(id).textContent=’—’);
+}
+}
+
+function updateFactorBars(factors) {
+const rows = [
+[‘f-obi’,‘fv-obi’,factors.obi],[‘f-cvd’,‘fv-cvd’,factors.cvd],
+[‘f-rsi’,‘fv-rsi’,factors.rsi],[‘f-ema’,‘fv-ema’,factors.ema],
+[‘f-oi’, ‘fv-oi’, factors.oi], [‘f-fund’,‘fv-fund’,factors.fund],
+[‘f-liq’,‘fv-liq’,factors.liq],
+];
+rows.forEach(([bid,vid,sc])=>{
+const bar=document.getElementById(bid);
+const val=document.getElementById(vid);
+const abs=Math.abs(sc)*50;
+if(sc>=0){
+bar.className=‘f-bar bull’;bar.style.width=abs+’%’;bar.style.right=’’;
+val.style.color=‘var(–long)’;val.textContent=’+’+(sc*100).toFixed(0);
+} else {
+bar.className=‘f-bar bear’;bar.style.width=abs+’%’;
+bar.style.right=‘50%’;bar.style.left=’’;
+val.style.color=‘var(–short)’;val.textContent=(sc*100).toFixed(0);
+}
+});
+}
+
+// ── Heatmap Renderer (Canvas2D putImageData) ──────────────────────────────────
+function renderHeatmap() {
+const canvas = document.getElementById(‘heatmap-canvas’);
+const cont   = document.getElementById(‘canvas-container’);
+const W = cont.clientWidth, H = cont.clientHeight;
+if(canvas.width!==W) canvas.width=W;
+if(canvas.height!==H) canvas.height=H;
+if(!W||!H) return;
+
+const ctx = canvas.getContext(‘2d’,{alpha:false});
+ctx.fillStyle=’#05080f’; ctx.fillRect(0,0,W,H);
+if(heatMatrix.length<2) return;
+
+let pMin=Infinity,pMax=-Infinity;
+heatMatrix.forEach(col=>{
+Object.keys(col.bidBins).forEach(k=>{const p=parseFloat(k);if(p<pMin)pMin=p;if(p>pMax)pMax=p;});
+Object.keys(col.askBins).forEach(k=>{const p=parseFloat(k);if(p<pMin)pMin=p;if(p>pMax)pMax=p;});
+});
+if(!isFinite(pMin)) return;
+const bs=getBinSize(); pMin-=bs*3; pMax+=bs*3;
+const pRange=pMax-pMin;
+
+let maxVol=0;
+heatMatrix.forEach(col=>{
+Object.values(col.bidBins).forEach(v=>{if(v>maxVol)maxVol=v;});
+Object.values(col.askBins).forEach(v=>{if(v>maxVol)maxVol=v;});
+});
+if(maxVol===0) return;
+
+const imgData = ctx.createImageData(W,H);
+const px      = imgData.data;
+const colW    = W/heatMatrix.length;
+
+heatMatrix.forEach((col,ci)=>{
+const x0=Math.round(ci*colW), x1=Math.min(Math.round((ci+1)*colW),W);
+const combined={};
+Object.entries(col.bidBins).forEach(([k,v])=>{combined[k]=(combined[k]||0)+v;});
+Object.entries(col.askBins).forEach(([k,v])=>{combined[k]=(combined[k]||0)+v;});
+Object.entries(combined).forEach(([ks,vol])=>{
+const binP=parseFloat(ks);
+const inten=vol/maxVol;
+if(inten<0.025) return;
+const yR=1-(binP-pMin)/pRange;
+if(yR<0||yR>1) return;
+const y0=Math.round(yR*H);
+const bH=Math.max(1,Math.round(H/pRange*bs));
+const [r,g,b]=iRGB(inten);
+for(let y=y0;y<Math.min(y0+bH,H);y++) {
+for(let x=x0;x<x1;x++){const i=(y*W+x)*4;px[i]=r;px[i+1]=g;px[i+2]=b;px[i+3]=255;}
+}
+});
+});
+ctx.putImageData(imgData,0,0);
+
+// Grid lines
+ctx.strokeStyle=‘rgba(255,255,255,0.04)’; ctx.lineWidth=1;
+for(let i=0;i<=8;i++){const y=(i/8)*H;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+// Current price dashed line
+if(currentPrice>=pMin&&currentPrice<=pMax){
+const y=(1-(currentPrice-pMin)/pRange)*H;
+ctx.setLineDash([3,3]); ctx.strokeStyle=‘rgba(30,111,255,0.7)’; ctx.lineWidth=1.5;
+ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+ctx.setLineDash([]);
+const lbl=document.getElementById(‘price-line-label’);
+lbl.style.top=y+‘px’; lbl.textContent=formatPrice(currentPrice,currentSymbol); lbl.style.display=‘block’;
+}
+
+// Liquidation markers
+const now=Date.now();
+const tStart=heatMatrix.length>0?heatMatrix[0].ts:now-60000;
+const tSpan=now-tStart||1;
+liquidations.slice(0,60).forEach(liq=>{
+if(liq.ts<tStart||liq.ts>now) return;
+if(liq.price<pMin||liq.price>pMax) return;
+const lx=((liq.ts-tStart)/tSpan)*W;
+const ly=(1-(liq.price-pMin)/pRange)*H;
+const r=Math.max(3,Math.log10(liq.usd/500+1)*3);
+ctx.beginPath(); ctx.arc(lx,ly,r,0,Math.PI*2);
+ctx.fillStyle=liq.side===‘BUY’?‘rgba(0,230,118,0.85)’:‘rgba(255,61,87,0.85)’; ctx.fill();
+if(liq.usd>100000){
+ctx.beginPath(); ctx.arc(lx,ly,r+5,0,Math.PI*2);
+ctx.strokeStyle=liq.side===‘BUY’?‘rgba(0,230,118,0.2)’:‘rgba(255,61,87,0.2)’;
+ctx.lineWidth=1.5; ctx.stroke();
+}
+});
+
+// Price Y-axis labels
+const axis=document.getElementById(‘price-axis’);
+const N=10;
+axis.innerHTML=Array.from({length:N+1},(_,i)=>{
+const p=pMax-(pMax-pMin)*(i/N);
+return `<div>${formatPrice(p,currentSymbol)}</div>`;
+}).join(’’);
+}
+
+// ── CVD Chart ─────────────────────────────────────────────────────────────────
+function renderCVD() {
+const canvas=document.getElementById(‘cvd-canvas’);
+const par=canvas.parentElement;
+const W=par.clientWidth; const H=par.clientHeight-22||50;
+if(canvas.width!==W) canvas.width=W;
+if(canvas.height!==H) canvas.height=H;
+if(!W||!H||cvdHistory.length<2) return;
+const ctx=canvas.getContext(‘2d’,{alpha:false});
+ctx.fillStyle=’#05080f’; ctx.fillRect(0,0,W,H);
+const data=cvdHistory.slice(-300);
+const vals=data.map(d=>d.v);
+const mn=Math.min(…vals), mx=Math.max(…vals), rng=mx-mn||1;
+const toY=v=>H-((v-mn)/rng)*(H-4)-2;
+const toX=i=>(i/(data.length-1))*W;
+const last=vals[vals.length-1];
+const col=last>=0?’#00e676’:’#ff3d57’;
+// Zero line
+const zy=toY(0);
+ctx.strokeStyle=‘rgba(255,255,255,0.07)’; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+ctx.beginPath(); ctx.moveTo(0,zy); ctx.lineTo(W,zy); ctx.stroke(); ctx.setLineDash([]);
+// Fill
+const grad=ctx.createLinearGradient(0,0,0,H);
+grad.addColorStop(0,last>=0?‘rgba(0,230,118,0.28)’:‘rgba(255,61,87,0.28)’);
+grad.addColorStop(1,‘rgba(0,0,0,0)’);
+ctx.beginPath(); ctx.moveTo(toX(0),H);
+data.forEach((d,i)=>ctx.lineTo(toX(i),toY(d.v)));
+ctx.lineTo(toX(data.length-1),H); ctx.closePath();
+ctx.fillStyle=grad; ctx.fill();
+// Line
+ctx.beginPath(); ctx.strokeStyle=col; ctx.lineWidth=1.5;
+data.forEach((d,i)=>i===0?ctx.moveTo(toX(i),toY(d.v)):ctx.lineTo(toX(i),toY(d.v)));
+ctx.stroke();
+}
+
+// ── Order Book Side Chart ─────────────────────────────────────────────────────
+function renderOBChart() {
+const canvas=document.getElementById(‘ob-canvas’);
+const W=290, H=110;
+canvas.width=W; canvas.height=H;
+const ctx=canvas.getContext(‘2d’);
+ctx.fillStyle=’#080d1a’; ctx.fillRect(0,0,W,H);
+if(!currentPrice) return;
+
+const bs=getBinSize()*2;
+const rng=currentPrice*0.025;
+const pMin=currentPrice-rng, pMax=currentPrice+rng;
+const bidB={}, askB={};
+
+Object.entries(orderBook.bids).forEach(([p,q])=>{
+const pp=parseFloat(p);
+if(pp<pMin||pp>currentPrice) return;
+const b=Math.floor(pp/bs)*bs; bidB[b]=(bidB[b]||0)+q;
+});
+Object.entries(orderBook.asks).forEach(([p,q])=>{
+const pp=parseFloat(p);
+if(pp>pMax||pp<currentPrice) return;
+const b=Math.floor(pp/bs)*bs; askB[b]=(askB[b]||0)+q;
+});
+
+const allV=[…Object.values(bidB),…Object.values(askB)];
+const maxV=Math.max(…allV,1);
+const bH=Math.max(2,H/((pMax-pMin)/bs)*0.85);
+
+Object.entries(bidB).forEach(([b,v])=>{
+const y=H-((parseFloat(b)-pMin)/(pMax-pMin))*H-bH/2;
+const bW=(v/maxV)*(W/2-4);
+const a=0.3+v/maxV*0.6;
+ctx.fillStyle=`rgba(0,${Math.round(130+v/maxV*100)},${Math.round(v/maxV*80)},${a})`;
+ctx.fillRect(0,y,bW,Math.max(1,bH));
+});
+Object.entries(askB).forEach(([b,v])=>{
+const y=H-((parseFloat(b)-pMin)/(pMax-pMin))*H-bH/2;
+const bW=(v/maxV)*(W/2-4);
+const a=0.3+v/maxV*0.6;
+ctx.fillStyle=`rgba(${Math.round(180+v/maxV*75)},${Math.round(v/maxV*40)},${Math.round(v/maxV*40)},${a})`;
+ctx.fillRect(W-bW,y,bW,Math.max(1,bH));
+});
+
+// Center price line
+ctx.strokeStyle=‘rgba(30,111,255,0.7)’; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+ctx.beginPath(); ctx.moveTo(W/2,0); ctx.lineTo(W/2,H); ctx.stroke(); ctx.setLineDash([]);
+
+ctx.fillStyle=‘rgba(100,140,200,0.6)’; ctx.font=‘9px Share Tech Mono,monospace’;
+ctx.textAlign=‘left’; ctx.fillText(‘BID’,4,11);
+ctx.textAlign=‘right’; ctx.fillText(‘ASK’,W-4,11);
+
+// OBI display
+const bT=Object.values(orderBook.bids).reduce((s,v)=>s+v,0);
+const aT=Object.values(orderBook.asks).reduce((s,v)=>s+v,0);
+const rat=bT+aT>0?bT/(bT+aT):0.5;
+const obEl=document.getElementById(‘ob-ratio’);
+obEl.textContent=`BID ${(rat*100).toFixed(1)}% / ASK ${((1-rat)*100).toFixed(1)}%`;
+obEl.style.color=rat>0.55?‘var(–long)’:rat<0.45?‘var(–short)’:‘var(–text3)’;
+}
+
+// ── Liq list ──────────────────────────────────────────────────────────────────
+function renderLiqList() {
+const list=document.getElementById(‘liq-list’);
+const since=Date.now()-5*60*1000;
+const recent=liquidations.filter(l=>l.ts>since);
+const tot=recent.reduce((s,l)=>s+l.usd,0);
+document.getElementById(‘liq-total’).textContent=’$’+fmtK(tot)+’ (5dk)’;
+list.innerHTML=liquidations.slice(0,35).map(l=>{
+const isLong=l.side===‘SELL’;
+return `<div class="liq-row"> <span class="liq-side ${isLong?'long-liq':'short-liq'}">${isLong?'LONG LİK.':'SHORT LİK.'}</span> <span style="color:var(--text3);font-size:9px">${l.symbol.replace('USDT','')}</span> <span class="liq-price">$${formatPrice(l.price,l.symbol)}</span> <span class="liq-usd">$${fmtK(l.usd)}</span> <span class="liq-time">${timeAgo(l.ts)}</span> </div>`;
+}).join(’’);
+}
+
+// ── Ticker strip ──────────────────────────────────────────────────────────────
+async function updateTickerStrip() {
+const all=await fetchAllTickers();
+const map={}; all.forEach(t=>{map[t.symbol]=t;});
+const strip=document.getElementById(‘ticker-strip’);
+strip.innerHTML=TICKER_SYMS.map(sym=>{
+const t=map[sym]; if(!t) return ‘’;
+const chg=parseFloat(t.priceChangePercent);
+return `<div class="tick-item" onclick="loadSymbol('${sym}')"> <span class="t-sym">${sym.replace('USDT','')}</span> <span class="t-price">${formatPrice(parseFloat(t.lastPrice),sym)}</span> <span class="t-chg ${chg>=0?'up':'down'}">${chg>=0?'+':''}${chg.toFixed(2)}%</span> </div>`;
+}).join(’’);
+}
+
+// ── Search ────────────────────────────────────────────────────────────────────
+const srchIn  = document.getElementById(‘search-input’);
+const suggs   = document.getElementById(‘suggestions’);
+let   tickMap = {};
+
+srchIn.addEventListener(‘input’, async function(){
+const q=this.value.trim().toUpperCase();
+if(!q){suggs.classList.remove(‘show’);return;}
+const matches=allSymbols.filter(s=>s.base.startsWith(q)||s.symbol.startsWith(q)).slice(0,12);
+if(!matches.length){suggs.classList.remove(‘show’);return;}
+suggs.innerHTML=matches.map(m=>{
+const t=tickMap[m.symbol];
+const pStr=t?formatPrice(parseFloat(t.lastPrice),m.symbol):’…’;
+const chg=t?parseFloat(t.priceChangePercent):0;
+const chgStr=t?(chg>=0?’+’:’’)+chg.toFixed(2)+’%’:’’;
+const chgCls=chg>=0?‘up’:‘down’;
+return `<div class="sug-item" onclick="loadSymbol('${m.symbol}')"> <span class="sug-sym">${m.base}<span style="color:var(--text3);font-size:10px">/USDT PERP</span></span> <span class="sug-price">${pStr}</span> <span class="${chgCls}" style="font-size:10px">${chgStr}</span> </div>`;
+}).join(’’);
+suggs.classList.add(‘show’);
+});
+
+srchIn.addEventListener(‘keydown’,function(e){
+if(e.key===‘Escape’) suggs.classList.remove(‘show’);
+if(e.key===‘Enter’){
+const q=this.value.trim().toUpperCase();
+const sym=allSymbols.find(s=>s.base===q||s.symbol===q||s.symbol===q+‘USDT’);
+if(sym){loadSymbol(sym.symbol);suggs.classList.remove(‘show’);}
+}
+});
+document.addEventListener(‘click’,e=>{if(!e.target.closest(’#search-wrap’)) suggs.classList.remove(‘show’);});
+
+// ── Load symbol ───────────────────────────────────────────────────────────────
+async function loadSymbol(symbol) {
+const ldiv=document.getElementById(‘loading’);
+ldiv.style.opacity=‘1’; ldiv.style.display=‘flex’; ldiv.classList.remove(‘done’);
+document.getElementById(‘load-text’).textContent=symbol+’ YÜKLENİYOR…’;
+suggs.classList.remove(‘show’); srchIn.value=’’;
+
+currentSymbol=symbol; obSnapshot=false;
+orderBook={bids:{},asks:{},lastUpdateId:0};
+heatMatrix=[]; cvdValue=0; cvdHistory=[]; liquidations=[];
+klines1m=[]; closes1m=[]; currentPrice=0; oiHistory=[]; liqScore60s=0;
+
+document.getElementById(‘sym-name’).textContent=symbol;
+document.getElementById(‘liq-list’).innerHTML=’’;
+document.getElementById(‘price-line-label’).style.display=‘none’;
+[‘level-entry’,‘level-sl’,‘level-tp’].forEach(id=>document.getElementById(id).textContent=’—’);
+
+await Promise.all([fetchTicker(symbol),fetchKlines(symbol),fetchFunding(symbol),fetchOI(symbol),fetchOIHistory(symbol)]);
+await fetchOBSnapshot(symbol);
+connectWS(symbol);
+ldiv.classList.add(‘done’); setTimeout(()=>{ldiv.style.display=‘none’;},600);
+computeSignal();
+}
+
+// ── Render loop ───────────────────────────────────────────────────────────────
+function startLoop() {
+cancelAnimationFrame(rafId);
+function loop(){renderHeatmap();renderCVD();rafId=requestAnimationFrame(loop);}
+rafId=requestAnimationFrame(loop);
+}
+
+// ── Periodic tasks ────────────────────────────────────────────────────────────
+function startPeriodic() {
+setInterval(()=>{if(currentPrice)computeSignal();},2000);
+setInterval(()=>{if(currentSymbol){fetchOI(currentSymbol);fetchOIHistory(currentSymbol);}},30000);
+setInterval(()=>{if(currentSymbol) fetchKlines(currentSymbol);},60000);
+setInterval(updateTickerStrip,15000);
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+async function boot() {
+document.getElementById(‘load-text’).textContent=‘SEMBOLLER YÜKLENIYOR…’;
+await fetchExchangeInfo();
+// Pre-cache ticker prices for search
+try{const all=await fetchAllTickers();all.forEach(t=>{tickMap[t.symbol]=t;});}catch(e){}
+document.getElementById(‘load-text’).textContent=‘TICKER GÜNCELLENİYOR…’;
+await updateTickerStrip();
+await loadSymbol(‘BTCUSDT’);
+startLoop();
+startPeriodic();
+}
+
+boot().catch(console.error);
+</script>
+
+</body>
+</html>
