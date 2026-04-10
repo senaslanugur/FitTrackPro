@@ -1,286 +1,310 @@
 <!DOCTYPE html>
-
 <html lang="tr">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Lezzet Analisti</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #0f0c08; color: #f0e6d0; font-family: Georgia, serif; min-height: 100vh; padding: 36px 16px 60px; }
-    .wrap { max-width: 560px; margin: 0 auto; }
-
-```
-.header { text-align: center; margin-bottom: 28px; }
-.emoji { font-size: 42px; display: block; margin-bottom: 8px; }
-h1 { font-size: 24px; font-weight: normal; color: #e8c98a; letter-spacing: 3px; margin-bottom: 4px; }
-.sub { color: #5a4020; font-size: 12px; letter-spacing: 1px; }
-.divider { width: 60px; height: 1px; background: linear-gradient(90deg,transparent,#c8903a,transparent); margin: 12px auto 0; }
-
-.nokey-box {
-  display: flex; align-items: center; gap: 10px;
-  background: rgba(74,222,128,.06); border: 1px solid rgba(74,222,128,.2);
-  border-radius: 10px; padding: 12px 16px; margin-bottom: 18px;
-  font-size: 12px; color: #4ade80;
-}
-.nokey-box .big { font-size: 22px; }
-
-.field { margin-bottom: 12px; }
-label { display: block; font-size: 10px; letter-spacing: 2px; color: #c8903a; text-transform: uppercase; margin-bottom: 6px; }
-input {
-  width: 100%; padding: 12px 14px;
-  background: #1a1408; border: 1px solid #3a2010;
-  border-radius: 8px; color: #f0e6d0; font-size: 13px;
-  font-family: monospace; outline: none; transition: border-color .2s;
-}
-input:focus { border-color: #c8903a; }
-input::placeholder { color: #3a2010; }
-
-#btn {
-  width: 100%; padding: 14px;
-  background: linear-gradient(135deg, #c8903a, #8a5818);
-  border: none; border-radius: 8px; color: #fff;
-  font-size: 14px; letter-spacing: 1px; cursor: pointer;
-  font-family: inherit;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  transition: opacity .2s;
-}
-#btn:hover:not(:disabled) { opacity: .88; }
-#btn:disabled { opacity: .4; cursor: not-allowed; }
-.spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.2); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0; }
-
-#log { margin-top: 10px; font-size: 12px; font-family: monospace; line-height: 1.9; }
-.l-ok   { color: #4ade80; }
-.l-info { color: #c8903a; }
-.l-err  { color: #f87171; }
-
-#result { margin-top: 20px; display: none; animation: up .4s ease; }
-.card { background: #1a1408; border: 1px solid #3a2010; border-radius: 12px; padding: 18px 20px; margin-bottom: 10px; }
-.card-lbl { font-size: 9px; letter-spacing: 3px; color: #c8903a; text-transform: uppercase; margin-bottom: 5px; }
-.r-name  { font-size: 17px; color: #e8c98a; }
-.r-dish  { font-size: 26px; color: #f0d898; font-weight: bold; margin: 6px 0 10px; }
-.r-score { display: inline-block; padding: 3px 12px; background: rgba(74,222,128,.08); border: 1px solid rgba(74,222,128,.2); color: #4ade80; border-radius: 20px; font-size: 12px; margin-bottom: 10px; }
-.r-why   { color: #a08050; font-size: 13px; line-height: 1.75; }
-.r-verdict { margin-top: 12px; padding-top: 12px; border-top: 1px solid #2a1a08; font-style: italic; color: #e8c98a; font-size: 12px; }
-.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-.tag { padding: 4px 12px; background: rgba(200,144,58,.07); border: 1px solid rgba(200,144,58,.18); border-radius: 20px; font-size: 12px; color: #a07030; }
-
-#rawToggle { background: none; border: none; color: #3a2810; font-size: 11px; cursor: pointer; font-family: monospace; padding: 4px 0; margin-top: 4px; display: block; }
-#rawToggle:hover { color: #c8903a; }
-#rawBox { margin-top: 6px; background: #080604; border: 1px solid #1a1008; border-radius: 8px; padding: 10px; font-family: monospace; font-size: 10px; color: #4a3820; max-height: 180px; overflow: auto; white-space: pre-wrap; word-break: break-all; display: none; }
-
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes up { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-```
-
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mekan Yorum Analizörü</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --primary: #2563eb;
+            --text-dark: #1f2937;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        h1 { text-align: center; color: var(--primary); }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover { background-color: #1d4ed8; }
+        button:disabled { background-color: #9ca3af; cursor: not-allowed; }
+        .settings-box {
+            background-color: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        .results {
+            margin-top: 30px;
+            display: none;
+        }
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .card {
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        .card.best { border-top: 4px solid var(--success); }
+        .card.mid { border-top: 4px solid var(--warning); }
+        .card.worst { border-top: 4px solid var(--danger); }
+        .card h3 { margin-top: 0; font-size: 18px; }
+        ul { padding-left: 20px; margin-bottom: 0; }
+        li { margin-bottom: 5px; }
+        #loading { text-align: center; margin-top: 20px; display: none; font-weight: bold; color: var(--primary); }
+        .raw-reviews { margin-top: 30px; font-size: 13px; color: #6b7280; border-top: 1px solid var(--border); padding-top: 15px; }
+    </style>
 </head>
 <body>
-<div class="wrap">
 
-  <div class="header">
-    <span class="emoji">🍽️</span>
-    <h1>Lezzet Analisti</h1>
-    <p class="sub">Google Maps URL ver · En iyi yemeği bul</p>
-    <div class="divider"></div>
-  </div>
-
-  <div class="nokey-box">
-    <span class="big">🔓</span>
-    <div>
-      <strong>Kayıt yok · API key yok · Tamamen ücretsiz</strong><br>
-      Jina AI Reader + Pollinations.ai ile çalışır
+<div class="container">
+    <h1>🍽️ Harita Yorum Analizörü</h1>
+    
+    <div class="settings-box">
+        <div class="form-group">
+            <label for="googleApiKey">Google Maps API Key (Places API aktif olmalı):</label>
+            <input type="password" id="googleApiKey" placeholder="AIzaSy...">
+        </div>
+        <div class="form-group">
+            <label for="geminiApiKey">Google Gemini API Key (Ücretsiz AI Analizi için):</label>
+            <input type="password" id="geminiApiKey" placeholder="AIzaSy...">
+        </div>
     </div>
-  </div>
 
-  <div class="field">
-    <label>📍 Google Maps Restoran URL</label>
-    <input type="text" id="urlInput" placeholder="https://maps.app.goo.gl/..."/>
-  </div>
-
-<button id="btn">Analiz Et</button>
-
-  <div id="log"></div>
-
-  <div id="result">
-    <div class="card">
-      <div class="card-lbl">Restoran</div>
-      <div class="r-name" id="rName"></div>
+    <div class="form-group">
+        <label for="placeInput">Mekan Adı veya Uzun Google Haritalar URL'si:</label>
+        <input type="text" id="placeInput" placeholder="Örn: Nusret Ankara veya https://www.google.com/maps/place/...">
     </div>
-    <div class="card">
-      <div class="card-lbl">🏆 En İyi Yemek</div>
-      <div class="r-dish" id="rDish"></div>
-      <div class="r-score" id="rScore"></div>
-      <div class="r-why" id="rWhy"></div>
-      <div class="r-verdict" id="rVerdict"></div>
-    </div>
-    <div class="card" id="othersCard" style="display:none">
-      <div class="card-lbl">Diğer Öneriler</div>
-      <div class="tags" id="rTags"></div>
-    </div>
-    <button id="rawToggle">▾ Ham veriyi göster</button>
-    <div id="rawBox"></div>
-  </div>
 
+    <button id="analyzeBtn" onclick="startProcess()">Yorumları Çek ve Analiz Et</button>
+    <div id="loading">İşlem yapılıyor, lütfen bekleyin... Yorumlar çekiliyor ve yapay zeka tarafından analiz ediliyor.</div>
+
+    <div class="results" id="resultsArea">
+        <h2>📊 Analiz Sonuçları</h2>
+        <h4 id="placeNameDisplay" style="color: #4b5563; margin-top: -10px;"></h4>
+        
+        <div class="category-grid">
+            <div class="card best">
+                <h3>🏆 En İyiler (Övgü Alanlar)</h3>
+                <div id="bestContent"></div>
+            </div>
+            <div class="card mid">
+                <h3>😐 Ortalar (Karışık Yorumlar)</h3>
+                <div id="midContent"></div>
+            </div>
+            <div class="card worst">
+                <h3>🛑 En Kötüler (Şikayet Edilenler)</h3>
+                <div id="worstContent"></div>
+            </div>
+        </div>
+
+        <div class="raw-reviews">
+            <strong>Analiz Edilen Ham Yorumlar:</strong>
+            <ul id="rawReviewsList"></ul>
+        </div>
+    </div>
 </div>
+
 <script>
-  function clearLog() { document.getElementById("log").innerHTML = ""; }
-  function addLog(msg, cls) {
-    var el = document.createElement("div");
-    el.className = cls || "l-info";
-    el.textContent = msg;
-    document.getElementById("log").appendChild(el);
-  }
+    let mapService;
 
-// ── Jina ile sayfa çek (proxy fallback) ───────────────────────
-function fetchJina(url) {
-var target = “https://r.jina.ai/” + url;
-var tries = [
-target,
-“https://api.allorigins.win/raw?url=” + encodeURIComponent(target),
-“https://corsproxy.io/?” + encodeURIComponent(target)
-];
-var i = 0;
+    // Harita kütüphanesini dinamik yükleme
+    function loadGoogleMapsScript(apiKey) {
+        return new Promise((resolve, reject) => {
+            if (window.google && window.google.maps) {
+                resolve();
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+            script.async = true;
+            script.defer = true;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    }
 
-```
-function next() {
-  if (i >= tries.length) return Promise.reject(new Error("Sayfa çekilemedi, tüm proxy'ler denendi."));
-  var u = tries[i++];
-  addLog("🔗 Sayfa çekiliyor (" + i + "/" + tries.length + ")...", "l-info");
-  return fetch(u)
-    .then(function(r) {
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      return r.text();
-    })
-    .then(function(t) {
-      if (!t || t.length < 80) throw new Error("Boş yanıt");
-      return t;
-    })
-    .catch(function(e) {
-      addLog("  ↳ " + e.message, "l-info");
-      return next();
-    });
-}
-return next();
-```
+    async function startProcess() {
+        const googleKey = document.getElementById('googleApiKey').value.trim();
+        const geminiKey = document.getElementById('geminiApiKey').value.trim();
+        const inputVal = document.getElementById('placeInput').value.trim();
 
-}
+        if (!googleKey || !geminiKey || !inputVal) {
+            alert("Lütfen tüm API anahtarlarını ve mekan bilgisini doldurun.");
+            return;
+        }
 
-// ── Pollinations.ai ile analiz ────────────────────────────────
-// Tamamen ücretsiz, kayıt yok, key yok
-function callPollinations(pageText, originalUrl) {
-var prompt = “Sen bir gurme yemek analistisin.\n\n”
-+ “Aşağıda bir Google Maps restoran sayfasının metin içeriği var:\n\n”
-+ pageText.slice(0, 3500)
-+ “\n\nORİJİNAL URL: “ + originalUrl
-+ “\n\nBu içeriği analiz et. Restoranın adını, en çok önerilen yemeği ve genel puanı belirle.”
-+ “\n\nSADECE geçerli JSON döndür, başka hiçbir şey yazma:\n”
-+ ‘{“restaurant_name”:“Restoranın adı”,“best_dish”:“En iyi yemek”,“score”:8.5,“why”:“2-3 cümle açıklama”,“honorable_mentions”:[“yemek2”,“yemek3”],“verdict”:“Tek cümle tavsiye”,“review_count”:0,“sentiment”:“positive”}’;
+        document.getElementById('analyzeBtn').disabled = true;
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('resultsArea').style.display = 'none';
 
-```
-addLog("🤖 Pollinations.ai ile analiz ediliyor...", "l-info");
+        try {
+            await loadGoogleMapsScript(googleKey);
+            
+            // Gizli bir div oluşturup Google Places servisini başlatıyoruz
+            const hiddenMap = document.createElement('div');
+            mapService = new google.maps.places.PlacesService(hiddenMap);
 
-return fetch("https://text.pollinations.ai/", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    messages: [{ role: "user", content: prompt }],
-    model: "openai",
-    seed: 42,
-    jsonMode: true
-  })
-})
-.then(function(r) {
-  if (!r.ok) throw new Error("Pollinations HTTP " + r.status);
-  return r.text();
-})
-.then(function(text) {
-  if (!text || text.trim().length < 10) throw new Error("Pollinations boş yanıt döndürdü.");
-  var clean = text.replace(/```json|```/g, "").trim();
-  var match = clean.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error("JSON ayrıştırılamadı. Yanıt: " + text.slice(0, 120));
-  return JSON.parse(match[0]);
-});
-```
+            // Girdiyi analiz et (URL mi yoksa isim mi?)
+            let searchQuery = inputVal;
+            if (inputVal.includes("google.com/maps/place/")) {
+                const urlParts = inputVal.split("/place/")[1].split("/")[0];
+                searchQuery = decodeURIComponent(urlParts.replace(/\+/g, ' '));
+            }
 
-}
+            // 1. Mekanı Ara
+            const placeId = await searchPlace(searchQuery);
+            if (!placeId) throw new Error("Mekan bulunamadı.");
 
-// ── Sonucu göster ─────────────────────────────────────────────
-function showResult(r) {
-document.getElementById(“rName”).textContent    = r.restaurant_name || “—”;
-document.getElementById(“rDish”).textContent    = r.best_dish || “—”;
-document.getElementById(“rScore”).textContent   = “⭐ “ + (r.score || “—”) + “ / 10” + (r.review_count > 0 ? “  ·  “ + r.review_count + “+ yorum” : “”);
-document.getElementById(“rWhy”).textContent     = r.why || “”;
-document.getElementById(“rVerdict”).textContent = r.verdict ? ‘”’ + r.verdict + ‘”’ : “”;
+            // 2. Yorumları Çek
+            const placeDetails = await getPlaceDetails(placeId);
+            const reviews = placeDetails.reviews || [];
+            
+            if (reviews.length === 0) {
+                throw new Error("Bu mekan için hiç yorum bulunamadı.");
+            }
 
-```
-var tagsEl = document.getElementById("rTags");
-tagsEl.innerHTML = "";
-var mentions = (r.honorable_mentions || []).filter(Boolean);
-if (mentions.length > 0) {
-  mentions.forEach(function(m) {
-    var t = document.createElement("span");
-    t.className = "tag";
-    t.textContent = m;
-    tagsEl.appendChild(t);
-  });
-  document.getElementById("othersCard").style.display = "block";
-} else {
-  document.getElementById("othersCard").style.display = "none";
-}
+            document.getElementById('placeNameDisplay').innerText = `Mekan: ${placeDetails.name} (${reviews.length} yorum bulundu)`;
+            
+            // Yorumları metne çevir ve arayüze ekle
+            const reviewsText = reviews.map(r => r.text).join("\n---\n");
+            document.getElementById('rawReviewsList').innerHTML = reviews.map(r => `<li>${r.text}</li>`).join("");
 
-document.getElementById("result").style.display = "block";
-setTimeout(function() {
-  document.getElementById("result").scrollIntoView({ behavior: "smooth", block: "start" });
-}, 100);
-```
+            // 3. Gemini ile Analiz Et
+            await analyzeWithGemini(geminiKey, reviewsText);
 
-}
+        } catch (error) {
+            alert("Bir hata oluştu: " + error.message);
+            console.error(error);
+        } finally {
+            document.getElementById('analyzeBtn').disabled = false;
+            document.getElementById('loading').style.display = 'none';
+        }
+    }
 
-// ── Ana akış ──────────────────────────────────────────────────
-document.getElementById(“btn”).addEventListener(“click”, function() {
-var url = document.getElementById(“urlInput”).value.trim();
-clearLog();
-document.getElementById(“result”).style.display = “none”;
+    function searchPlace(query) {
+        return new Promise((resolve, reject) => {
+            const request = { query: query, fields: ['name', 'place_id'] };
+            mapService.findPlaceFromQuery(request, (results, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+                    resolve(results[0].place_id);
+                } else {
+                    reject(new Error("Mekan araması başarısız oldu."));
+                }
+            });
+        });
+    }
 
-```
-if (!url) { addLog("❌ Lütfen bir Google Maps URL'si girin.", "l-err"); return; }
+    function getPlaceDetails(placeId) {
+        return new Promise((resolve, reject) => {
+            const request = { placeId: placeId, fields: ['name', 'reviews'] };
+            mapService.getDetails(request, (place, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    resolve(place);
+                } else {
+                    reject(new Error("Mekan detayları alınamadı."));
+                }
+            });
+        });
+    }
 
-var btn = this;
-btn.disabled = true;
-btn.innerHTML = '<span class="spinner"></span><span>Analiz ediliyor...</span>';
+    async function analyzeWithGemini(apiKey, reviewsText) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        
+        const prompt = `
+        Aşağıdaki müşteri yorumlarını analiz et. Menüde geçen yiyecekleri, içecekleri ve tatlıları tespit et.
+        Müşterilerin duygu durumuna göre bunları "En İyi", "Orta" ve "En Kötü" olarak kategorize et.
+        Eğer bir kategori için veri yoksa boş dizi [] döndür.
+        
+        KESİNLİKLE SADECE GEÇERLİ BİR JSON DÖNDÜR, BAŞKA METİN VEYA MARKDOWN (```json) KULLANMA.
+        
+        JSON Formatı şu şekilde olmalı:
+        {
+            "en_iyi": { "yiyecekler": [], "icecekler": [], "tatlilar": [] },
+            "orta": { "yiyecekler": [], "icecekler": [], "tatlilar": [] },
+            "en_kotu": { "yiyecekler": [], "icecekler": [], "tatlilar": [] }
+        }
 
-fetchJina(url)
-  .then(function(pageText) {
-    addLog("✅ Sayfa çekildi — " + pageText.length + " karakter", "l-ok");
-    document.getElementById("rawBox").textContent = pageText.slice(0, 5000);
-    return callPollinations(pageText, url);
-  })
-  .then(function(r) {
-    addLog("✅ Analiz tamamlandı!", "l-ok");
-    showResult(r);
-  })
-  .catch(function(e) {
-    addLog("❌ " + (e.message || "Bilinmeyen hata"), "l-err");
-  })
-  .finally(function() {
-    btn.disabled = false;
-    btn.innerHTML = "Analiz Et";
-  });
-```
+        Müşteri Yorumları:
+        ${reviewsText}
+        `;
 
-});
+        const requestBody = {
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.2 }
+        };
 
-document.getElementById(“urlInput”).addEventListener(“keydown”, function(e) {
-if (e.key === “Enter”) document.getElementById(“btn”).click();
-});
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        });
 
-document.getElementById(“rawToggle”).addEventListener(“click”, function() {
-var box = document.getElementById(“rawBox”);
-var show = box.style.display !== “block”;
-box.style.display = show ? “block” : “none”;
-this.textContent = show ? “▴ Ham veriyi gizle” : “▾ Ham veriyi göster”;
-});
+        if (!response.ok) throw new Error("Yapay zeka analiz servisine ulaşılamadı.");
+
+        const data = await response.json();
+        let jsonStr = data.candidates[0].content.parts[0].text.trim();
+        
+        // Temizlik: Markdown tag'lerini kaldır
+        if(jsonStr.startsWith("```json")) jsonStr = jsonStr.substring(7);
+        if(jsonStr.startsWith("```")) jsonStr = jsonStr.substring(3);
+        if(jsonStr.endsWith("```")) jsonStr = jsonStr.substring(0, jsonStr.length - 3);
+
+        const resultObj = JSON.parse(jsonStr);
+        renderResults(resultObj);
+    }
+
+    function renderResults(data) {
+        const generateHTML = (categoryData) => {
+            return `
+                <strong>🍔 Yiyecekler:</strong>
+                <ul>${categoryData.yiyecekler.length > 0 ? categoryData.yiyecekler.map(i => `<li>${i}</li>`).join('') : '<li>Veri yok</li>'}</ul>
+                <strong>🍹 İçecekler:</strong>
+                <ul>${categoryData.icecekler.length > 0 ? categoryData.icecekler.map(i => `<li>${i}</li>`).join('') : '<li>Veri yok</li>'}</ul>
+                <strong>🍰 Tatlılar:</strong>
+                <ul>${categoryData.tatlilar.length > 0 ? categoryData.tatlilar.map(i => `<li>${i}</li>`).join('') : '<li>Veri yok</li>'}</ul>
+            `;
+        };
+
+        document.getElementById('bestContent').innerHTML = generateHTML(data.en_iyi);
+        document.getElementById('midContent').innerHTML = generateHTML(data.orta);
+        document.getElementById('worstContent').innerHTML = generateHTML(data.en_kotu);
+
+        document.getElementById('resultsArea').style.display = 'block';
+    }
 </script>
 
 </body>
