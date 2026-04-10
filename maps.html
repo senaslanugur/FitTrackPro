@@ -7,87 +7,61 @@
   <title>Lezzet Analisti</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: #111;
-      color: #f0e6d0;
-      font-family: Georgia, serif;
-      min-height: 100vh;
-      padding: 32px 16px;
-    }
+    body { background: #111; color: #f0e6d0; font-family: Georgia, serif; min-height: 100vh; padding: 36px 16px 60px; }
     .container { max-width: 560px; margin: 0 auto; }
+    h1 { text-align: center; font-size: 24px; font-weight: normal; color: #e8c98a; letter-spacing: 3px; margin-bottom: 4px; }
+    .sub { text-align: center; color: #5a4020; font-size: 12px; margin-bottom: 24px; }
+    .free-badge { display: block; text-align: center; margin-bottom: 22px; }
+    .free-badge span { display: inline-block; background: rgba(74,222,128,.08); border: 1px solid rgba(74,222,128,.25); color: #4ade80; font-size: 11px; padding: 4px 12px; border-radius: 8px; }
 
 ```
-h1 { text-align: center; font-size: 24px; font-weight: normal; color: #e8c98a; letter-spacing: 3px; margin-bottom: 6px; }
-.sub { text-align: center; color: #6a5030; font-size: 12px; margin-bottom: 28px; }
-
-.badge { display: inline-block; background: rgba(74,222,128,.1); border: 1px solid rgba(74,222,128,.3); color: #4ade80; font-size: 11px; padding: 3px 10px; border-radius: 8px; margin-bottom: 20px; }
-
-label { display: block; font-size: 11px; letter-spacing: 1.5px; color: #c8903a; text-transform: uppercase; margin-bottom: 6px; }
-
+label { display: block; font-size: 10px; letter-spacing: 2px; color: #c8903a; text-transform: uppercase; margin-bottom: 6px; }
 input[type="text"] {
-  width: 100%;
-  padding: 12px 14px;
-  background: #1a1a1a;
-  border: 1px solid #3a2a14;
-  border-radius: 8px;
-  color: #f0e6d0;
-  font-size: 14px;
-  font-family: monospace;
-  outline: none;
-  margin-bottom: 12px;
+  width: 100%; padding: 12px 14px;
+  background: #1a1408; border: 1px solid #3a2010;
+  border-radius: 8px; color: #f0e6d0; font-size: 13px;
+  font-family: monospace; outline: none; margin-bottom: 10px; transition: border-color .2s;
 }
-input[type="text"]:focus { border-color: #c8903a; }
-input::placeholder { color: #3a2a14; }
+input:focus { border-color: #c8903a; }
+input::placeholder { color: #3a2010; }
 
-button#btn {
-  width: 100%;
-  padding: 14px;
-  background: #c8903a;
-  border: none;
-  border-radius: 8px;
-  color: #fff;
-  font-size: 14px;
-  letter-spacing: 1px;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 0.2s;
+#btn {
+  width: 100%; padding: 14px;
+  background: linear-gradient(135deg, #c8903a, #8a5818);
+  border: none; border-radius: 8px;
+  color: #fff; font-size: 14px; letter-spacing: 1px;
+  cursor: pointer; font-family: inherit;
+  transition: opacity .2s;
 }
-button#btn:hover { background: #d4973f; }
-button#btn:disabled { background: #3a2a14; color: #6a5030; cursor: not-allowed; }
+#btn:hover { opacity: .9; }
+#btn:disabled { opacity: .4; cursor: not-allowed; }
 
-#status {
-  margin-top: 14px;
-  padding: 12px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  line-height: 1.6;
-  display: none;
+#log {
+  margin-top: 12px;
+  font-size: 12px; line-height: 1.8;
+  font-family: monospace; color: #7a5a30;
+  min-height: 20px;
 }
-#status.info { background: rgba(200,144,58,.1); border: 1px solid rgba(200,144,58,.3); color: #c8903a; }
-#status.error { background: rgba(248,113,113,.08); border: 1px solid rgba(248,113,113,.3); color: #f87171; }
-#status.success { background: rgba(74,222,128,.08); border: 1px solid rgba(74,222,128,.3); color: #4ade80; }
+#log .ok { color: #4ade80; }
+#log .err { color: #f87171; }
+#log .info { color: #c8903a; }
 
-#result {
-  margin-top: 20px;
-  background: #1a1a1a;
-  border: 1px solid #3a2818;
-  border-radius: 12px;
-  padding: 20px;
-  display: none;
-}
-#result h2 { font-size: 13px; color: #6a5030; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
-#result .restaurant { font-size: 18px; color: #e8c98a; margin-bottom: 16px; }
-#result .best-label { font-size: 10px; color: #c8903a; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 4px; }
-#result .best-dish { font-size: 26px; color: #f0d898; font-weight: bold; margin-bottom: 10px; }
-#result .score { display: inline-block; background: rgba(74,222,128,.1); border: 1px solid rgba(74,222,128,.2); color: #4ade80; padding: 3px 12px; border-radius: 20px; font-size: 12px; margin-bottom: 12px; }
-#result .why { color: #b89860; font-size: 13px; line-height: 1.7; margin-bottom: 14px; }
-#result .others-label { font-size: 10px; color: #6a5030; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px; }
-#result .tags { display: flex; flex-wrap: wrap; gap: 6px; }
-#result .tag { padding: 4px 12px; background: rgba(200,144,58,.08); border: 1px solid rgba(200,144,58,.2); border-radius: 20px; font-size: 12px; color: #a07840; }
+#result { margin-top: 20px; display: none; animation: fadeUp .4s ease; }
+.card { background: #1a1408; border: 1px solid #3a2010; border-radius: 12px; padding: 20px; margin-bottom: 10px; }
+.card-label { font-size: 9px; letter-spacing: 3px; color: #c8903a; text-transform: uppercase; margin-bottom: 6px; }
+.restaurant-name { font-size: 17px; color: #e8c98a; }
+.dish-name { font-size: 26px; color: #f0d898; font-weight: bold; margin: 6px 0 10px; }
+.score { display: inline-block; padding: 3px 12px; background: rgba(74,222,128,.08); border: 1px solid rgba(74,222,128,.2); color: #4ade80; border-radius: 20px; font-size: 12px; margin-bottom: 10px; }
+.why { color: #a08050; font-size: 13px; line-height: 1.7; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.tag { padding: 4px 12px; background: rgba(200,144,58,.07); border: 1px solid rgba(200,144,58,.18); border-radius: 20px; font-size: 12px; color: #a07030; }
 
-#rawToggle { margin-top: 14px; font-size: 11px; color: #5a3e22; cursor: pointer; background: none; border: none; font-family: inherit; padding: 0; }
+#rawSection { margin-top: 8px; }
+#rawToggle { background: none; border: none; color: #4a3018; font-size: 11px; cursor: pointer; font-family: monospace; padding: 4px 0; }
 #rawToggle:hover { color: #c8903a; }
-#rawContent { margin-top: 8px; font-family: monospace; font-size: 10px; color: #5a4030; background: #0a0a0a; border: 1px solid #222; border-radius: 8px; padding: 12px; max-height: 180px; overflow: auto; white-space: pre-wrap; word-break: break-all; display: none; }
+#rawBox { margin-top: 6px; background: #0a0a0a; border: 1px solid #222; border-radius: 8px; padding: 10px; font-family: monospace; font-size: 10px; color: #4a3a24; max-height: 200px; overflow: auto; white-space: pre-wrap; word-break: break-all; display: none; }
+
+@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
 ```
 
   </style>
@@ -97,228 +71,235 @@ button#btn:disabled { background: #3a2a14; color: #6a5030; cursor: not-allowed; 
 
   <h1>🍽️ Lezzet Analisti</h1>
   <p class="sub">Google Maps URL ver · En iyi yemeği bul</p>
+  <div class="free-badge"><span>🔓 API Anahtarı Gerekmez · Tamamen Ücretsiz</span></div>
 
-  <div style="text-align:center">
-    <span class="badge">🔓 API Anahtarı Gerekmez</span>
-  </div>
-
-<label for="urlInput">Google Maps URL</label>
-<input type="text" id="urlInput" placeholder="https://maps.app.goo.gl/..." />
+<label for="urlInput">Google Maps Restoran URL</label>
+<input type="text" id="urlInput" placeholder="https://maps.app.goo.gl/..."/>
 
 <button id="btn">Analiz Et</button>
 
-  <div id="status"></div>
+  <div id="log"></div>
 
   <div id="result">
-    <h2>Restoran</h2>
-    <div class="restaurant" id="rRestaurant"></div>
-    <div class="best-label">🏆 En İyi Yemek</div>
-    <div class="best-dish" id="rDish"></div>
-    <div class="score" id="rScore"></div>
-    <div class="why" id="rWhy"></div>
-    <div class="others-label" id="othersLabel" style="display:none">Diğer Öneriler</div>
-    <div class="tags" id="rTags"></div>
-
-```
-<button id="rawToggle">▾ Ham veriyi göster</button>
-<div id="rawContent"></div>
-```
-
+    <div class="card">
+      <div class="card-label">Restoran</div>
+      <div class="restaurant-name" id="rName">—</div>
+    </div>
+    <div class="card">
+      <div class="card-label">🏆 En İyi Yemek</div>
+      <div class="dish-name" id="rDish">—</div>
+      <div class="score" id="rScore">⭐ —</div>
+      <div class="why" id="rWhy"></div>
+    </div>
+    <div class="card" id="othersCard" style="display:none">
+      <div class="card-label">Diğer Öneriler</div>
+      <div class="tags" id="rTags"></div>
+    </div>
+    <div id="rawSection">
+      <button id="rawToggle">▾ Çekilen ham veriyi göster</button>
+      <div id="rawBox"></div>
+    </div>
   </div>
 
 </div>
 <script>
-  var btn = document.getElementById("btn");
-  var status = document.getElementById("status");
-  var result = document.getElementById("result");
+  // ── Kelime listeleri ──────────────────────────────────────────
+  var POS = ["harika","muhteşem","lezzetli","nefis","mükemmel","enfes","inanılmaz","süper","çok iyi","güzel","tavsiye","şahane","efsane","bayıldım","sevdim","beğendim","taze","kaliteli","delicious","amazing","excellent","great","best","wonderful","tasty","perfect","recommend","must try","incredible","loved","fantastic"];
+  var NEG = ["kötü","berbat","rezalet","soğuk","bayat","tatsız","beğenmedim","terrible","bad","awful","disgusting","worst","horrible","poor","bland","overpriced"];
+  var FOODS = ["adana kebap","adana","urfa kebap","iskender","döner","lahmacun","pide","etli pide","kaşarlı pide","kıymalı pide","mantı","köfte","izgara köfte","çiğ köfte","şiş","kuzu şiş","tavuk şiş","kanat","kuzu tandır","tandır","güveç","testi kebabı","etli ekmek","mercimek çorbası","ezogelin","çorba","baklava","kadayıf","künefe","sütlaç","kazandibi","dondurma","hummus","acılı ezme","cacık","haydari","patlıcan","meze","balık","levrek","çipura","hamsi","alabalık","karides","ahtapot","börek","su böreği","gözleme","poğaça","pilav","bulgur","fasulye","barbunya","pizza","burger","sandviç","salata","makarna","kahvaltı","serpme kahvaltı","omlet","menemen","sucuk","şekerpare","revani","lokma","wrap","steak","kebab","kebap","schnitzel","risotto","ramen","sushi"];
 
-function setStatus(msg, type) {
-status.textContent = msg;
-status.className = type;
-status.style.display = “block”;
+// ── Log satırı ekle ───────────────────────────────────────────
+function log(msg, type) {
+var d = document.getElementById(“log”);
+var line = document.createElement(“div”);
+line.className = type || “info”;
+line.textContent = msg;
+d.appendChild(line);
 }
+function clearLog() { document.getElementById(“log”).innerHTML = “”; }
 
-function hideStatus() {
-status.style.display = “none”;
-}
-
-// Pozitif / negatif kelimeler
-var POS = [“harika”,“muhteşem”,“lezzetli”,“nefis”,“mükemmel”,“enfes”,“inanılmaz”,“süper”,“çok iyi”,“güzel”,“tavsiye”,“şahane”,“efsane”,“bayıldım”,“sevdim”,“beğendim”,“taze”,“kaliteli”,“delicious”,“amazing”,“excellent”,“great”,“best”,“wonderful”,“tasty”,“perfect”,“recommend”,“favorite”,“must try”,“incredible”];
-var NEG = [“kötü”,“berbat”,“rezalet”,“soğuk”,“bayat”,“tatsız”,“beğenmedim”,“terrible”,“bad”,“awful”,“disgusting”,“worst”,“horrible”,“poor”];
-
-// Bilinen yemekler listesi
-var FOODS = [
-“adana kebap”,“adana”,“urfa kebap”,“urfa”,“iskender”,“döner”,“lahmacun”,
-“pide”,“etli pide”,“kaşarlı pide”,“kıymalı pide”,“mantı”,“köfte”,“izgara köfte”,
-“çiğ köfte”,“şiş köfte”,“kuzu şiş”,“tavuk şiş”,“kanat”,“kuzu tandır”,“tandır”,
-“güveç”,“testi kebabı”,“etli ekmek”,“mercimek çorbası”,“ezogelin”,“çorba”,
-“baklava”,“kadayıf”,“künefe”,“sütlaç”,“kazandibi”,“dondurma”,
-“hummus”,“acılı ezme”,“cacık”,“haydari”,“patlıcan salatası”,“meze”,
-“tavuk”,“balık”,“levrek”,“çipura”,“hamsi”,“alabalık”,“karides”,“ahtapot”,
-“börek”,“su böreği”,“gözleme”,“poğaça”,
-“pilav”,“bulgur pilavı”,“bulgur”,“fasulye”,“barbunya”,
-“pizza”,“burger”,“sandviç”,“salata”,“makarna”,
-“kahvaltı”,“serpme kahvaltı”,“omlet”,“menemen”,“sucuk”,
-“baklava”,“şekerpare”,“revani”,“lokma”,
-“wrap”,“steak”,“kebab”,“kebap”
-];
-
+// ── Metin analizleri ──────────────────────────────────────────
 function extractName(text) {
 var m = text.match(/Title:\s*(.+)/i) || text.match(/^# (.+)/m) || text.match(/^(.{4,60})\n/);
 if (m) {
-var name = m[1].trim().replace(/\s*[-|·–]\s*.*/,””).trim();
-if (name.length > 2 && name.length < 80) return name;
+var n = m[1].trim().replace(/\s*[-|·–—]\s*.*/,””).trim();
+if (n.length > 2 && n.length < 80) return n;
 }
 return “Restoran”;
 }
-
 function extractRating(text) {
-var m = text.match(/([1-5][.,]\d)\s*(yıldız|star|/5)/i)
-|| text.match(/([1-5][.,]\d)\s*(\d/);
-if (m) return parseFloat(m[1].replace(”,”,”.”));
-return null;
+var m = text.match(/([1-5][.,]\d)\s*(yıldız|star|/5)/i) || text.match(/([1-5][.,]\d)\s*(\d/);
+return m ? parseFloat(m[1].replace(”,”,”.”)) : null;
 }
-
 function extractReviewCount(text) {
 var m = text.match(/(\d[\d.]+)\s*(yorum|değerlend|review)/i);
-if (m) return parseInt(m[1].replace(/./g,””));
-return 0;
+return m ? parseInt(m[1].replace(/./g,””)) : 0;
 }
-
 function scoreFood(text, foods) {
 var lower = text.toLowerCase();
 var sentences = lower.split(/[\n.!?]+/).filter(function(s){ return s.trim().length > 4; });
-var results = [];
-
-```
+var out = [];
 foods.forEach(function(food) {
-  if (lower.indexOf(food.toLowerCase()) === -1) return;
-  var score = 0;
-  var count = 0;
-  sentences.forEach(function(s) {
-    if (s.indexOf(food.toLowerCase()) === -1) return;
-    count++;
-    POS.forEach(function(p){ if (s.indexOf(p) !== -1) score += 2; });
-    NEG.forEach(function(n){ if (s.indexOf(n) !== -1) score -= 2; });
+if (lower.indexOf(food) === -1) return;
+var score = 0, count = 0;
+sentences.forEach(function(s) {
+if (s.indexOf(food) === -1) return;
+count++;
+POS.forEach(function(p){ if (s.indexOf(p) !== -1) score += 2; });
+NEG.forEach(function(n){ if (s.indexOf(n) !== -1) score -= 2; });
+});
+if (count > 0) out.push({ name: food, score: score, count: count });
+});
+return out.sort(function(a,b){ return (b.score+b.count)-(a.score+a.count); });
+}
+function extractSentences(text, food) {
+return text.split(/[.!?\n]+/)
+.filter(function(s){ return s.toLowerCase().indexOf(food) !== -1 && s.trim().length > 12; })
+.slice(0,2).map(function(s){ return s.trim(); }).join(” “).slice(0,280);
+}
+
+// ── Metni işle ve sonucu göster ───────────────────────────────
+function processText(text) {
+document.getElementById(“rawBox”).textContent = text.slice(0, 5000);
+
+```
+var name  = extractName(text);
+var rating = extractRating(text);
+var reviewCount = extractReviewCount(text);
+var ranked = scoreFood(text, FOODS);
+
+var posC = POS.filter(function(p){ return text.toLowerCase().indexOf(p) !== -1; }).length;
+var negC = NEG.filter(function(n){ return text.toLowerCase().indexOf(n) !== -1; }).length;
+var score = rating
+  ? Math.round(rating * 2 * 10) / 10
+  : Math.round(Math.min(9.5, Math.max(5, 7 + posC * 0.12 - negC * 0.25)) * 10) / 10;
+
+if (ranked.length === 0) {
+  log("⚠️ Tanınan yemek bulunamadı. Ham veriyi inceleyebilirsiniz.", "err");
+  document.getElementById("rawBox").style.display = "block";
+  return;
+}
+
+var best   = ranked[0];
+var others = ranked.slice(1, 4).map(function(r){ return r.name; });
+var why    = extractSentences(text, best.name);
+if (!why) why = '"' + best.name + '" bu restoranın yorumlarında en çok öne çıkan lezzet.';
+
+document.getElementById("rName").textContent  = name;
+document.getElementById("rDish").textContent  = best.name.charAt(0).toUpperCase() + best.name.slice(1);
+document.getElementById("rScore").textContent = "⭐ " + score + " / 10" + (reviewCount > 0 ? "  ·  " + reviewCount + "+ yorum" : "");
+document.getElementById("rWhy").textContent   = why;
+
+var tagsEl = document.getElementById("rTags");
+tagsEl.innerHTML = "";
+if (others.length > 0) {
+  document.getElementById("othersCard").style.display = "block";
+  others.forEach(function(o) {
+    var t = document.createElement("span");
+    t.className = "tag";
+    t.textContent = o.charAt(0).toUpperCase() + o.slice(1);
+    tagsEl.appendChild(t);
   });
-  if (count > 0) results.push({ name: food, score: score, count: count });
-});
+}
 
-results.sort(function(a,b){ return (b.score + b.count) - (a.score + a.count); });
-return results;
+clearLog();
+log("✅ Analiz tamamlandı!", "ok");
+document.getElementById("result").style.display = "block";
+setTimeout(function(){ document.getElementById("result").scrollIntoView({ behavior:"smooth", block:"start" }); }, 100);
 ```
 
 }
 
-function extractSentences(text, foodName) {
-var sentences = text.split(/[.!?\n]+/).filter(function(s){ return s.trim().length > 10; });
-var relevant = sentences.filter(function(s){
-var sl = s.toLowerCase();
-return sl.indexOf(foodName.toLowerCase()) !== -1;
-});
-return relevant.slice(0, 2).map(function(s){ return s.trim(); }).join(” “);
+// ── CORS proxy zinciri ────────────────────────────────────────
+// Her proxy başarısız olursa bir sonrakini dener
+function fetchWithProxy(targetUrl, proxies, index) {
+if (index >= proxies.length) {
+return Promise.reject(new Error(“Tüm proxy’ler başarısız oldu. Lütfen daha sonra tekrar deneyin.”));
+}
+var proxyUrl = proxies[index](targetUrl);
+log(“🔗 Deneniyor: “ + proxyUrl.split(”?”)[0].replace(“https://”,””).slice(0,30) + “…”, “info”);
+
+```
+return fetch(proxyUrl, { method: "GET" })
+  .then(function(res) {
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return res.text();
+  })
+  .then(function(text) {
+    if (!text || text.trim().length < 50) throw new Error("Boş yanıt");
+    // allorigins JSON wrapper'ını çöz
+    try {
+      var json = JSON.parse(text);
+      if (json.contents) return json.contents;
+    } catch(e) {}
+    return text;
+  })
+  .catch(function(err) {
+    log("⚠️ " + err.message + " → Sonraki deneniyor...", "info");
+    return fetchWithProxy(targetUrl, proxies, index + 1);
+  });
+```
+
 }
 
-function analyze() {
+// ── Ana fetch fonksiyonu ──────────────────────────────────────
+function fetchPage(url) {
+var jinaTarget = “https://r.jina.ai/” + url;
+
+```
+var proxies = [
+  // 1. Doğrudan Jina (CORS destekliyorsa çalışır)
+  function(u) { return u; },
+  // 2. allorigins proxy
+  function(u) { return "https://api.allorigins.win/raw?url=" + encodeURIComponent(u); },
+  // 3. corsproxy.io
+  function(u) { return "https://corsproxy.io/?" + encodeURIComponent(u); },
+  // 4. allorigins JSON endpoint
+  function(u) { return "https://api.allorigins.win/get?url=" + encodeURIComponent(u); },
+];
+
+return fetchWithProxy(jinaTarget, proxies, 0);
+```
+
+}
+
+// ── Butona tıklama ────────────────────────────────────────────
+document.getElementById(“btn”).addEventListener(“click”, function() {
 var url = document.getElementById(“urlInput”).value.trim();
-if (!url) { setStatus(“Lütfen bir Google Maps URL’si girin.”, “error”); return; }
+if (!url) { clearLog(); log(“❌ Lütfen bir Google Maps URL’si girin.”, “err”); return; }
 
 ```
+var btn = this;
 btn.disabled = true;
 btn.textContent = "Analiz ediliyor...";
-result.style.display = "none";
-setStatus("🔗 Jina AI Reader ile sayfa çekiliyor...", "info");
+document.getElementById("result").style.display = "none";
+clearLog();
+log("🚀 Başlatılıyor...", "info");
 
-var jinaUrl = "https://r.jina.ai/" + url;
-
-fetch(jinaUrl, {
-  method: "GET",
-  headers: {
-    "Accept": "text/plain",
-    "X-Return-Format": "text"
-  }
-})
-.then(function(res) {
-  if (!res.ok) throw new Error("Sayfa çekilemedi. HTTP " + res.status + ". URL'yi kontrol edin.");
-  setStatus("📖 İçerik analiz ediliyor...", "info");
-  return res.text();
-})
-.then(function(text) {
-  // Ham veriyi sakla
-  document.getElementById("rawContent").textContent = text.slice(0, 4000);
-
-  var name = extractName(text);
-  var rating = extractRating(text);
-  var reviewCount = extractReviewCount(text);
-  var ranked = scoreFood(text, FOODS);
-
-  var posCount = POS.filter(function(p){ return text.toLowerCase().indexOf(p) !== -1; }).length;
-  var negCount = NEG.filter(function(n){ return text.toLowerCase().indexOf(n) !== -1; }).length;
-  var score = rating
-    ? Math.round(rating * 2 * 10) / 10
-    : Math.min(9.5, Math.max(5, 7 + posCount * 0.1 - negCount * 0.2));
-  score = Math.round(score * 10) / 10;
-
-  if (ranked.length === 0) {
-    setStatus("⚠️ Sayfada tanınan yemek ismi bulunamadı. Ham veriyi kontrol edin.", "error");
-    document.getElementById("rawContent").style.display = "block";
+fetchPage(url)
+  .then(function(text) {
+    log("📄 Sayfa çekildi (" + text.length + " karakter). Analiz yapılıyor...", "ok");
+    processText(text);
+  })
+  .catch(function(err) {
+    log("❌ " + (err.message || "Bilinmeyen hata"), "err");
+  })
+  .finally(function() {
     btn.disabled = false;
     btn.textContent = "Analiz Et";
-    return;
-  }
-
-  var best = ranked[0];
-  var others = ranked.slice(1, 4).map(function(r){ return r.name; });
-  var why = extractSentences(text, best.name);
-  if (!why) why = '"' + best.name + '" bu restoranın en çok önerilen yemeği olarak öne çıkıyor.';
-
-  document.getElementById("rRestaurant").textContent = name;
-  document.getElementById("rDish").textContent = best.name.charAt(0).toUpperCase() + best.name.slice(1);
-  document.getElementById("rScore").textContent = "⭐ " + score + " / 10";
-  document.getElementById("rWhy").textContent = why;
-
-  var tagsEl = document.getElementById("rTags");
-  tagsEl.innerHTML = "";
-  if (others.length > 0) {
-    document.getElementById("othersLabel").style.display = "block";
-    others.forEach(function(o) {
-      var t = document.createElement("span");
-      t.className = "tag";
-      t.textContent = o.charAt(0).toUpperCase() + o.slice(1);
-      tagsEl.appendChild(t);
-    });
-  }
-
-  hideStatus();
-  result.style.display = "block";
-  result.scrollIntoView({ behavior: "smooth", block: "start" });
-})
-.catch(function(err) {
-  setStatus("❌ Hata: " + err.message, "error");
-})
-.finally(function() {
-  btn.disabled = false;
-  btn.textContent = "Analiz Et";
-});
+  });
 ```
 
-}
-
-btn.addEventListener(“click”, analyze);
+});
 
 document.getElementById(“urlInput”).addEventListener(“keydown”, function(e) {
-if (e.key === “Enter”) analyze();
+if (e.key === “Enter”) document.getElementById(“btn”).click();
 });
 
 document.getElementById(“rawToggle”).addEventListener(“click”, function() {
-var raw = document.getElementById(“rawContent”);
-if (raw.style.display === “block”) {
-raw.style.display = “none”;
-this.textContent = “▾ Ham veriyi göster”;
-} else {
-raw.style.display = “block”;
-this.textContent = “▴ Ham veriyi gizle”;
-}
+var box = document.getElementById(“rawBox”);
+box.style.display = box.style.display === “block” ? “none” : “block”;
+this.textContent = box.style.display === “block” ? “▴ Ham veriyi gizle” : “▾ Ham veriyi göster”;
 });
 </script>
 
