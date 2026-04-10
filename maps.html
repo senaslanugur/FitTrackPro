@@ -11,43 +11,37 @@
     .wrap { max-width: 560px; margin: 0 auto; }
 
 ```
-/* Header */
 .header { text-align: center; margin-bottom: 28px; }
 .emoji { font-size: 42px; display: block; margin-bottom: 8px; }
 h1 { font-size: 24px; font-weight: normal; color: #e8c98a; letter-spacing: 3px; margin-bottom: 4px; }
 .sub { color: #5a4020; font-size: 12px; letter-spacing: 1px; }
-.divider { width: 60px; height: 1px; background: linear-gradient(90deg, transparent, #c8903a, transparent); margin: 12px auto 0; }
+.divider { width: 60px; height: 1px; background: linear-gradient(90deg,transparent,#c8903a,transparent); margin: 12px auto 0; }
 
-/* Groq info box */
-.info-box {
-  background: rgba(200,144,58,.06);
-  border: 1px solid rgba(200,144,58,.2);
-  border-radius: 10px; padding: 14px 16px;
-  margin-bottom: 16px; font-size: 12px; line-height: 1.7; color: #8a6030;
+.nokey-box {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(74,222,128,.06); border: 1px solid rgba(74,222,128,.2);
+  border-radius: 10px; padding: 12px 16px; margin-bottom: 18px;
+  font-size: 12px; color: #4ade80;
 }
-.info-box strong { color: #c8903a; }
-.info-box a { color: #c8903a; }
+.nokey-box .big { font-size: 22px; }
 
-/* Inputs */
 .field { margin-bottom: 12px; }
 label { display: block; font-size: 10px; letter-spacing: 2px; color: #c8903a; text-transform: uppercase; margin-bottom: 6px; }
 input {
   width: 100%; padding: 12px 14px;
   background: #1a1408; border: 1px solid #3a2010;
-  border-radius: 8px; color: #f0e6d0;
-  font-size: 13px; font-family: monospace;
-  outline: none; transition: border-color .2s;
+  border-radius: 8px; color: #f0e6d0; font-size: 13px;
+  font-family: monospace; outline: none; transition: border-color .2s;
 }
 input:focus { border-color: #c8903a; }
 input::placeholder { color: #3a2010; }
 
-/* Button */
 #btn {
   width: 100%; padding: 14px;
   background: linear-gradient(135deg, #c8903a, #8a5818);
-  border: none; border-radius: 8px;
-  color: #fff; font-size: 14px; letter-spacing: 1px;
-  cursor: pointer; font-family: inherit;
+  border: none; border-radius: 8px; color: #fff;
+  font-size: 14px; letter-spacing: 1px; cursor: pointer;
+  font-family: inherit;
   display: flex; align-items: center; justify-content: center; gap: 8px;
   transition: opacity .2s;
 }
@@ -55,25 +49,22 @@ input::placeholder { color: #3a2010; }
 #btn:disabled { opacity: .4; cursor: not-allowed; }
 .spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.2); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0; }
 
-/* Log */
-#log { margin-top: 10px; font-size: 12px; font-family: monospace; line-height: 1.8; min-height: 16px; }
+#log { margin-top: 10px; font-size: 12px; font-family: monospace; line-height: 1.9; }
 .l-ok   { color: #4ade80; }
 .l-info { color: #c8903a; }
 .l-err  { color: #f87171; }
 
-/* Result */
 #result { margin-top: 20px; display: none; animation: up .4s ease; }
 .card { background: #1a1408; border: 1px solid #3a2010; border-radius: 12px; padding: 18px 20px; margin-bottom: 10px; }
 .card-lbl { font-size: 9px; letter-spacing: 3px; color: #c8903a; text-transform: uppercase; margin-bottom: 5px; }
-.r-restaurant { font-size: 17px; color: #e8c98a; }
-.r-dish { font-size: 26px; color: #f0d898; font-weight: bold; margin: 6px 0 10px; }
+.r-name  { font-size: 17px; color: #e8c98a; }
+.r-dish  { font-size: 26px; color: #f0d898; font-weight: bold; margin: 6px 0 10px; }
 .r-score { display: inline-block; padding: 3px 12px; background: rgba(74,222,128,.08); border: 1px solid rgba(74,222,128,.2); color: #4ade80; border-radius: 20px; font-size: 12px; margin-bottom: 10px; }
-.r-why { color: #a08050; font-size: 13px; line-height: 1.75; }
+.r-why   { color: #a08050; font-size: 13px; line-height: 1.75; }
 .r-verdict { margin-top: 12px; padding-top: 12px; border-top: 1px solid #2a1a08; font-style: italic; color: #e8c98a; font-size: 12px; }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .tag { padding: 4px 12px; background: rgba(200,144,58,.07); border: 1px solid rgba(200,144,58,.18); border-radius: 20px; font-size: 12px; color: #a07030; }
 
-/* Raw */
 #rawToggle { background: none; border: none; color: #3a2810; font-size: 11px; cursor: pointer; font-family: monospace; padding: 4px 0; margin-top: 4px; display: block; }
 #rawToggle:hover { color: #c8903a; }
 #rawBox { margin-top: 6px; background: #080604; border: 1px solid #1a1008; border-radius: 8px; padding: 10px; font-family: monospace; font-size: 10px; color: #4a3820; max-height: 180px; overflow: auto; white-space: pre-wrap; word-break: break-all; display: none; }
@@ -90,19 +81,16 @@ input::placeholder { color: #3a2010; }
   <div class="header">
     <span class="emoji">🍽️</span>
     <h1>Lezzet Analisti</h1>
-    <p class="sub">Google Maps URL ver · Groq AI ile en iyi yemeği bul</p>
+    <p class="sub">Google Maps URL ver · En iyi yemeği bul</p>
     <div class="divider"></div>
   </div>
 
-  <div class="info-box">
-    <strong>Groq API — Tamamen Ücretsiz</strong><br>
-    Sadece e-posta ile kayıt, kredi kartı yok, anında aktif.<br>
-    → <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a> — "Create API Key" (2 dakika)
-  </div>
-
-  <div class="field">
-    <label>🔑 Groq API Anahtarı</label>
-    <input type="password" id="apiKey" placeholder="gsk_..."/>
+  <div class="nokey-box">
+    <span class="big">🔓</span>
+    <div>
+      <strong>Kayıt yok · API key yok · Tamamen ücretsiz</strong><br>
+      Jina AI Reader + Pollinations.ai ile çalışır
+    </div>
   </div>
 
   <div class="field">
@@ -117,7 +105,7 @@ input::placeholder { color: #3a2010; }
   <div id="result">
     <div class="card">
       <div class="card-lbl">Restoran</div>
-      <div class="r-restaurant" id="rName"></div>
+      <div class="r-name" id="rName"></div>
     </div>
     <div class="card">
       <div class="card-lbl">🏆 En İyi Yemek</div>
@@ -136,94 +124,88 @@ input::placeholder { color: #3a2010; }
 
 </div>
 <script>
-  // ─── LocalStorage ──────────────────────────────────────────────
-  window.addEventListener("load", function() {
-    var k = localStorage.getItem("groq_api_key");
-    if (k) document.getElementById("apiKey").value = k;
-  });
+  function clearLog() { document.getElementById("log").innerHTML = ""; }
+  function addLog(msg, cls) {
+    var el = document.createElement("div");
+    el.className = cls || "l-info";
+    el.textContent = msg;
+    document.getElementById("log").appendChild(el);
+  }
 
-// ─── Log yardımcıları ──────────────────────────────────────────
-function clearLog() { document.getElementById(“log”).innerHTML = “”; }
-function addLog(msg, cls) {
-var d = document.getElementById(“log”);
-var el = document.createElement(“div”);
-el.className = cls || “l-info”;
-el.textContent = msg;
-d.appendChild(el);
-}
-
-// ─── Jina ile sayfa çek (proxy fallback zinciri) ───────────────
-function fetchJina(targetUrl) {
-var proxies = [
-“https://r.jina.ai/” + targetUrl,
-“https://api.allorigins.win/raw?url=” + encodeURIComponent(“https://r.jina.ai/” + targetUrl),
-“https://corsproxy.io/?” + encodeURIComponent(“https://r.jina.ai/” + targetUrl)
+// ── Jina ile sayfa çek (proxy fallback) ───────────────────────
+function fetchJina(url) {
+var target = “https://r.jina.ai/” + url;
+var tries = [
+target,
+“https://api.allorigins.win/raw?url=” + encodeURIComponent(target),
+“https://corsproxy.io/?” + encodeURIComponent(target)
 ];
-var idx = 0;
+var i = 0;
 
 ```
-function tryNext() {
-  if (idx >= proxies.length) {
-    return Promise.reject(new Error("Sayfa çekilemedi. Tüm proxy'ler denendi."));
-  }
-  var url = proxies[idx++];
-  addLog("🔗 Bağlanılıyor... (" + idx + "/" + proxies.length + ")", "l-info");
-  return fetch(url)
+function next() {
+  if (i >= tries.length) return Promise.reject(new Error("Sayfa çekilemedi, tüm proxy'ler denendi."));
+  var u = tries[i++];
+  addLog("🔗 Sayfa çekiliyor (" + i + "/" + tries.length + ")...", "l-info");
+  return fetch(u)
     .then(function(r) {
       if (!r.ok) throw new Error("HTTP " + r.status);
       return r.text();
     })
     .then(function(t) {
-      if (!t || t.length < 100) throw new Error("Boş yanıt");
+      if (!t || t.length < 80) throw new Error("Boş yanıt");
       return t;
     })
-    .catch(function() { return tryNext(); });
+    .catch(function(e) {
+      addLog("  ↳ " + e.message, "l-info");
+      return next();
+    });
 }
-
-return tryNext();
+return next();
 ```
 
 }
 
-// ─── Groq ile analiz et ────────────────────────────────────────
-function callGroq(apiKey, pageText, originalUrl) {
-var prompt = “Aşağıda bir Google Maps restoran sayfasının içeriği var.\n\n”
-+ “SAYFA İÇERİĞİ (ilk 4000 karakter):\n”
-+ pageText.slice(0, 4000)
+// ── Pollinations.ai ile analiz ────────────────────────────────
+// Tamamen ücretsiz, kayıt yok, key yok
+function callPollinations(pageText, originalUrl) {
+var prompt = “Sen bir gurme yemek analistisin.\n\n”
++ “Aşağıda bir Google Maps restoran sayfasının metin içeriği var:\n\n”
++ pageText.slice(0, 3500)
 + “\n\nORİJİNAL URL: “ + originalUrl
 + “\n\nBu içeriği analiz et. Restoranın adını, en çok önerilen yemeği ve genel puanı belirle.”
-+ “\n\nSADECE şu JSON formatında yanıt ver, başka hiçbir şey yazma:\n”
-+ ‘{“restaurant_name”:”…”,“best_dish”:”…”,“score”:8.5,“why”:“2-3 cümle açıklama”,“honorable_mentions”:[“yemek2”,“yemek3”],“verdict”:“tek cümle tavsiye”,“review_count”:0,“sentiment”:“positive”}’;
++ “\n\nSADECE geçerli JSON döndür, başka hiçbir şey yazma:\n”
++ ‘{“restaurant_name”:“Restoranın adı”,“best_dish”:“En iyi yemek”,“score”:8.5,“why”:“2-3 cümle açıklama”,“honorable_mentions”:[“yemek2”,“yemek3”],“verdict”:“Tek cümle tavsiye”,“review_count”:0,“sentiment”:“positive”}’;
 
 ```
-return fetch("https://api.groq.com/openai/v1/chat/completions", {
+addLog("🤖 Pollinations.ai ile analiz ediliyor...", "l-info");
+
+return fetch("https://text.pollinations.ai/", {
   method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "Authorization": "Bearer " + apiKey
-  },
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
-    model: "llama-3.1-8b-instant",
     messages: [{ role: "user", content: prompt }],
-    temperature: 0.2,
-    max_tokens: 512
+    model: "openai",
+    seed: 42,
+    jsonMode: true
   })
 })
-.then(function(r) { return r.json(); })
-.then(function(data) {
-  if (data.error) throw new Error("Groq: " + data.error.message);
-  var text = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || "";
-  if (!text) throw new Error("Groq boş yanıt döndürdü.");
+.then(function(r) {
+  if (!r.ok) throw new Error("Pollinations HTTP " + r.status);
+  return r.text();
+})
+.then(function(text) {
+  if (!text || text.trim().length < 10) throw new Error("Pollinations boş yanıt döndürdü.");
   var clean = text.replace(/```json|```/g, "").trim();
   var match = clean.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error("JSON ayrıştırılamadı. Groq yanıtı: " + text.slice(0, 100));
+  if (!match) throw new Error("JSON ayrıştırılamadı. Yanıt: " + text.slice(0, 120));
   return JSON.parse(match[0]);
 });
 ```
 
 }
 
-// ─── Sonucu ekrana bas ─────────────────────────────────────────
+// ── Sonucu göster ─────────────────────────────────────────────
 function showResult(r) {
 document.getElementById(“rName”).textContent    = r.restaurant_name || “—”;
 document.getElementById(“rDish”).textContent    = r.best_dish || “—”;
@@ -255,41 +237,31 @@ setTimeout(function() {
 
 }
 
-// ─── Ana akış ──────────────────────────────────────────────────
+// ── Ana akış ──────────────────────────────────────────────────
 document.getElementById(“btn”).addEventListener(“click”, function() {
-var apiKey = document.getElementById(“apiKey”).value.trim();
-var url    = document.getElementById(“urlInput”).value.trim();
+var url = document.getElementById(“urlInput”).value.trim();
+clearLog();
+document.getElementById(“result”).style.display = “none”;
 
 ```
-clearLog();
-document.getElementById("result").style.display = "none";
+if (!url) { addLog("❌ Lütfen bir Google Maps URL'si girin.", "l-err"); return; }
 
-if (!apiKey) { addLog("❌ Groq API anahtarı girin (console.groq.com/keys)", "l-err"); return; }
-if (!url)    { addLog("❌ Google Maps URL girin.", "l-err"); return; }
-
-localStorage.setItem("groq_api_key", apiKey);
-
-var btn = document.getElementById("btn");
+var btn = this;
 btn.disabled = true;
 btn.innerHTML = '<span class="spinner"></span><span>Analiz ediliyor...</span>';
 
-// Adım 1: Jina ile sayfayı çek
-addLog("📄 Sayfa çekiliyor (Jina AI Reader)...", "l-info");
 fetchJina(url)
   .then(function(pageText) {
     addLog("✅ Sayfa çekildi — " + pageText.length + " karakter", "l-ok");
     document.getElementById("rawBox").textContent = pageText.slice(0, 5000);
-
-    // Adım 2: Groq ile analiz et
-    addLog("🤖 Groq Llama ile analiz ediliyor...", "l-info");
-    return callGroq(apiKey, pageText, url);
+    return callPollinations(pageText, url);
   })
-  .then(function(result) {
+  .then(function(r) {
     addLog("✅ Analiz tamamlandı!", "l-ok");
-    showResult(result);
+    showResult(r);
   })
-  .catch(function(err) {
-    addLog("❌ " + (err.message || "Bilinmeyen hata"), "l-err");
+  .catch(function(e) {
+    addLog("❌ " + (e.message || "Bilinmeyen hata"), "l-err");
   })
   .finally(function() {
     btn.disabled = false;
@@ -305,9 +277,9 @@ if (e.key === “Enter”) document.getElementById(“btn”).click();
 
 document.getElementById(“rawToggle”).addEventListener(“click”, function() {
 var box = document.getElementById(“rawBox”);
-var visible = box.style.display === “block”;
-box.style.display = visible ? “none” : “block”;
-this.textContent = visible ? “▾ Ham veriyi göster” : “▴ Ham veriyi gizle”;
+var show = box.style.display !== “block”;
+box.style.display = show ? “block” : “none”;
+this.textContent = show ? “▴ Ham veriyi gizle” : “▾ Ham veriyi göster”;
 });
 </script>
 
