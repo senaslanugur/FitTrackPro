@@ -2,132 +2,119 @@
 
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Lezzet Analisti</title>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{
+      min-height:100vh;
+      background:#0c0a08;
+      font-family:Georgia,'Times New Roman',serif;
+      color:#f5ead8;
+      padding:40px 20px 60px;
+    }
+    body::before{
+      content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+      background:radial-gradient(ellipse at 15% 30%,rgba(200,120,30,.12) 0%,transparent 55%),
+                 radial-gradient(ellipse at 85% 70%,rgba(140,70,10,.09) 0%,transparent 55%);
+    }
+    .wrap{position:relative;z-index:1;max-width:600px;margin:0 auto}
 
 ```
-body {
-  min-height: 100vh;
-  background: #0c0a08;
-  font-family: Georgia, 'Times New Roman', serif;
-  color: #f5ead8;
-  padding: 40px 20px 60px;
-}
-body::before {
-  content: '';
-  position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  background:
-    radial-gradient(ellipse at 15% 30%, rgba(200,120,30,0.12) 0%, transparent 55%),
-    radial-gradient(ellipse at 85% 70%, rgba(140,70,10,0.09) 0%, transparent 55%);
-}
-
-.wrap { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; }
-
 /* HEADER */
-.header { text-align: center; margin-bottom: 36px; }
-.header .emoji { font-size: 44px; display: block; margin-bottom: 8px; }
-.header h1 { font-size: 26px; font-weight: normal; letter-spacing: 4px; color: #e8c98a; margin-bottom: 6px; }
-.header p { color: #7a5c30; font-size: 12px; letter-spacing: 1.5px; }
-.hr { width: 70px; height: 1px; background: linear-gradient(90deg, transparent, #c8903a, transparent); margin: 14px auto 0; }
+.header{text-align:center;margin-bottom:32px}
+.header .emoji{font-size:44px;display:block;margin-bottom:8px}
+.header h1{font-size:26px;font-weight:normal;letter-spacing:4px;color:#e8c98a;margin-bottom:6px}
+.header p{color:#7a5c30;font-size:12px;letter-spacing:1.5px}
+.hr{width:70px;height:1px;background:linear-gradient(90deg,transparent,#c8903a,transparent);margin:14px auto 0}
 
-/* STEPS INDICATOR */
-.steps {
-  display: flex; align-items: center; justify-content: center;
-  gap: 0; margin-bottom: 28px; font-size: 11px;
+/* NO KEY BADGE */
+.nokey-banner{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(74,222,128,.06);
+  border:1px solid rgba(74,222,128,.2);
+  border-radius:10px;padding:12px 16px;margin-bottom:16px;
+  font-size:12px;color:#4ade80;
 }
-.step { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.step-dot {
-  width: 28px; height: 28px; border-radius: 50%;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(200,144,58,0.2);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; transition: all 0.3s;
-}
-.step.active .step-dot { background: rgba(200,144,58,0.2); border-color: #c8903a; box-shadow: 0 0 12px rgba(200,144,58,0.3); }
-.step.done .step-dot { background: rgba(74,222,128,0.15); border-color: #4ade80; }
-.step-line { width: 40px; height: 1px; background: rgba(200,144,58,0.15); margin-bottom: 18px; }
-.step-label { color: #5a3e22; font-size: 10px; letter-spacing: 0.5px; text-align: center; max-width: 64px; line-height: 1.4; transition: color 0.3s; }
-.step.active .step-label { color: #c8903a; }
-.step.done .step-label { color: #4ade80; }
+.nokey-banner .icon{font-size:18px}
 
 /* CARD */
-.card { background: rgba(255,255,255,0.025); border: 1px solid rgba(200,144,58,0.2); border-radius: 14px; padding: 22px; margin-bottom: 10px; }
-
-.lbl { display: block; font-size: 10px; letter-spacing: 2px; color: #c8903a; margin-bottom: 10px; text-transform: uppercase; }
-
-.badge-free { display: inline-flex; align-items: center; gap: 4px; background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.25); color: #4ade80; font-size: 9px; letter-spacing: 1px; padding: 2px 7px; border-radius: 8px; margin-left: 6px; font-family: monospace; }
-
-.inp-wrap { position: relative; }
-.inp-wrap .ico { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; opacity: 0.4; pointer-events: none; }
-input {
-  width: 100%; padding: 11px 11px 11px 36px;
-  background: rgba(0,0,0,0.5);
-  border: 1px solid rgba(200,144,58,0.15);
-  border-radius: 9px; color: #f5ead8; font-size: 13px;
-  font-family: monospace; outline: none; transition: border-color 0.2s;
+.card{background:rgba(255,255,255,.025);border:1px solid rgba(200,144,58,.2);border-radius:14px;padding:22px;margin-bottom:10px}
+.lbl{display:block;font-size:10px;letter-spacing:2px;color:#c8903a;margin-bottom:10px;text-transform:uppercase}
+.inp-wrap{position:relative}
+.inp-wrap .ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;opacity:.4;pointer-events:none}
+input{
+  width:100%;padding:11px 11px 11px 36px;
+  background:rgba(0,0,0,.5);border:1px solid rgba(200,144,58,.15);
+  border-radius:9px;color:#f5ead8;font-size:13px;font-family:monospace;
+  outline:none;transition:border-color .2s;
 }
-input:focus { border-color: rgba(200,144,58,0.5); }
-input::placeholder { color: #3a2a14; }
+input:focus{border-color:rgba(200,144,58,.5)}
+input::placeholder{color:#3a2a14}
+.hint{margin-top:7px;font-size:11px;color:#4a3018;line-height:1.6}
 
-.hint { margin-top: 7px; font-size: 11px; color: #4a3018; line-height: 1.6; }
-.hint a { color: #c8903a; text-decoration: none; }
-.hint a:hover { text-decoration: underline; }
+/* PROGRESS */
+.progress-wrap{margin-bottom:10px;display:none}
+.progress-label{font-size:11px;color:#c8903a;margin-bottom:6px;letter-spacing:1px}
+.progress-bar{height:3px;background:rgba(200,144,58,.12);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#c8903a,#e8c98a);border-radius:2px;width:0%;transition:width .4s ease}
 
 /* BUTTON */
-#analyzeBtn {
-  width: 100%; padding: 14px;
-  background: linear-gradient(135deg, #d4973f, #9a6020);
-  border: 1px solid rgba(200,144,58,0.3); border-radius: 10px;
-  color: #fff0d8; font-size: 13px; letter-spacing: 2px;
-  cursor: pointer; font-family: inherit; text-transform: uppercase;
-  display: flex; align-items: center; justify-content: center; gap: 9px;
-  transition: all 0.3s; box-shadow: 0 4px 16px rgba(200,144,58,0.15);
+#analyzeBtn{
+  width:100%;padding:14px;
+  background:linear-gradient(135deg,#d4973f,#9a6020);
+  border:1px solid rgba(200,144,58,.3);border-radius:10px;
+  color:#fff0d8;font-size:13px;letter-spacing:2px;
+  cursor:pointer;font-family:inherit;text-transform:uppercase;
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  transition:all .3s;box-shadow:0 4px 16px rgba(200,144,58,.15);
 }
-#analyzeBtn:disabled { background: rgba(200,144,58,0.1); color: #4a3018; cursor: not-allowed; box-shadow: none; }
-.spinner { width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.12); border-top-color: #e8c98a; border-radius: 50%; animation: spin 0.7s linear infinite; }
+#analyzeBtn:disabled{background:rgba(200,144,58,.1);color:#4a3018;cursor:not-allowed;box-shadow:none}
+.spinner{width:13px;height:13px;border:2px solid rgba(255,255,255,.12);border-top-color:#e8c98a;border-radius:50%;animation:spin .7s linear infinite}
 
 /* ERROR */
-.err { margin-top: 10px; padding: 12px 16px; background: rgba(248,113,113,0.07); border: 1px solid rgba(248,113,113,0.2); border-radius: 10px; color: #f87171; font-size: 12px; line-height: 1.6; display: none; }
+.err{margin-top:10px;padding:12px 16px;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.2);border-radius:10px;color:#f87171;font-size:12px;line-height:1.6;display:none}
 
 /* RESULT */
-#result { margin-top: 24px; display: none; animation: fadeUp 0.5s ease; }
+#result{margin-top:24px;display:none;animation:fadeUp .5s ease}
 
-.r-name-wrap { text-align: center; margin-bottom: 14px; }
-.r-name-wrap small { font-size: 10px; letter-spacing: 2px; color: #6a4c24; text-transform: uppercase; display: block; }
-.r-name { font-size: 18px; color: #e8c98a; margin-top: 3px; }
+.r-name-wrap{text-align:center;margin-bottom:14px}
+.r-name-wrap small{font-size:10px;letter-spacing:2px;color:#6a4c24;text-transform:uppercase;display:block}
+.r-name{font-size:18px;color:#e8c98a;margin-top:3px}
 
-.hero {
-  background: linear-gradient(135deg, rgba(200,144,58,0.11), rgba(160,96,32,0.04));
-  border: 1px solid rgba(200,144,58,0.34);
-  border-radius: 16px; padding: 26px; margin-bottom: 10px;
-  position: relative; overflow: hidden;
+.hero{
+  background:linear-gradient(135deg,rgba(200,144,58,.11),rgba(160,96,32,.04));
+  border:1px solid rgba(200,144,58,.34);
+  border-radius:16px;padding:26px;margin-bottom:10px;
+  position:relative;overflow:hidden;
 }
-.hero::after { content:''; position:absolute; top:-32px; right:-32px; width:120px; height:120px; border-radius:50%; background:radial-gradient(circle,rgba(200,144,58,0.08),transparent); pointer-events:none; }
+.hero::after{content:'';position:absolute;top:-32px;right:-32px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(200,144,58,.08),transparent);pointer-events:none}
 
-.trophy-lbl { font-size: 9px; letter-spacing: 3px; color: #c8903a; text-transform: uppercase; margin-bottom: 8px; }
-.dish { font-size: 24px; color: #f0d898; font-weight: bold; margin-bottom: 10px; }
-.badges { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 14px; }
-.bdg { padding: 3px 12px; border-radius: 20px; font-size: 11px; background: rgba(0,0,0,0.3); }
-.pos { color: #4ade80; border: 1px solid rgba(74,222,128,0.22); }
-.mix { color: #fbbf24; border: 1px solid rgba(251,191,36,0.22); }
-.neg { color: #f87171; border: 1px solid rgba(248,113,113,0.22); }
-.neu { color: #9a7850; border: 1px solid rgba(154,120,80,0.18); }
-.why { color: #b89860; font-size: 13px; line-height: 1.75; margin-bottom: 16px; }
-.verdict { border-top: 1px solid rgba(200,144,58,0.14); padding-top: 13px; font-style: italic; color: #e8c98a; font-size: 12px; line-height: 1.7; }
+.trophy-lbl{font-size:9px;letter-spacing:3px;color:#c8903a;text-transform:uppercase;margin-bottom:8px}
+.dish{font-size:24px;color:#f0d898;font-weight:bold;margin-bottom:10px}
+.badges{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.bdg{padding:3px 12px;border-radius:20px;font-size:11px;background:rgba(0,0,0,.3)}
+.pos{color:#4ade80;border:1px solid rgba(74,222,128,.22)}
+.neu{color:#9a7850;border:1px solid rgba(154,120,80,.18)}
+.why{color:#b89860;font-size:13px;line-height:1.75;margin-bottom:16px}
+.verdict{border-top:1px solid rgba(200,144,58,.14);padding-top:13px;font-style:italic;color:#e8c98a;font-size:12px;line-height:1.7}
 
-.mentions { background: rgba(255,255,255,0.013); border: 1px solid rgba(200,144,58,0.11); border-radius: 12px; padding: 15px 18px; margin-bottom: 10px; }
-.m-title { font-size: 9px; letter-spacing: 2px; color: #6a4c24; text-transform: uppercase; margin-bottom: 9px; }
-.tags { display: flex; gap: 7px; flex-wrap: wrap; }
-.tag { padding: 4px 13px; background: rgba(200,144,58,0.06); border: 1px solid rgba(200,144,58,0.14); border-radius: 20px; font-size: 11px; color: #a87840; }
+.mentions{background:rgba(255,255,255,.013);border:1px solid rgba(200,144,58,.11);border-radius:12px;padding:15px 18px;margin-bottom:10px}
+.m-title{font-size:9px;letter-spacing:2px;color:#6a4c24;text-transform:uppercase;margin-bottom:9px}
+.tags{display:flex;gap:7px;flex-wrap:wrap}
+.tag{padding:4px 13px;background:rgba(200,144,58,.06);border:1px solid rgba(200,144,58,.14);border-radius:20px;font-size:11px;color:#a87840}
 
-#resetBtn { width:100%; padding:10px; background:transparent; border:1px solid rgba(200,144,58,0.16); border-radius:8px; color:#6a4c24; font-size:11px; cursor:pointer; font-family:inherit; letter-spacing:1px; transition:all 0.2s; }
-#resetBtn:hover { border-color:rgba(200,144,58,0.38); color:#c8903a; }
+/* RAW toggle */
+.toggle-raw{width:100%;padding:9px;background:transparent;border:1px solid rgba(200,144,58,.12);border-radius:8px;color:#5a3e22;font-size:11px;cursor:pointer;font-family:inherit;margin-bottom:8px;transition:all .2s}
+.toggle-raw:hover{border-color:rgba(200,144,58,.3);color:#c8903a}
+.raw-box{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px;font-size:10px;font-family:monospace;color:#7a6a54;line-height:1.6;max-height:200px;overflow:auto;display:none;margin-bottom:8px;white-space:pre-wrap;word-break:break-word}
 
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+#resetBtn{width:100%;padding:10px;background:transparent;border:1px solid rgba(200,144,58,.16);border-radius:8px;color:#6a4c24;font-size:11px;cursor:pointer;font-family:inherit;letter-spacing:1px;transition:all .2s}
+#resetBtn:hover{border-color:rgba(200,144,58,.38);color:#c8903a}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 ```
 
   </style>
@@ -142,60 +129,28 @@ input::placeholder { color: #3a2a14; }
     <div class="hr"></div>
   </div>
 
-  <!-- Adım göstergesi -->
-
-  <div class="steps" id="stepsBar">
-    <div class="step" id="s1">
-      <div class="step-dot">🔗</div>
-      <div class="step-label">Sayfa<br>çekiliyor</div>
-    </div>
-    <div class="step-line"></div>
-    <div class="step" id="s2">
-      <div class="step-dot">🔍</div>
-      <div class="step-label">Yorumlar<br>okunuyor</div>
-    </div>
-    <div class="step-line"></div>
-    <div class="step" id="s3">
-      <div class="step-dot">🤖</div>
-      <div class="step-label">AI<br>analiz</div>
-    </div>
-    <div class="step-line"></div>
-    <div class="step" id="s4">
-      <div class="step-dot">🏆</div>
-      <div class="step-label">Sonuç<br>hazır</div>
-    </div>
+  <div class="nokey-banner">
+    <span class="icon">🔓</span>
+    <span>API anahtarı gerekmez · Tamamen ücretsiz · Jina AI Reader ile çalışır</span>
   </div>
-
-  <!-- Groq API Key -->
-
-  <div class="card">
-    <label class="lbl">🔑 Groq API Anahtarı <span class="badge-free">✓ ÜCRETSİZ</span></label>
-    <div class="inp-wrap">
-      <span class="ico">🔐</span>
-      <input type="password" id="apiKey" placeholder="gsk_..." />
-    </div>
-    <p class="hint">
-      Kredi kartı yok · Sadece e-posta kaydı · Saniyeler içinde hazır<br>
-      → <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a> — "Create API Key"
-    </p>
-  </div>
-
-  <!-- Google Maps URL -->
 
   <div class="card">
     <label class="lbl">📍 Google Maps Restoran URL'si</label>
     <div class="inp-wrap">
       <span class="ico">📍</span>
-      <input type="text" id="urlInput" placeholder="https://maps.app.goo.gl/..." />
+      <input type="text" id="urlInput" placeholder="https://maps.app.goo.gl/..."/>
     </div>
-    <p class="hint">💡 Kısa ve uzun Google Maps URL'leri desteklenir</p>
+    <p class="hint">💡 Kısa (maps.app.goo.gl) ve uzun Google Maps URL'leri desteklenir</p>
+  </div>
+
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-label" id="progressLabel">Bağlanıyor...</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
   </div>
 
 <button id="analyzeBtn" onclick="analyze()">Analiz Et →</button>
 
   <div class="err" id="errBox"></div>
-
-  <!-- Sonuç -->
 
   <div id="result">
     <div class="r-name-wrap">
@@ -213,35 +168,29 @@ input::placeholder { color: #3a2a14; }
       <div class="m-title">Diğer Öneriler</div>
       <div class="tags" id="rMentions"></div>
     </div>
+    <button class="toggle-raw" onclick="toggleRaw()">📄 Ham veriyi göster / gizle</button>
+    <div class="raw-box" id="rawBox"></div>
     <button id="resetBtn" onclick="resetForm()">Yeni Restoran Analiz Et</button>
   </div>
 
 </div>
 <script>
-  // LocalStorage'dan anahtarı yükle
-  window.addEventListener("load", () => {
-    const k = localStorage.getItem("groq_key");
-    if (k) document.getElementById("apiKey").value = k;
-  });
-
-function setStep(n) {
-for (let i = 1; i <= 4; i++) {
-const el = document.getElementById(“s” + i);
-el.classList.remove(“active”, “done”);
-if (i < n) el.classList.add(“done”);
-else if (i === n) el.classList.add(“active”);
-}
+// ─── İlerleme ───────────────────────────────────────────────────
+function setProgress(pct, label) {
+  document.getElementById("progressWrap").style.display = "block";
+  document.getElementById("progressLabel").textContent = label;
+  document.getElementById("progressFill").style.width = pct + "%";
 }
 
 function setLoading(on) {
 const btn = document.getElementById(“analyzeBtn”);
 if (on) {
-btn.innerHTML = `<span class="spinner"></span><span id="btnTxt">Hazırlanıyor...</span>`;
+btn.innerHTML = `<span class="spinner"></span><span id="btnTxt">Analiz ediliyor...</span>`;
 btn.disabled = true;
 } else {
 btn.innerHTML = “Analiz Et →”;
 btn.disabled = false;
-setStep(0);
+document.getElementById(“progressWrap”).style.display = “none”;
 }
 }
 
@@ -256,166 +205,268 @@ el.innerHTML = “⚠️ “ + msg;
 el.style.display = “block”;
 }
 
-function bc(s) { return { positive:“pos”, mixed:“mix”, negative:“neg” }[s] || “neu”; }
-function sl(s) { return { positive:“Olumlu yorumlar”, mixed:“Karışık yorumlar”, negative:“Olumsuz yorumlar” }[s] || “Yorumlar”; }
+// ─── Jina Reader ile sayfa çek ───────────────────────────────────
+async function fetchWithJina(url) {
+// r.jina.ai/{url} — ücretsiz, API key yok
+const jinaUrl = “https://r.jina.ai/” + url;
+const res = await fetch(jinaUrl, {
+headers: { “Accept”: “text/plain”, “X-Return-Format”: “text”, “X-No-Cache”: “true” }
+});
+if (!res.ok) throw new Error(“Sayfa çekilemedi. (HTTP “ + res.status + “)”);
+return await res.text();
+}
 
+// ─── Pozitif/negatif kelimeler ───────────────────────────────────
+const POS_TR = [“harika”,“muhteşem”,“lezzetli”,“nefis”,“mükemmel”,“enfes”,“inanılmaz”,“süper”,“çok iyi”,“güzel”,“tavsiye”,“şahane”,“efsane”,“fevkalade”,“olağanüstü”,“mükemmel”,“bayıldım”,“sevdim”,“beğendim”,“tebrikler”,“başarılı”,“ideal”,“gerçekten iyi”,“çok güzel”,“vazgeçilmez”,“favorim”,“en sevdiğim”,“mutlaka deneyin”,“kesinlikle”,“taze”,“kaliteli”];
+const NEG_TR = [“kötü”,“berber”,“rezalet”,“soğuk”,“bayat”,“tatsız”,“pahalı”,“yavaş”,“beklettiler”,“sinir”,“berbat”,“çok kötü”,“olmaz”,“beğenmedim”,“boş”,“sönük”,“sıradan”];
+
+// ─── Metinden yemek skorlama ─────────────────────────────────────
+function scoreItems(text, items) {
+const lines = text.toLowerCase().split(/[\n.!?]+/).filter(l => l.trim().length > 5);
+const scores = {};
+const counts = {};
+
+items.forEach(item => {
+const key = item.toLowerCase();
+scores[item] = 0;
+counts[item] = 0;
+lines.forEach(line => {
+if (!line.includes(key)) return;
+counts[item]++;
+POS_TR.forEach(p => { if (line.includes(p)) scores[item] += 2; });
+NEG_TR.forEach(n => { if (line.includes(n)) scores[item] -= 1; });
+});
+});
+
+return items
+.filter(i => counts[i] > 0)
+.sort((a, b) => (scores[b] + counts[b]) - (scores[a] + counts[a]));
+}
+
+// ─── Metinden potansiyel yemek isimlerini bul ────────────────────
+function extractFoodCandidates(text) {
+const lower = text.toLowerCase();
+
+// Yaygın Türk yemekleri sözlüğü
+const knownFoods = [
+“adana kebap”,“adana”,“urfa kebap”,“urfa”,“iskender”,“döner”,“lahmacun”,“pide”,“mantı”,
+“köfte”,“izgara köfte”,“çiğ köfte”,“şiş köfte”,“kuzu şiş”,“tavuk şiş”,“kanat”,
+“kuzu tandır”,“tandır”,“güveç”,“testi kebabı”,“testi”,“etli ekmek”,
+“mercimek çorbası”,“ezogelin”,“işkembe”,“paça”,“beyran”,“çorba”,
+“baklava”,“kadayıf”,“künefe”,“sütlaç”,“kazandibi”,“profiterol”,“dondurma”,
+“hummus”,“acılı ezme”,“cacık”,“haydari”,“patlıcan salatası”,“mezeleri”,“meze”,
+“tavuk”,“balık”,“levrek”,“çipura”,“hamsi”,“alabalık”,“karides”,“ahtapot”,
+“börek”,“su böreği”,“gözleme”,“poğaça”,“simit”,“açma”,
+“pilav”,“bulgur pilavı”,“bulgur”,“nohutlu”,“fasulye”,“barbunya”,
+“pizza”,“burger”,“sandviç”,“salata”,“makarna”,“risotto”,
+“kahvaltı”,“serpme kahvaltı”,“omlet”,“menemen”,“sucuk”,
+“tatlı”,“pasta”,“kek”,“cheesecake”,“tiramisu”,
+“çay”,“kahve”,“türk kahvesi”,“ayran”,“şalgam”,“limonata”,
+“et”,“kuzu”,“dana”,“pirzola”,“biftek”,“antrikot”,“bonfile”,
+“sarma”,“dolma”,“yaprak sarma”,“etli dolma”,“zeytinyağlı”,
+“imam bayıldı”,“karnıyarık”,“musakka”,
+“künefe”,“baklava”,“şekerpare”,“revani”,“lokma”,
+“lahmacun”,“pide”,“etli pide”,“kaşarlı”,“kıymalı”,
+“wrap”,“taco”,“falafel”,“shawarma”,
+“steak”,“t-bone”,“ribeye”,
+“sushi”,“ramen”,“pad thai”,
+“soup”,“salad”,“pasta”,“risotto”
+];
+
+// Metinde geçen bilinen yemekleri bul
+const found = knownFoods.filter(f => lower.includes(f));
+
+// Ayrıca büyük harfle başlayan 2-3 kelimelik grupları topla (menü kalemleri olabilir)
+const menuPattern = /([A-ZÇĞİÖŞÜ][a-zçğışöüA-ZÇĞİÖŞÜ]+(?:\s+[A-ZÇĞİÖŞÜa-zçğışöüA-ZÇĞİÖŞÜ]+){0,2})/g;
+const dynamicItems = […new Set((text.match(menuPattern) || []).filter(m => m.length > 3 && m.length < 40))];
+
+return […new Set([…found, …dynamicItems])];
+}
+
+// ─── Restoran adını tahmin et ────────────────────────────────────
+function extractRestaurantName(text) {
+// “Title:” veya ilk başlık satırı
+const titleMatch = text.match(/Title:\s*(.+)/i) || text.match(/^#\s*(.+)/m) || text.match(/^(.{5,60})\n/);
+if (titleMatch) {
+let name = titleMatch[1].trim().replace(/\s*[-|·–—]\s*.*/,””).trim();
+if (name.length > 2 && name.length < 80) return name;
+}
+return “Restoran”;
+}
+
+// ─── Google Maps puanını bul ─────────────────────────────────────
+function extractRating(text) {
+const m = text.match(/(\d[.,]\d)\s*(?:yıldız|star|/5|puan|rating)/i)
+|| text.match(/(\d[.,]\d)\s*(\d/);
+if (m) return parseFloat(m[1].replace(”,”,”.”));
+return null;
+}
+
+function extractReviewCount(text) {
+const m = text.match(/(\d[\d.,]+)\s*(?:yorum|review|değerlend|oy)/i);
+if (m) return parseInt(m[1].replace(/[.,]/g,””));
+return 0;
+}
+
+// ─── Ana analiz ──────────────────────────────────────────────────
+function analyzeText(text) {
+const restaurantName = extractRestaurantName(text);
+const rating = extractRating(text);
+const reviewCount = extractReviewCount(text);
+
+// Yemek adaylarını çıkar ve skorla
+const candidates = extractFoodCandidates(text);
+const ranked = scoreItems(text, candidates);
+
+// Puan hesapla
+const posWords = POS_TR.filter(p => text.toLowerCase().includes(p)).length;
+const negWords = NEG_TR.filter(n => text.toLowerCase().includes(n)).length;
+const sentiment = negWords > posWords * 0.4 ? “mixed” : posWords > 3 ? “positive” : “mixed”;
+
+const score = rating
+? Math.round(rating * 2 * 10) / 10   // 5 üzeri → 10’a çevir
+: Math.min(10, Math.max(5, 7 + posWords * 0.15 - negWords * 0.3)).toFixed(1);
+
+if (ranked.length === 0) {
+return {
+restaurant_name: restaurantName,
+best_dish: “Belirlenemedi”,
+score: score,
+why: “Sayfada yeterli yemek yorumu bulunamadı. Yorumların Türkçe veya İngilizce olduğundan emin olun.”,
+honorable_mentions: [],
+verdict: “Daha fazla yorum gerekiyor.”,
+review_count: reviewCount,
+sentiment
+};
+}
+
+const best = ranked[0];
+const others = ranked.slice(1, 4);
+
+// En iyi yemek için yorumları topla
+const lower = text.toLowerCase();
+const lines = text.split(/[\n.!?]+/);
+const relevantLines = lines
+.filter(l => l.toLowerCase().includes(best.toLowerCase()))
+.filter(l => l.trim().length > 15)
+.slice(0, 3);
+
+const why = relevantLines.length > 0
+? relevantLines.map(l => l.trim()).join(” “).slice(0, 280)
+: `"${best}" bu restoranın yorumlarında en sık olumlu bağlamda geçen yemek olarak öne çıktı.`;
+
+const positiveCount = POS_TR.filter(p => lower.includes(p)).length;
+const verdict = positiveCount > 5
+? `${restaurantName}'da mutlaka "${best}" deneyin!`
+: `"${best}" buranın öne çıkan lezzeti.`;
+
+return {
+restaurant_name: restaurantName,
+best_dish: best,
+score: Number(score),
+why: why.slice(0, 300),
+honorable_mentions: others,
+verdict,
+review_count: reviewCount,
+sentiment
+};
+}
+
+// ─── Sonucu ekrana bas ───────────────────────────────────────────
 function showResult(r) {
 document.getElementById(“rName”).textContent = r.restaurant_name || “”;
 document.getElementById(“rDish”).textContent = r.best_dish || “”;
 document.getElementById(“rWhy”).textContent = r.why || “”;
 document.getElementById(“rVerdict”).textContent = ‘”’ + (r.verdict || “”) + ‘”’;
 
-```
-const badges = document.getElementById("rBadges");
-badges.innerHTML = "";
+const badges = document.getElementById(“rBadges”);
+badges.innerHTML = “”;
 if (r.score) {
-  const b = document.createElement("span");
-  b.className = "bdg " + bc(r.sentiment);
-  b.textContent = "⭐ " + r.score + "/10";
-  badges.appendChild(b);
+const b = document.createElement(“span”);
+b.className = “bdg pos”;
+b.textContent = “⭐ “ + r.score + “/10”;
+badges.appendChild(b);
 }
-const sb = document.createElement("span");
-sb.className = "bdg neu";
-sb.textContent = sl(r.sentiment);
+const sb = document.createElement(“span”);
+sb.className = “bdg neu”;
+sb.textContent = { positive:“Olumlu yorumlar”, mixed:“Karışık yorumlar”, negative:“Olumsuz yorumlar” }[r.sentiment] || “Yorumlar”;
 badges.appendChild(sb);
 if (r.review_count > 0) {
-  const rb = document.createElement("span");
-  rb.className = "bdg neu";
-  rb.textContent = r.review_count + "+ yorum";
-  badges.appendChild(rb);
+const rb = document.createElement(“span”);
+rb.className = “bdg neu”;
+rb.textContent = r.review_count + “+ yorum”;
+badges.appendChild(rb);
 }
 
 const mentions = (r.honorable_mentions || []).filter(Boolean);
-const mc = document.getElementById("mentionsCard");
+const mc = document.getElementById(“mentionsCard”);
 if (mentions.length > 0) {
-  const ct = document.getElementById("rMentions");
-  ct.innerHTML = "";
-  mentions.forEach(m => {
-    const t = document.createElement("span");
-    t.className = "tag"; t.textContent = m;
-    ct.appendChild(t);
-  });
-  mc.style.display = "block";
+const ct = document.getElementById(“rMentions”);
+ct.innerHTML = “”;
+mentions.forEach(m => {
+const t = document.createElement(“span”);
+t.className = “tag”; t.textContent = m;
+ct.appendChild(t);
+});
+mc.style.display = “block”;
 } else {
-  mc.style.display = "none";
+mc.style.display = “none”;
 }
 
-document.getElementById("result").style.display = "block";
-setTimeout(() => document.getElementById("result").scrollIntoView({ behavior: "smooth", block: "start" }), 100);
-```
-
+document.getElementById(“result”).style.display = “block”;
+setTimeout(() => document.getElementById(“result”).scrollIntoView({ behavior:“smooth”, block:“start” }), 100);
 }
 
-async function fetchPageContent(url) {
-// Jina AI Reader — ücretsiz, API key yok, herhangi bir URL’yi temiz metin olarak döner
-const jinaUrl = “https://r.jina.ai/” + encodeURIComponent(url);
-const res = await fetch(jinaUrl, {
-headers: { “Accept”: “text/plain”, “X-Return-Format”: “text” }
-});
-if (!res.ok) throw new Error(“Sayfa çekilemedi (Jina: “ + res.status + “)”);
-const text = await res.text();
-// İlk 6000 karakter yeterli
-return text.slice(0, 6000);
-}
-
-async function analyzeWithGroq(apiKey, pageContent, originalUrl) {
-const prompt = `Aşağıda bir Google Maps restoran sayfasının içeriği var. Bu içeriği analiz ederek restoranın en iyi yemeğini belirle.
-
-SAYFA İÇERİĞİ:
-${pageContent}
-
-ORIJINAL URL: ${originalUrl}
-
-Sadece aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
-{“restaurant_name”:“Restoranın adı”,“best_dish”:“En iyi yemeğin adı”,“score”:8.5,“why”:“Bu yemeğin neden en iyi olduğunun 2-3 cümlelik açıklaması”,“honorable_mentions”:[“2. yemek”,“3. yemek”],“verdict”:“Tek cümlelik gurme tavsiyesi”,“review_count”:150,“sentiment”:“positive”}
-
-sentiment: positive, mixed veya negative`;
-
-```
-const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "Authorization": "Bearer " + apiKey,
-  },
-  body: JSON.stringify({
-    model: "llama-3.3-70b-versatile",
-    messages: [{ role: "user", content: prompt }],
-    temperature: 0.2,
-    max_tokens: 512,
-  }),
-});
-
-const data = await res.json();
-if (data.error) throw new Error(data.error.message);
-
-const text = data.choices?.[0]?.message?.content || "";
-const clean = text.replace(/```json|```/g, "").trim();
-const match = clean.match(/\{[\s\S]*\}/);
-if (!match) throw new Error("Model JSON döndürmedi. Tekrar deneyin.");
-return JSON.parse(match[0]);
-```
-
-}
-
+// ─── Ana fonksiyon ───────────────────────────────────────────────
 async function analyze() {
-const apiKey = document.getElementById(“apiKey”).value.trim();
 const url = document.getElementById(“urlInput”).value.trim();
+document.getElementById(“errBox”).style.display = “none”;
+document.getElementById(“result”).style.display = “none”;
 
-```
-document.getElementById("errBox").style.display = "none";
-document.getElementById("result").style.display = "none";
+if (!url) { showError(“Lütfen bir Google Maps URL’si girin.”); return; }
 
-if (!apiKey) {
-  showError('Groq API anahtarı gerekli. <a href="https://console.groq.com/keys" target="_blank" style="color:#f87171">Ücretsiz al →</a>');
-  return;
-}
-if (!url) {
-  showError("Lütfen bir Google Maps URL'si girin.");
-  return;
-}
-
-localStorage.setItem("groq_key", apiKey);
 setLoading(true);
 
 try {
-  // Adım 1: Sayfayı çek
-  setStep(1);
-  setBtnText("Sayfa çekiliyor...");
-  const pageContent = await fetchPageContent(url);
+// Adım 1: Jina ile sayfayı çek
+setProgress(20, “🔗 Sayfa çekiliyor…”);
+setBtnText(“Sayfa çekiliyor…”);
+const pageText = await fetchWithJina(url);
+document.getElementById(“rawBox”).textContent = pageText.slice(0, 3000);
 
-  // Adım 2: İçerik okunuyor
-  setStep(2);
-  setBtnText("Yorumlar okunuyor...");
-  await new Promise(r => setTimeout(r, 600));
+```
+// Adım 2: Analiz et
+setProgress(60, "🔍 Yorumlar analiz ediliyor...");
+setBtnText("Yorumlar analiz ediliyor...");
+await new Promise(r => setTimeout(r, 300));
 
-  // Adım 3: AI analizi
-  setStep(3);
-  setBtnText("AI analiz ediyor...");
-  const result = await analyzeWithGroq(apiKey, pageContent, url);
+const result = analyzeText(pageText);
 
-  // Adım 4: Sonuç
-  setStep(4);
-  setBtnText("Tamamlandı!");
-  await new Promise(r => setTimeout(r, 400));
+// Adım 3: Sonuç
+setProgress(100, "✅ Tamamlandı!");
+setBtnText("Tamamlandı!");
+await new Promise(r => setTimeout(r, 400));
 
-  showResult(result);
-
-} catch (e) {
-  showError(e.message || "Bilinmeyen hata.");
-} finally {
-  setLoading(false);
-}
+showResult(result);
 ```
 
+} catch(e) {
+showError(e.message || “Bilinmeyen hata.”);
+} finally {
+setLoading(false);
+}
+}
+
+function toggleRaw() {
+const el = document.getElementById(“rawBox”);
+el.style.display = el.style.display === “block” ? “none” : “block”;
 }
 
 function resetForm() {
 document.getElementById(“urlInput”).value = “”;
 document.getElementById(“result”).style.display = “none”;
 document.getElementById(“errBox”).style.display = “none”;
-setStep(0);
-window.scrollTo({ top: 0, behavior: “smooth” });
+window.scrollTo({ top:0, behavior:“smooth” });
 }
 
 document.addEventListener(“keydown”, e => { if (e.key === “Enter”) analyze(); });
