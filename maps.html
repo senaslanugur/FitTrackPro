@@ -7,156 +7,210 @@
   <title>Lezzet Analisti</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      min-height: 100vh;
-      background: #0c0a08;
-      font-family: Georgia, 'Times New Roman', serif;
-      color: #f5ead8;
-      padding: 48px 24px;
-    }
-    body::before {
-      content: '';
-      position: fixed; inset: 0; pointer-events: none; z-index: 0;
-      background:
-        radial-gradient(ellipse at 15% 30%, rgba(200,120,30,0.12) 0%, transparent 55%),
-        radial-gradient(ellipse at 85% 70%, rgba(140,70,10,0.09) 0%, transparent 55%);
-    }
-    .container { position: relative; z-index: 1; max-width: 620px; margin: 0 auto; }
 
 ```
-.header { text-align: center; margin-bottom: 40px; }
-.header .emoji { font-size: 48px; display: block; margin-bottom: 10px; }
-.header h1 { font-size: 28px; font-weight: normal; letter-spacing: 4px; color: #e8c98a; margin-bottom: 6px; text-shadow: 0 2px 24px rgba(232,201,138,0.25); }
-.header p { color: #7a5c30; font-size: 13px; letter-spacing: 1.5px; }
-.divider { width: 80px; height: 1px; background: linear-gradient(90deg, transparent, #c8903a, transparent); margin: 16px auto 0; }
+body {
+  min-height: 100vh;
+  background: #0c0a08;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #f5ead8;
+  padding: 40px 20px 60px;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse at 15% 30%, rgba(200,120,30,0.12) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 70%, rgba(140,70,10,0.09) 0%, transparent 55%);
+}
 
-.card { background: rgba(255,255,255,0.025); border: 1px solid rgba(200,144,58,0.22); border-radius: 16px; padding: 24px; margin-bottom: 12px; }
+.wrap { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; }
 
-.field-label { display: block; font-size: 10px; letter-spacing: 2.5px; color: #c8903a; margin-bottom: 11px; text-transform: uppercase; }
+/* HEADER */
+.header { text-align: center; margin-bottom: 36px; }
+.header .emoji { font-size: 44px; display: block; margin-bottom: 8px; }
+.header h1 { font-size: 26px; font-weight: normal; letter-spacing: 4px; color: #e8c98a; margin-bottom: 6px; }
+.header p { color: #7a5c30; font-size: 12px; letter-spacing: 1.5px; }
+.hr { width: 70px; height: 1px; background: linear-gradient(90deg, transparent, #c8903a, transparent); margin: 14px auto 0; }
 
-.free-badge { display: inline-block; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); color: #4ade80; font-size: 10px; letter-spacing: 1px; padding: 2px 8px; border-radius: 10px; margin-left: 8px; vertical-align: middle; font-family: monospace; }
+/* STEPS INDICATOR */
+.steps {
+  display: flex; align-items: center; justify-content: center;
+  gap: 0; margin-bottom: 28px; font-size: 11px;
+}
+.step { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.step-dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(200,144,58,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; transition: all 0.3s;
+}
+.step.active .step-dot { background: rgba(200,144,58,0.2); border-color: #c8903a; box-shadow: 0 0 12px rgba(200,144,58,0.3); }
+.step.done .step-dot { background: rgba(74,222,128,0.15); border-color: #4ade80; }
+.step-line { width: 40px; height: 1px; background: rgba(200,144,58,0.15); margin-bottom: 18px; }
+.step-label { color: #5a3e22; font-size: 10px; letter-spacing: 0.5px; text-align: center; max-width: 64px; line-height: 1.4; transition: color 0.3s; }
+.step.active .step-label { color: #c8903a; }
+.step.done .step-label { color: #4ade80; }
 
-.input-wrap { position: relative; }
-.input-wrap .icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-size: 15px; opacity: 0.45; pointer-events: none; }
+/* CARD */
+.card { background: rgba(255,255,255,0.025); border: 1px solid rgba(200,144,58,0.2); border-radius: 14px; padding: 22px; margin-bottom: 10px; }
 
-input[type="text"], input[type="password"] {
-  width: 100%; padding: 12px 12px 12px 38px;
-  background: rgba(0,0,0,0.45);
-  border: 1px solid rgba(200,144,58,0.18);
-  border-radius: 10px;
-  color: #f5ead8; font-size: 13px; font-family: monospace;
-  outline: none; transition: border-color 0.2s;
+.lbl { display: block; font-size: 10px; letter-spacing: 2px; color: #c8903a; margin-bottom: 10px; text-transform: uppercase; }
+
+.badge-free { display: inline-flex; align-items: center; gap: 4px; background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.25); color: #4ade80; font-size: 9px; letter-spacing: 1px; padding: 2px 7px; border-radius: 8px; margin-left: 6px; font-family: monospace; }
+
+.inp-wrap { position: relative; }
+.inp-wrap .ico { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; opacity: 0.4; pointer-events: none; }
+input {
+  width: 100%; padding: 11px 11px 11px 36px;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(200,144,58,0.15);
+  border-radius: 9px; color: #f5ead8; font-size: 13px;
+  font-family: monospace; outline: none; transition: border-color 0.2s;
 }
 input:focus { border-color: rgba(200,144,58,0.5); }
 input::placeholder { color: #3a2a14; }
 
-.hint { margin-top: 8px; font-size: 11px; color: #5a3e22; line-height: 1.6; }
+.hint { margin-top: 7px; font-size: 11px; color: #4a3018; line-height: 1.6; }
 .hint a { color: #c8903a; text-decoration: none; }
 .hint a:hover { text-decoration: underline; }
 
+/* BUTTON */
 #analyzeBtn {
-  width: 100%; padding: 15px;
-  background: linear-gradient(135deg, #d4973f, #a06828);
-  border: 1px solid rgba(200,144,58,0.3); border-radius: 11px;
+  width: 100%; padding: 14px;
+  background: linear-gradient(135deg, #d4973f, #9a6020);
+  border: 1px solid rgba(200,144,58,0.3); border-radius: 10px;
   color: #fff0d8; font-size: 13px; letter-spacing: 2px;
   cursor: pointer; font-family: inherit; text-transform: uppercase;
-  transition: all 0.3s; box-shadow: 0 4px 18px rgba(200,144,58,0.18);
-  display: flex; align-items: center; justify-content: center; gap: 10px;
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  transition: all 0.3s; box-shadow: 0 4px 16px rgba(200,144,58,0.15);
 }
-#analyzeBtn:disabled { background: rgba(200,144,58,0.12); color: #5a3e22; cursor: not-allowed; box-shadow: none; }
+#analyzeBtn:disabled { background: rgba(200,144,58,0.1); color: #4a3018; cursor: not-allowed; box-shadow: none; }
+.spinner { width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.12); border-top-color: #e8c98a; border-radius: 50%; animation: spin 0.7s linear infinite; }
 
-.spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.15); border-top-color: #e8c98a; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
+/* ERROR */
+.err { margin-top: 10px; padding: 12px 16px; background: rgba(248,113,113,0.07); border: 1px solid rgba(248,113,113,0.2); border-radius: 10px; color: #f87171; font-size: 12px; line-height: 1.6; display: none; }
 
-.error-box { margin-top: 12px; padding: 13px 17px; background: rgba(248,113,113,0.07); border: 1px solid rgba(248,113,113,0.22); border-radius: 11px; color: #f87171; font-size: 13px; line-height: 1.6; display: none; }
+/* RESULT */
+#result { margin-top: 24px; display: none; animation: fadeUp 0.5s ease; }
 
-#result { margin-top: 26px; display: none; animation: fadeUp 0.5s ease; }
+.r-name-wrap { text-align: center; margin-bottom: 14px; }
+.r-name-wrap small { font-size: 10px; letter-spacing: 2px; color: #6a4c24; text-transform: uppercase; display: block; }
+.r-name { font-size: 18px; color: #e8c98a; margin-top: 3px; }
 
-.r-label { text-align: center; margin-bottom: 16px; }
-.r-label small { font-size: 10px; letter-spacing: 2px; color: #7a5c30; text-transform: uppercase; display: block; }
-.r-label .name { font-size: 19px; color: #e8c98a; margin-top: 4px; }
-
-.hero-card {
-  background: linear-gradient(135deg, rgba(200,144,58,0.12), rgba(160,96,32,0.05));
-  border: 1px solid rgba(200,144,58,0.36);
-  border-radius: 18px; padding: 28px; margin-bottom: 12px;
+.hero {
+  background: linear-gradient(135deg, rgba(200,144,58,0.11), rgba(160,96,32,0.04));
+  border: 1px solid rgba(200,144,58,0.34);
+  border-radius: 16px; padding: 26px; margin-bottom: 10px;
   position: relative; overflow: hidden;
 }
-.hero-card::after { content: ''; position: absolute; top: -36px; right: -36px; width: 130px; height: 130px; border-radius: 50%; background: radial-gradient(circle, rgba(200,144,58,0.09), transparent); pointer-events: none; }
+.hero::after { content:''; position:absolute; top:-32px; right:-32px; width:120px; height:120px; border-radius:50%; background:radial-gradient(circle,rgba(200,144,58,0.08),transparent); pointer-events:none; }
 
-.trophy { font-size: 10px; letter-spacing: 3px; color: #c8903a; text-transform: uppercase; margin-bottom: 10px; }
-.dish-name { font-size: 26px; color: #f0d898; font-weight: bold; margin-bottom: 12px; }
-.badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-.badge { padding: 4px 13px; border-radius: 20px; font-size: 12px; background: rgba(0,0,0,0.3); }
-.badge-pos { color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
-.badge-mix { color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
-.badge-neg { color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
-.badge-neu { color: #9a7850; border: 1px solid rgba(154,120,80,0.2); }
-.why-text { color: #c0a070; font-size: 14px; line-height: 1.75; margin-bottom: 18px; }
-.verdict-text { border-top: 1px solid rgba(200,144,58,0.16); padding-top: 14px; font-style: italic; color: #e8c98a; font-size: 13px; line-height: 1.7; }
+.trophy-lbl { font-size: 9px; letter-spacing: 3px; color: #c8903a; text-transform: uppercase; margin-bottom: 8px; }
+.dish { font-size: 24px; color: #f0d898; font-weight: bold; margin-bottom: 10px; }
+.badges { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 14px; }
+.bdg { padding: 3px 12px; border-radius: 20px; font-size: 11px; background: rgba(0,0,0,0.3); }
+.pos { color: #4ade80; border: 1px solid rgba(74,222,128,0.22); }
+.mix { color: #fbbf24; border: 1px solid rgba(251,191,36,0.22); }
+.neg { color: #f87171; border: 1px solid rgba(248,113,113,0.22); }
+.neu { color: #9a7850; border: 1px solid rgba(154,120,80,0.18); }
+.why { color: #b89860; font-size: 13px; line-height: 1.75; margin-bottom: 16px; }
+.verdict { border-top: 1px solid rgba(200,144,58,0.14); padding-top: 13px; font-style: italic; color: #e8c98a; font-size: 12px; line-height: 1.7; }
 
-.mentions-card { background: rgba(255,255,255,0.015); border: 1px solid rgba(200,144,58,0.12); border-radius: 13px; padding: 16px 20px; margin-bottom: 12px; }
-.mentions-title { font-size: 10px; letter-spacing: 2px; color: #7a5c30; text-transform: uppercase; margin-bottom: 10px; }
-.tags { display: flex; gap: 8px; flex-wrap: wrap; }
-.tag { padding: 5px 14px; background: rgba(200,144,58,0.07); border: 1px solid rgba(200,144,58,0.16); border-radius: 20px; font-size: 12px; color: #b89060; }
+.mentions { background: rgba(255,255,255,0.013); border: 1px solid rgba(200,144,58,0.11); border-radius: 12px; padding: 15px 18px; margin-bottom: 10px; }
+.m-title { font-size: 9px; letter-spacing: 2px; color: #6a4c24; text-transform: uppercase; margin-bottom: 9px; }
+.tags { display: flex; gap: 7px; flex-wrap: wrap; }
+.tag { padding: 4px 13px; background: rgba(200,144,58,0.06); border: 1px solid rgba(200,144,58,0.14); border-radius: 20px; font-size: 11px; color: #a87840; }
 
-#resetBtn { width: 100%; padding: 11px; background: transparent; border: 1px solid rgba(200,144,58,0.18); border-radius: 9px; color: #7a5c30; font-size: 12px; cursor: pointer; font-family: inherit; letter-spacing: 1px; transition: all 0.2s; }
-#resetBtn:hover { border-color: rgba(200,144,58,0.4); color: #c8903a; }
+#resetBtn { width:100%; padding:10px; background:transparent; border:1px solid rgba(200,144,58,0.16); border-radius:8px; color:#6a4c24; font-size:11px; cursor:pointer; font-family:inherit; letter-spacing:1px; transition:all 0.2s; }
+#resetBtn:hover { border-color:rgba(200,144,58,0.38); color:#c8903a; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
-@keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
 ```
 
   </style>
 </head>
 <body>
-<div class="container">
+<div class="wrap">
 
   <div class="header">
     <span class="emoji">🍽️</span>
     <h1>Lezzet Analisti</h1>
     <p>Google Maps URL ver · En iyi yemeği bul</p>
-    <div class="divider"></div>
+    <div class="hr"></div>
   </div>
 
+  <!-- Adım göstergesi -->
+
+  <div class="steps" id="stepsBar">
+    <div class="step" id="s1">
+      <div class="step-dot">🔗</div>
+      <div class="step-label">Sayfa<br>çekiliyor</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" id="s2">
+      <div class="step-dot">🔍</div>
+      <div class="step-label">Yorumlar<br>okunuyor</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" id="s3">
+      <div class="step-dot">🤖</div>
+      <div class="step-label">AI<br>analiz</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" id="s4">
+      <div class="step-dot">🏆</div>
+      <div class="step-label">Sonuç<br>hazır</div>
+    </div>
+  </div>
+
+  <!-- Groq API Key -->
+
   <div class="card">
-    <label class="field-label">🔑 Gemini API Anahtarı <span class="free-badge">ÜCRETSİZ</span></label>
-    <div class="input-wrap">
-      <span class="icon">🔐</span>
-      <input type="password" id="apiKey" placeholder="AIza..." />
+    <label class="lbl">🔑 Groq API Anahtarı <span class="badge-free">✓ ÜCRETSİZ</span></label>
+    <div class="inp-wrap">
+      <span class="ico">🔐</span>
+      <input type="password" id="apiKey" placeholder="gsk_..." />
     </div>
     <p class="hint">
-      Kredi kartı gerekmez, tamamen ücretsiz.<br>
-      → <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a> — "Create API Key" (2 dakika)
+      Kredi kartı yok · Sadece e-posta kaydı · Saniyeler içinde hazır<br>
+      → <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a> — "Create API Key"
     </p>
   </div>
 
+  <!-- Google Maps URL -->
+
   <div class="card">
-    <label class="field-label">📍 Google Maps Restoran URL'si</label>
-    <div class="input-wrap">
-      <span class="icon">📍</span>
+    <label class="lbl">📍 Google Maps Restoran URL'si</label>
+    <div class="inp-wrap">
+      <span class="ico">📍</span>
       <input type="text" id="urlInput" placeholder="https://maps.app.goo.gl/..." />
     </div>
-    <p class="hint">💡 Kısa (maps.app.goo.gl) ve uzun URL'ler desteklenir</p>
+    <p class="hint">💡 Kısa ve uzun Google Maps URL'leri desteklenir</p>
   </div>
 
 <button id="analyzeBtn" onclick="analyze()">Analiz Et →</button>
 
-  <div class="error-box" id="errorBox"></div>
+  <div class="err" id="errBox"></div>
+
+  <!-- Sonuç -->
 
   <div id="result">
-    <div class="r-label">
+    <div class="r-name-wrap">
       <small>Restoran</small>
-      <div class="name" id="rName"></div>
+      <div class="r-name" id="rName"></div>
     </div>
-    <div class="hero-card">
-      <div class="trophy">🏆 En İyi Yemek</div>
-      <div class="dish-name" id="rDish"></div>
+    <div class="hero">
+      <div class="trophy-lbl">🏆 En İyi Yemek</div>
+      <div class="dish" id="rDish"></div>
       <div class="badges" id="rBadges"></div>
-      <div class="why-text" id="rWhy"></div>
-      <div class="verdict-text" id="rVerdict"></div>
+      <div class="why" id="rWhy"></div>
+      <div class="verdict" id="rVerdict"></div>
     </div>
-    <div class="mentions-card" id="mentionsCard">
-      <div class="mentions-title">Diğer Öneriler</div>
+    <div class="mentions" id="mentionsCard">
+      <div class="m-title">Diğer Öneriler</div>
       <div class="tags" id="rMentions"></div>
     </div>
     <button id="resetBtn" onclick="resetForm()">Yeni Restoran Analiz Et</button>
@@ -164,44 +218,46 @@ input::placeholder { color: #3a2a14; }
 
 </div>
 <script>
+  // LocalStorage'dan anahtarı yükle
   window.addEventListener("load", () => {
-    const saved = localStorage.getItem("gemini_api_key");
-    if (saved) document.getElementById("apiKey").value = saved;
+    const k = localStorage.getItem("groq_key");
+    if (k) document.getElementById("apiKey").value = k;
   });
 
-const STEPS = [“Restoran aranıyor…”, “Yorumlar taranıyor…”, “Lezzetler analiz ediliyor…”, “En iyi yemek seçiliyor…”];
-let stepInterval = null;
+function setStep(n) {
+for (let i = 1; i <= 4; i++) {
+const el = document.getElementById(“s” + i);
+el.classList.remove(“active”, “done”);
+if (i < n) el.classList.add(“done”);
+else if (i === n) el.classList.add(“active”);
+}
+}
 
 function setLoading(on) {
 const btn = document.getElementById(“analyzeBtn”);
 if (on) {
-let i = 0;
-btn.innerHTML = `<span class="spinner"></span><span id="stepTxt">${STEPS[0]}</span>`;
+btn.innerHTML = `<span class="spinner"></span><span id="btnTxt">Hazırlanıyor...</span>`;
 btn.disabled = true;
-stepInterval = setInterval(() => {
-i = (i + 1) % STEPS.length;
-const el = document.getElementById(“stepTxt”);
-if (el) el.textContent = STEPS[i];
-}, 2500);
 } else {
-clearInterval(stepInterval);
 btn.innerHTML = “Analiz Et →”;
 btn.disabled = false;
+setStep(0);
 }
 }
 
+function setBtnText(t) {
+const el = document.getElementById(“btnTxt”);
+if (el) el.textContent = t;
+}
+
 function showError(msg) {
-const el = document.getElementById(“errorBox”);
+const el = document.getElementById(“errBox”);
 el.innerHTML = “⚠️ “ + msg;
 el.style.display = “block”;
 }
 
-function badgeClass(s) {
-return { positive: “badge-pos”, mixed: “badge-mix”, negative: “badge-neg” }[s] || “badge-neu”;
-}
-function sentimentLabel(s) {
-return { positive: “Olumlu yorumlar”, mixed: “Karışık yorumlar”, negative: “Olumsuz yorumlar” }[s] || “Yorumlar”;
-}
+function bc(s) { return { positive:“pos”, mixed:“mix”, negative:“neg” }[s] || “neu”; }
+function sl(s) { return { positive:“Olumlu yorumlar”, mixed:“Karışık yorumlar”, negative:“Olumsuz yorumlar” }[s] || “Yorumlar”; }
 
 function showResult(r) {
 document.getElementById(“rName”).textContent = r.restaurant_name || “”;
@@ -214,81 +270,90 @@ const badges = document.getElementById("rBadges");
 badges.innerHTML = "";
 if (r.score) {
   const b = document.createElement("span");
-  b.className = "badge " + badgeClass(r.sentiment);
+  b.className = "bdg " + bc(r.sentiment);
   b.textContent = "⭐ " + r.score + "/10";
   badges.appendChild(b);
 }
-const sl = document.createElement("span");
-sl.className = "badge badge-neu";
-sl.textContent = sentimentLabel(r.sentiment);
-badges.appendChild(sl);
+const sb = document.createElement("span");
+sb.className = "bdg neu";
+sb.textContent = sl(r.sentiment);
+badges.appendChild(sb);
 if (r.review_count > 0) {
-  const rc = document.createElement("span");
-  rc.className = "badge badge-neu";
-  rc.textContent = r.review_count + "+ yorum";
-  badges.appendChild(rc);
+  const rb = document.createElement("span");
+  rb.className = "bdg neu";
+  rb.textContent = r.review_count + "+ yorum";
+  badges.appendChild(rb);
 }
 
 const mentions = (r.honorable_mentions || []).filter(Boolean);
-const mentionsCard = document.getElementById("mentionsCard");
+const mc = document.getElementById("mentionsCard");
 if (mentions.length > 0) {
-  const container = document.getElementById("rMentions");
-  container.innerHTML = "";
+  const ct = document.getElementById("rMentions");
+  ct.innerHTML = "";
   mentions.forEach(m => {
     const t = document.createElement("span");
-    t.className = "tag";
-    t.textContent = m;
-    container.appendChild(t);
+    t.className = "tag"; t.textContent = m;
+    ct.appendChild(t);
   });
-  mentionsCard.style.display = "block";
+  mc.style.display = "block";
 } else {
-  mentionsCard.style.display = "none";
+  mc.style.display = "none";
 }
 
 document.getElementById("result").style.display = "block";
-document.getElementById("result").scrollIntoView({ behavior: "smooth", block: "start" });
+setTimeout(() => document.getElementById("result").scrollIntoView({ behavior: "smooth", block: "start" }), 100);
 ```
 
 }
 
-// Model listesi — sırayla dener, biri çalışınca durur
-const MODELS = [
-“gemini-1.5-flash”,
-“gemini-1.5-flash-8b”,
-“gemini-1.5-pro”,
-];
+async function fetchPageContent(url) {
+// Jina AI Reader — ücretsiz, API key yok, herhangi bir URL’yi temiz metin olarak döner
+const jinaUrl = “https://r.jina.ai/” + encodeURIComponent(url);
+const res = await fetch(jinaUrl, {
+headers: { “Accept”: “text/plain”, “X-Return-Format”: “text” }
+});
+if (!res.ok) throw new Error(“Sayfa çekilemedi (Jina: “ + res.status + “)”);
+const text = await res.text();
+// İlk 6000 karakter yeterli
+return text.slice(0, 6000);
+}
 
-async function callGemini(apiKey, prompt, modelIndex = 0) {
-if (modelIndex >= MODELS.length) throw new Error(“Tüm modeller denendi, kota aşıldı. Birkaç dakika bekleyip tekrar deneyin.”);
+async function analyzeWithGroq(apiKey, pageContent, originalUrl) {
+const prompt = `Aşağıda bir Google Maps restoran sayfasının içeriği var. Bu içeriği analiz ederek restoranın en iyi yemeğini belirle.
+
+SAYFA İÇERİĞİ:
+${pageContent}
+
+ORIJINAL URL: ${originalUrl}
+
+Sadece aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
+{“restaurant_name”:“Restoranın adı”,“best_dish”:“En iyi yemeğin adı”,“score”:8.5,“why”:“Bu yemeğin neden en iyi olduğunun 2-3 cümlelik açıklaması”,“honorable_mentions”:[“2. yemek”,“3. yemek”],“verdict”:“Tek cümlelik gurme tavsiyesi”,“review_count”:150,“sentiment”:“positive”}
+
+sentiment: positive, mixed veya negative`;
 
 ```
-const model = MODELS[modelIndex];
-const res = await fetch(
-  `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-  {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      tools: [{ google_search: {} }],
-      generationConfig: { temperature: 0.2, maxOutputTokens: 1024 },
-    }),
-  }
-);
+const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer " + apiKey,
+  },
+  body: JSON.stringify({
+    model: "llama-3.3-70b-versatile",
+    messages: [{ role: "user", content: prompt }],
+    temperature: 0.2,
+    max_tokens: 512,
+  }),
+});
 
 const data = await res.json();
+if (data.error) throw new Error(data.error.message);
 
-// Kota hatası → sıradaki modeli dene
-if (data.error) {
-  const msg = data.error.message || "";
-  if (msg.includes("quota") || msg.includes("RESOURCE_EXHAUSTED") || data.error.code === 429) {
-    console.warn(`${model} kotası aşıldı, ${MODELS[modelIndex + 1] || "başka model yok"} deneniyor...`);
-    return callGemini(apiKey, prompt, modelIndex + 1);
-  }
-  throw new Error(data.error.message);
-}
-
-return data;
+const text = data.choices?.[0]?.message?.content || "";
+const clean = text.replace(/```json|```/g, "").trim();
+const match = clean.match(/\{[\s\S]*\}/);
+if (!match) throw new Error("Model JSON döndürmedi. Tekrar deneyin.");
+return JSON.parse(match[0]);
 ```
 
 }
@@ -298,40 +363,44 @@ const apiKey = document.getElementById(“apiKey”).value.trim();
 const url = document.getElementById(“urlInput”).value.trim();
 
 ```
-document.getElementById("errorBox").style.display = "none";
+document.getElementById("errBox").style.display = "none";
 document.getElementById("result").style.display = "none";
 
 if (!apiKey) {
-  showError('Lütfen Gemini API anahtarınızı girin. <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#f87171">Ücretsiz al →</a>');
+  showError('Groq API anahtarı gerekli. <a href="https://console.groq.com/keys" target="_blank" style="color:#f87171">Ücretsiz al →</a>');
   return;
 }
-if (!url) { showError("Lütfen bir Google Maps URL'si girin."); return; }
+if (!url) {
+  showError("Lütfen bir Google Maps URL'si girin.");
+  return;
+}
 
-localStorage.setItem("gemini_api_key", apiKey);
+localStorage.setItem("groq_key", apiKey);
 setLoading(true);
 
-const prompt = `Sen bir gurme yemek analistisin. Google Search ile şu Google Maps restoranını ara ve yorumlarını analiz et: ${url}
-```
-
-Restoranın adını, Google Maps puanını, yorum sayısını ve en çok övülen yemekleri bul.
-
-SADECE şu JSON formatında yanıt ver, başka hiçbir şey yazma:
-{“restaurant_name”:“Restoranın adı”,“best_dish”:“En iyi yemeğin adı”,“score”:8.5,“why”:“Bu yemeğin neden en iyi olduğu 2-3 cümle”,“honorable_mentions”:[“2. yemek”,“3. yemek”],“verdict”:“Tek cümlelik tavsiye”,“review_count”:150,“sentiment”:“positive”}`;
-
-```
 try {
-  const data = await callGemini(apiKey, prompt);
+  // Adım 1: Sayfayı çek
+  setStep(1);
+  setBtnText("Sayfa çekiliyor...");
+  const pageContent = await fetchPageContent(url);
 
-  const parts = data?.candidates?.[0]?.content?.parts || [];
-  const allText = parts.map(p => p.text || "").join("\n");
+  // Adım 2: İçerik okunuyor
+  setStep(2);
+  setBtnText("Yorumlar okunuyor...");
+  await new Promise(r => setTimeout(r, 600));
 
-  if (!allText) throw new Error("Model yanıt vermedi, tekrar deneyin.");
+  // Adım 3: AI analizi
+  setStep(3);
+  setBtnText("AI analiz ediyor...");
+  const result = await analyzeWithGroq(apiKey, pageContent, url);
 
-  const clean = allText.replace(/```json|```/g, "").trim();
-  const match = clean.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error("Restoran bilgisi bulunamadı. Farklı bir URL deneyin.");
+  // Adım 4: Sonuç
+  setStep(4);
+  setBtnText("Tamamlandı!");
+  await new Promise(r => setTimeout(r, 400));
 
-  showResult(JSON.parse(match[0]));
+  showResult(result);
+
 } catch (e) {
   showError(e.message || "Bilinmeyen hata.");
 } finally {
@@ -344,7 +413,8 @@ try {
 function resetForm() {
 document.getElementById(“urlInput”).value = “”;
 document.getElementById(“result”).style.display = “none”;
-document.getElementById(“errorBox”).style.display = “none”;
+document.getElementById(“errBox”).style.display = “none”;
+setStep(0);
 window.scrollTo({ top: 0, behavior: “smooth” });
 }
 
