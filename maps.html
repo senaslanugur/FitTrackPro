@@ -34,6 +34,8 @@
 
 .field-label { display: block; font-size: 10px; letter-spacing: 2.5px; color: #c8903a; margin-bottom: 11px; text-transform: uppercase; }
 
+.free-badge { display: inline-block; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); color: #4ade80; font-size: 10px; letter-spacing: 1px; padding: 2px 8px; border-radius: 10px; margin-left: 8px; vertical-align: middle; font-family: monospace; }
+
 .input-wrap { position: relative; }
 .input-wrap .icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-size: 15px; opacity: 0.45; pointer-events: none; }
 
@@ -51,20 +53,6 @@ input::placeholder { color: #3a2a14; }
 .hint { margin-top: 8px; font-size: 11px; color: #5a3e22; line-height: 1.6; }
 .hint a { color: #c8903a; text-decoration: none; }
 .hint a:hover { text-decoration: underline; }
-
-.free-badge {
-  display: inline-block;
-  background: rgba(74,222,128,0.1);
-  border: 1px solid rgba(74,222,128,0.3);
-  color: #4ade80;
-  font-size: 10px;
-  letter-spacing: 1px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  margin-left: 8px;
-  vertical-align: middle;
-  font-family: monospace;
-}
 
 #analyzeBtn {
   width: 100%; padding: 15px;
@@ -130,8 +118,6 @@ input::placeholder { color: #3a2a14; }
     <div class="divider"></div>
   </div>
 
-  <!-- API Key -->
-
   <div class="card">
     <label class="field-label">🔑 Gemini API Anahtarı <span class="free-badge">ÜCRETSİZ</span></label>
     <div class="input-wrap">
@@ -139,12 +125,10 @@ input::placeholder { color: #3a2a14; }
       <input type="password" id="apiKey" placeholder="AIza..." />
     </div>
     <p class="hint">
-      Tamamen ücretsiz, kredi kartı gerekmez.<br>
-      Anahtar almak için: <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a> → "Create API Key" (2 dakika)
+      Kredi kartı gerekmez, tamamen ücretsiz.<br>
+      → <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a> — "Create API Key" (2 dakika)
     </p>
   </div>
-
-  <!-- URL -->
 
   <div class="card">
     <label class="field-label">📍 Google Maps Restoran URL'si</label>
@@ -152,14 +136,12 @@ input::placeholder { color: #3a2a14; }
       <span class="icon">📍</span>
       <input type="text" id="urlInput" placeholder="https://maps.app.goo.gl/..." />
     </div>
-    <p class="hint">💡 Kısa (maps.app.goo.gl) ve uzun Google Maps URL'leri desteklenir</p>
+    <p class="hint">💡 Kısa (maps.app.goo.gl) ve uzun URL'ler desteklenir</p>
   </div>
 
 <button id="analyzeBtn" onclick="analyze()">Analiz Et →</button>
 
   <div class="error-box" id="errorBox"></div>
-
-  <!-- Result -->
 
   <div id="result">
     <div class="r-label">
@@ -181,169 +163,192 @@ input::placeholder { color: #3a2a14; }
   </div>
 
 </div>
-
 <script>
-  // API anahtarını localStorage'dan yükle
   window.addEventListener("load", () => {
     const saved = localStorage.getItem("gemini_api_key");
     if (saved) document.getElementById("apiKey").value = saved;
   });
 
-  const STEPS = ["Restoran aranıyor...", "Yorumlar taranıyor...", "Lezzetler analiz ediliyor...", "En iyi yemek seçiliyor..."];
-  let stepInterval = null;
+const STEPS = [“Restoran aranıyor…”, “Yorumlar taranıyor…”, “Lezzetler analiz ediliyor…”, “En iyi yemek seçiliyor…”];
+let stepInterval = null;
 
-  function setLoading(on) {
-    const btn = document.getElementById("analyzeBtn");
-    if (on) {
-      let i = 0;
-      btn.innerHTML = `<span class="spinner"></span><span id="stepTxt">${STEPS[0]}</span>`;
-      btn.disabled = true;
-      stepInterval = setInterval(() => {
-        i = (i + 1) % STEPS.length;
-        const el = document.getElementById("stepTxt");
-        if (el) el.textContent = STEPS[i];
-      }, 2500);
-    } else {
-      clearInterval(stepInterval);
-      btn.innerHTML = "Analiz Et →";
-      btn.disabled = false;
-    }
-  }
+function setLoading(on) {
+const btn = document.getElementById(“analyzeBtn”);
+if (on) {
+let i = 0;
+btn.innerHTML = `<span class="spinner"></span><span id="stepTxt">${STEPS[0]}</span>`;
+btn.disabled = true;
+stepInterval = setInterval(() => {
+i = (i + 1) % STEPS.length;
+const el = document.getElementById(“stepTxt”);
+if (el) el.textContent = STEPS[i];
+}, 2500);
+} else {
+clearInterval(stepInterval);
+btn.innerHTML = “Analiz Et →”;
+btn.disabled = false;
+}
+}
 
-  function showError(msg) {
-    const el = document.getElementById("errorBox");
-    el.innerHTML = "⚠️ " + msg;
-    el.style.display = "block";
-  }
+function showError(msg) {
+const el = document.getElementById(“errorBox”);
+el.innerHTML = “⚠️ “ + msg;
+el.style.display = “block”;
+}
 
-  function badgeClass(s) {
-    return { positive: "badge-pos", mixed: "badge-mix", negative: "badge-neg" }[s] || "badge-neu";
-  }
-  function sentimentLabel(s) {
-    return { positive: "Olumlu yorumlar", mixed: "Karışık yorumlar", negative: "Olumsuz yorumlar" }[s] || "Yorumlar";
-  }
+function badgeClass(s) {
+return { positive: “badge-pos”, mixed: “badge-mix”, negative: “badge-neg” }[s] || “badge-neu”;
+}
+function sentimentLabel(s) {
+return { positive: “Olumlu yorumlar”, mixed: “Karışık yorumlar”, negative: “Olumsuz yorumlar” }[s] || “Yorumlar”;
+}
 
-  function showResult(r) {
-    document.getElementById("rName").textContent = r.restaurant_name || "";
-    document.getElementById("rDish").textContent = r.best_dish || "";
-    document.getElementById("rWhy").textContent = r.why || "";
-    document.getElementById("rVerdict").textContent = '"' + (r.verdict || "") + '"';
+function showResult(r) {
+document.getElementById(“rName”).textContent = r.restaurant_name || “”;
+document.getElementById(“rDish”).textContent = r.best_dish || “”;
+document.getElementById(“rWhy”).textContent = r.why || “”;
+document.getElementById(“rVerdict”).textContent = ‘”’ + (r.verdict || “”) + ‘”’;
 
-    const badges = document.getElementById("rBadges");
-    badges.innerHTML = "";
-    if (r.score) {
-      const b = document.createElement("span");
-      b.className = "badge " + badgeClass(r.sentiment);
-      b.textContent = "⭐ " + r.score + "/10";
-      badges.appendChild(b);
-    }
-    const sl = document.createElement("span");
-    sl.className = "badge badge-neu";
-    sl.textContent = sentimentLabel(r.sentiment);
-    badges.appendChild(sl);
-    if (r.review_count > 0) {
-      const rc = document.createElement("span");
-      rc.className = "badge badge-neu";
-      rc.textContent = r.review_count + "+ yorum";
-      badges.appendChild(rc);
-    }
+```
+const badges = document.getElementById("rBadges");
+badges.innerHTML = "";
+if (r.score) {
+  const b = document.createElement("span");
+  b.className = "badge " + badgeClass(r.sentiment);
+  b.textContent = "⭐ " + r.score + "/10";
+  badges.appendChild(b);
+}
+const sl = document.createElement("span");
+sl.className = "badge badge-neu";
+sl.textContent = sentimentLabel(r.sentiment);
+badges.appendChild(sl);
+if (r.review_count > 0) {
+  const rc = document.createElement("span");
+  rc.className = "badge badge-neu";
+  rc.textContent = r.review_count + "+ yorum";
+  badges.appendChild(rc);
+}
 
-    const mentions = (r.honorable_mentions || []).filter(Boolean);
-    const mentionsCard = document.getElementById("mentionsCard");
-    if (mentions.length > 0) {
-      const container = document.getElementById("rMentions");
-      container.innerHTML = "";
-      mentions.forEach(m => {
-        const t = document.createElement("span");
-        t.className = "tag";
-        t.textContent = m;
-        container.appendChild(t);
-      });
-      mentionsCard.style.display = "block";
-    } else {
-      mentionsCard.style.display = "none";
-    }
-
-    document.getElementById("result").style.display = "block";
-    document.getElementById("result").scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  async function analyze() {
-    const apiKey = document.getElementById("apiKey").value.trim();
-    const url = document.getElementById("urlInput").value.trim();
-
-    document.getElementById("errorBox").style.display = "none";
-    document.getElementById("result").style.display = "none";
-
-    if (!apiKey) {
-      showError('Lütfen Gemini API anahtarınızı girin. <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#f87171">Ücretsiz al →</a>');
-      return;
-    }
-    if (!url) { showError("Lütfen bir Google Maps URL'si girin."); return; }
-
-    localStorage.setItem("gemini_api_key", apiKey);
-    setLoading(true);
-
-    const prompt = `Sen bir gurme yemek analistisin. Aşağıdaki Google Maps restoran linkini Google Search ile ara. Restoranın adını, yorumlarını, puanını ve menüsünü bul. En çok övülen yemeği belirle.
-
-Google Maps URL: ${url}
-
-Yanıtını SADECE aşağıdaki geçerli JSON formatında ver, başka hiçbir şey yazma, açıklama ekleme:
-{"restaurant_name":"Restoranın adı","best_dish":"En iyi yemeğin adı","score":8.5,"why":"Bu yemeğin neden en iyi olduğunun 2-3 cümlelik açıklaması","honorable_mentions":["2. yemek","3. yemek"],"verdict":"Tek cümlelik gurme tavsiyesi","review_count":150,"sentiment":"positive"}
-
-sentiment değeri: positive, mixed veya negative olabilir.`;
-
-    try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            tools: [{ google_search: {} }],
-            generationConfig: {
-              temperature: 0.3,
-              maxOutputTokens: 1024,
-            },
-          }),
-        }
-      );
-
-      const data = await res.json();
-
-      if (data.error) throw new Error(data.error.message);
-
-      // Gemini yanıtından metni çıkar
-      const parts = data?.candidates?.[0]?.content?.parts || [];
-      const allText = parts.map(p => p.text || "").join("\n");
-
-      if (!allText) throw new Error("Model yanıt vermedi. Lütfen tekrar deneyin.");
-
-      // JSON çıkar (kod bloğu varsa temizle)
-      const clean = allText.replace(/```json|```/g, "").trim();
-      const match = clean.match(/\{[\s\S]*\}/);
-      if (!match) throw new Error("Restoran bilgisi bulunamadı. Farklı bir URL deneyin.");
-
-      showResult(JSON.parse(match[0]));
-
-    } catch (e) {
-      showError(e.message || "Bilinmeyen bir hata oluştu.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function resetForm() {
-    document.getElementById("urlInput").value = "";
-    document.getElementById("result").style.display = "none";
-    document.getElementById("errorBox").style.display = "none";
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  document.addEventListener("keydown", e => {
-    if (e.key === "Enter") analyze();
+const mentions = (r.honorable_mentions || []).filter(Boolean);
+const mentionsCard = document.getElementById("mentionsCard");
+if (mentions.length > 0) {
+  const container = document.getElementById("rMentions");
+  container.innerHTML = "";
+  mentions.forEach(m => {
+    const t = document.createElement("span");
+    t.className = "tag";
+    t.textContent = m;
+    container.appendChild(t);
   });
+  mentionsCard.style.display = "block";
+} else {
+  mentionsCard.style.display = "none";
+}
+
+document.getElementById("result").style.display = "block";
+document.getElementById("result").scrollIntoView({ behavior: "smooth", block: "start" });
+```
+
+}
+
+// Model listesi — sırayla dener, biri çalışınca durur
+const MODELS = [
+“gemini-1.5-flash”,
+“gemini-1.5-flash-8b”,
+“gemini-1.5-pro”,
+];
+
+async function callGemini(apiKey, prompt, modelIndex = 0) {
+if (modelIndex >= MODELS.length) throw new Error(“Tüm modeller denendi, kota aşıldı. Birkaç dakika bekleyip tekrar deneyin.”);
+
+```
+const model = MODELS[modelIndex];
+const res = await fetch(
+  `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      tools: [{ google_search: {} }],
+      generationConfig: { temperature: 0.2, maxOutputTokens: 1024 },
+    }),
+  }
+);
+
+const data = await res.json();
+
+// Kota hatası → sıradaki modeli dene
+if (data.error) {
+  const msg = data.error.message || "";
+  if (msg.includes("quota") || msg.includes("RESOURCE_EXHAUSTED") || data.error.code === 429) {
+    console.warn(`${model} kotası aşıldı, ${MODELS[modelIndex + 1] || "başka model yok"} deneniyor...`);
+    return callGemini(apiKey, prompt, modelIndex + 1);
+  }
+  throw new Error(data.error.message);
+}
+
+return data;
+```
+
+}
+
+async function analyze() {
+const apiKey = document.getElementById(“apiKey”).value.trim();
+const url = document.getElementById(“urlInput”).value.trim();
+
+```
+document.getElementById("errorBox").style.display = "none";
+document.getElementById("result").style.display = "none";
+
+if (!apiKey) {
+  showError('Lütfen Gemini API anahtarınızı girin. <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#f87171">Ücretsiz al →</a>');
+  return;
+}
+if (!url) { showError("Lütfen bir Google Maps URL'si girin."); return; }
+
+localStorage.setItem("gemini_api_key", apiKey);
+setLoading(true);
+
+const prompt = `Sen bir gurme yemek analistisin. Google Search ile şu Google Maps restoranını ara ve yorumlarını analiz et: ${url}
+```
+
+Restoranın adını, Google Maps puanını, yorum sayısını ve en çok övülen yemekleri bul.
+
+SADECE şu JSON formatında yanıt ver, başka hiçbir şey yazma:
+{“restaurant_name”:“Restoranın adı”,“best_dish”:“En iyi yemeğin adı”,“score”:8.5,“why”:“Bu yemeğin neden en iyi olduğu 2-3 cümle”,“honorable_mentions”:[“2. yemek”,“3. yemek”],“verdict”:“Tek cümlelik tavsiye”,“review_count”:150,“sentiment”:“positive”}`;
+
+```
+try {
+  const data = await callGemini(apiKey, prompt);
+
+  const parts = data?.candidates?.[0]?.content?.parts || [];
+  const allText = parts.map(p => p.text || "").join("\n");
+
+  if (!allText) throw new Error("Model yanıt vermedi, tekrar deneyin.");
+
+  const clean = allText.replace(/```json|```/g, "").trim();
+  const match = clean.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("Restoran bilgisi bulunamadı. Farklı bir URL deneyin.");
+
+  showResult(JSON.parse(match[0]));
+} catch (e) {
+  showError(e.message || "Bilinmeyen hata.");
+} finally {
+  setLoading(false);
+}
+```
+
+}
+
+function resetForm() {
+document.getElementById(“urlInput”).value = “”;
+document.getElementById(“result”).style.display = “none”;
+document.getElementById(“errorBox”).style.display = “none”;
+window.scrollTo({ top: 0, behavior: “smooth” });
+}
+
+document.addEventListener(“keydown”, e => { if (e.key === “Enter”) analyze(); });
 </script>
 
 </body>
