@@ -7,246 +7,111 @@
   <title>Lezzet Analisti</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: #0c0a08;
+      font-family: Georgia, 'Times New Roman', serif;
+      color: #f5ead8;
+      padding: 48px 24px;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse at 15% 30%, rgba(200,120,30,0.12) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 70%, rgba(140,70,10,0.09) 0%, transparent 55%);
+    }
+    .container { position: relative; z-index: 1; max-width: 620px; margin: 0 auto; }
 
 ```
-body {
-  min-height: 100vh;
-  background: #0c0a08;
-  font-family: Georgia, 'Times New Roman', serif;
-  color: #f5ead8;
-  padding: 48px 24px;
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse at 15% 30%, rgba(200,120,30,0.12) 0%, transparent 55%),
-    radial-gradient(ellipse at 85% 70%, rgba(140,70,10,0.09) 0%, transparent 55%);
-  z-index: 0;
-}
-
-.container {
-  position: relative;
-  z-index: 1;
-  max-width: 620px;
-  margin: 0 auto;
-}
-
-/* HEADER */
-.header { text-align: center; margin-bottom: 44px; }
+.header { text-align: center; margin-bottom: 40px; }
 .header .emoji { font-size: 48px; display: block; margin-bottom: 10px; }
-.header h1 {
-  font-size: 30px;
-  font-weight: normal;
-  letter-spacing: 4px;
-  color: #e8c98a;
-  margin-bottom: 8px;
-  text-shadow: 0 2px 24px rgba(232,201,138,0.25);
-}
+.header h1 { font-size: 28px; font-weight: normal; letter-spacing: 4px; color: #e8c98a; margin-bottom: 6px; text-shadow: 0 2px 24px rgba(232,201,138,0.25); }
 .header p { color: #7a5c30; font-size: 13px; letter-spacing: 1.5px; }
-.divider {
-  width: 80px; height: 1px;
-  background: linear-gradient(90deg, transparent, #c8903a, transparent);
-  margin: 18px auto 0;
-}
+.divider { width: 80px; height: 1px; background: linear-gradient(90deg, transparent, #c8903a, transparent); margin: 16px auto 0; }
 
-/* CARD */
-.card {
-  background: rgba(255,255,255,0.025);
-  border: 1px solid rgba(200,144,58,0.22);
-  border-radius: 16px;
-  padding: 26px;
-  margin-bottom: 14px;
-}
+.card { background: rgba(255,255,255,0.025); border: 1px solid rgba(200,144,58,0.22); border-radius: 16px; padding: 24px; margin-bottom: 12px; }
 
-label.field-label {
-  display: block;
-  font-size: 10px;
-  letter-spacing: 2.5px;
-  color: #c8903a;
-  margin-bottom: 12px;
-  text-transform: uppercase;
-}
+.field-label { display: block; font-size: 10px; letter-spacing: 2.5px; color: #c8903a; margin-bottom: 11px; text-transform: uppercase; }
 
 .input-wrap { position: relative; }
-.input-wrap .pin {
-  position: absolute;
-  left: 13px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 16px;
-  opacity: 0.5;
-  pointer-events: none;
-}
+.input-wrap .icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-size: 15px; opacity: 0.45; pointer-events: none; }
 
-input[type="text"] {
-  width: 100%;
-  padding: 13px 13px 13px 40px;
+input[type="text"], input[type="password"] {
+  width: 100%; padding: 12px 12px 12px 38px;
   background: rgba(0,0,0,0.45);
   border: 1px solid rgba(200,144,58,0.18);
   border-radius: 10px;
-  color: #f5ead8;
-  font-size: 13px;
-  font-family: monospace;
-  outline: none;
-  transition: border-color 0.2s;
+  color: #f5ead8; font-size: 13px; font-family: monospace;
+  outline: none; transition: border-color 0.2s;
 }
-input[type="text"]:focus { border-color: rgba(200,144,58,0.5); }
-input[type="text"]::placeholder { color: #3a2a14; }
+input:focus { border-color: rgba(200,144,58,0.5); }
+input::placeholder { color: #3a2a14; }
 
-.hint { margin-top: 9px; font-size: 11px; color: #5a3e22; line-height: 1.6; }
+.hint { margin-top: 8px; font-size: 11px; color: #5a3e22; line-height: 1.6; }
+.hint a { color: #c8903a; text-decoration: none; }
+.hint a:hover { text-decoration: underline; }
 
-/* BUTTON */
-#analyzeBtn {
-  width: 100%;
-  padding: 15px;
-  background: linear-gradient(135deg, #d4973f, #a06828);
-  border: 1px solid rgba(200,144,58,0.3);
-  border-radius: 11px;
-  color: #fff0d8;
-  font-size: 13px;
-  letter-spacing: 2px;
-  cursor: pointer;
-  font-family: inherit;
-  text-transform: uppercase;
-  transition: all 0.3s;
-  box-shadow: 0 4px 18px rgba(200,144,58,0.18);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-#analyzeBtn:disabled {
-  background: rgba(200,144,58,0.12);
-  color: #5a3e22;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.spinner {
-  width: 14px; height: 14px;
-  border: 2px solid rgba(255,255,255,0.15);
-  border-top-color: #e8c98a;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+.free-badge {
   display: inline-block;
-}
-
-/* ERROR */
-.error-box {
-  margin-top: 14px;
-  padding: 13px 17px;
-  background: rgba(248,113,113,0.07);
-  border: 1px solid rgba(248,113,113,0.22);
-  border-radius: 11px;
-  color: #f87171;
-  font-size: 13px;
-  line-height: 1.6;
-  display: none;
-}
-
-/* DEBUG */
-.debug-box {
-  margin-top: 14px;
-  padding: 13px 17px;
-  background: rgba(0,0,0,0.4);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 11px;
-  font-size: 11px;
+  background: rgba(74,222,128,0.1);
+  border: 1px solid rgba(74,222,128,0.3);
+  color: #4ade80;
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 8px;
+  vertical-align: middle;
   font-family: monospace;
-  color: #888;
-  line-height: 1.6;
-  max-height: 220px;
-  overflow: auto;
-  white-space: pre-wrap;
-  word-break: break-all;
-  display: none;
 }
 
-/* RESULT */
+#analyzeBtn {
+  width: 100%; padding: 15px;
+  background: linear-gradient(135deg, #d4973f, #a06828);
+  border: 1px solid rgba(200,144,58,0.3); border-radius: 11px;
+  color: #fff0d8; font-size: 13px; letter-spacing: 2px;
+  cursor: pointer; font-family: inherit; text-transform: uppercase;
+  transition: all 0.3s; box-shadow: 0 4px 18px rgba(200,144,58,0.18);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+#analyzeBtn:disabled { background: rgba(200,144,58,0.12); color: #5a3e22; cursor: not-allowed; box-shadow: none; }
+
+.spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.15); border-top-color: #e8c98a; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
+
+.error-box { margin-top: 12px; padding: 13px 17px; background: rgba(248,113,113,0.07); border: 1px solid rgba(248,113,113,0.22); border-radius: 11px; color: #f87171; font-size: 13px; line-height: 1.6; display: none; }
+
 #result { margin-top: 26px; display: none; animation: fadeUp 0.5s ease; }
 
-.restaurant-label { text-align: center; margin-bottom: 16px; }
-.restaurant-label small { font-size: 10px; letter-spacing: 2px; color: #7a5c30; text-transform: uppercase; display: block; }
-.restaurant-label .name { font-size: 19px; color: #e8c98a; margin-top: 4px; }
+.r-label { text-align: center; margin-bottom: 16px; }
+.r-label small { font-size: 10px; letter-spacing: 2px; color: #7a5c30; text-transform: uppercase; display: block; }
+.r-label .name { font-size: 19px; color: #e8c98a; margin-top: 4px; }
 
 .hero-card {
   background: linear-gradient(135deg, rgba(200,144,58,0.12), rgba(160,96,32,0.05));
   border: 1px solid rgba(200,144,58,0.36);
-  border-radius: 18px;
-  padding: 28px;
-  margin-bottom: 12px;
-  position: relative;
-  overflow: hidden;
+  border-radius: 18px; padding: 28px; margin-bottom: 12px;
+  position: relative; overflow: hidden;
 }
-.hero-card::after {
-  content: '';
-  position: absolute;
-  top: -36px; right: -36px;
-  width: 130px; height: 130px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(200,144,58,0.09), transparent);
-  pointer-events: none;
-}
+.hero-card::after { content: ''; position: absolute; top: -36px; right: -36px; width: 130px; height: 130px; border-radius: 50%; background: radial-gradient(circle, rgba(200,144,58,0.09), transparent); pointer-events: none; }
 
-.hero-card .trophy { font-size: 10px; letter-spacing: 3px; color: #c8903a; text-transform: uppercase; margin-bottom: 10px; }
-.hero-card .dish-name { font-size: 26px; color: #f0d898; font-weight: bold; margin-bottom: 12px; }
+.trophy { font-size: 10px; letter-spacing: 3px; color: #c8903a; text-transform: uppercase; margin-bottom: 10px; }
+.dish-name { font-size: 26px; color: #f0d898; font-weight: bold; margin-bottom: 12px; }
 .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-.badge {
-  padding: 4px 13px;
-  border-radius: 20px;
-  font-size: 12px;
-  background: rgba(0,0,0,0.3);
-}
-.badge-score { color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
-.badge-mixed { color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
-.badge-negative { color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
-.badge-neutral { color: #9a7850; border: 1px solid rgba(154,120,80,0.2); }
+.badge { padding: 4px 13px; border-radius: 20px; font-size: 12px; background: rgba(0,0,0,0.3); }
+.badge-pos { color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
+.badge-mix { color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
+.badge-neg { color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+.badge-neu { color: #9a7850; border: 1px solid rgba(154,120,80,0.2); }
+.why-text { color: #c0a070; font-size: 14px; line-height: 1.75; margin-bottom: 18px; }
+.verdict-text { border-top: 1px solid rgba(200,144,58,0.16); padding-top: 14px; font-style: italic; color: #e8c98a; font-size: 13px; line-height: 1.7; }
 
-.hero-card .why { color: #c0a070; font-size: 14px; line-height: 1.75; margin-bottom: 18px; }
-.hero-card .verdict {
-  border-top: 1px solid rgba(200,144,58,0.16);
-  padding-top: 14px;
-  font-style: italic;
-  color: #e8c98a;
-  font-size: 13px;
-  line-height: 1.7;
-}
-
-.mentions-card {
-  background: rgba(255,255,255,0.015);
-  border: 1px solid rgba(200,144,58,0.12);
-  border-radius: 13px;
-  padding: 16px 20px;
-  margin-bottom: 12px;
-}
-.mentions-card .title { font-size: 10px; letter-spacing: 2px; color: #7a5c30; text-transform: uppercase; margin-bottom: 10px; }
+.mentions-card { background: rgba(255,255,255,0.015); border: 1px solid rgba(200,144,58,0.12); border-radius: 13px; padding: 16px 20px; margin-bottom: 12px; }
+.mentions-title { font-size: 10px; letter-spacing: 2px; color: #7a5c30; text-transform: uppercase; margin-bottom: 10px; }
 .tags { display: flex; gap: 8px; flex-wrap: wrap; }
-.tag {
-  padding: 5px 14px;
-  background: rgba(200,144,58,0.07);
-  border: 1px solid rgba(200,144,58,0.16);
-  border-radius: 20px;
-  font-size: 12px;
-  color: #b89060;
-}
+.tag { padding: 5px 14px; background: rgba(200,144,58,0.07); border: 1px solid rgba(200,144,58,0.16); border-radius: 20px; font-size: 12px; color: #b89060; }
 
-#resetBtn {
-  width: 100%;
-  padding: 11px;
-  background: transparent;
-  border: 1px solid rgba(200,144,58,0.18);
-  border-radius: 9px;
-  color: #7a5c30;
-  font-size: 12px;
-  cursor: pointer;
-  font-family: inherit;
-  letter-spacing: 1px;
-  transition: all 0.2s;
-}
+#resetBtn { width: 100%; padding: 11px; background: transparent; border: 1px solid rgba(200,144,58,0.18); border-radius: 9px; color: #7a5c30; font-size: 12px; cursor: pointer; font-family: inherit; letter-spacing: 1px; transition: all 0.2s; }
 #resetBtn:hover { border-color: rgba(200,144,58,0.4); color: #c8903a; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -256,216 +121,230 @@ input[type="text"]::placeholder { color: #3a2a14; }
   </style>
 </head>
 <body>
-  <div class="container">
+<div class="container">
 
-```
-<div class="header">
-  <span class="emoji">🍽️</span>
-  <h1>Lezzet Analisti</h1>
-  <p>Google Maps URL ver · En iyi yemeği bul</p>
-  <div class="divider"></div>
-</div>
-
-<div class="card">
-  <label class="field-label">Google Maps Restoran URL'si</label>
-  <div class="input-wrap">
-    <span class="pin">📍</span>
-    <input type="text" id="urlInput" placeholder="https://maps.app.goo.gl/..." />
+  <div class="header">
+    <span class="emoji">🍽️</span>
+    <h1>Lezzet Analisti</h1>
+    <p>Google Maps URL ver · En iyi yemeği bul</p>
+    <div class="divider"></div>
   </div>
-  <p class="hint">💡 Kısa (maps.app.goo.gl) ve uzun Google Maps URL'leri desteklenir</p>
-</div>
+
+  <!-- API Key -->
+
+  <div class="card">
+    <label class="field-label">🔑 Gemini API Anahtarı <span class="free-badge">ÜCRETSİZ</span></label>
+    <div class="input-wrap">
+      <span class="icon">🔐</span>
+      <input type="password" id="apiKey" placeholder="AIza..." />
+    </div>
+    <p class="hint">
+      Tamamen ücretsiz, kredi kartı gerekmez.<br>
+      Anahtar almak için: <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a> → "Create API Key" (2 dakika)
+    </p>
+  </div>
+
+  <!-- URL -->
+
+  <div class="card">
+    <label class="field-label">📍 Google Maps Restoran URL'si</label>
+    <div class="input-wrap">
+      <span class="icon">📍</span>
+      <input type="text" id="urlInput" placeholder="https://maps.app.goo.gl/..." />
+    </div>
+    <p class="hint">💡 Kısa (maps.app.goo.gl) ve uzun Google Maps URL'leri desteklenir</p>
+  </div>
 
 <button id="analyzeBtn" onclick="analyze()">Analiz Et →</button>
 
-<div class="error-box" id="errorBox"></div>
-<div class="debug-box" id="debugBox"></div>
+  <div class="error-box" id="errorBox"></div>
 
-<div id="result">
-  <div class="restaurant-label">
-    <small>Restoran</small>
-    <div class="name" id="rName"></div>
+  <!-- Result -->
+
+  <div id="result">
+    <div class="r-label">
+      <small>Restoran</small>
+      <div class="name" id="rName"></div>
+    </div>
+    <div class="hero-card">
+      <div class="trophy">🏆 En İyi Yemek</div>
+      <div class="dish-name" id="rDish"></div>
+      <div class="badges" id="rBadges"></div>
+      <div class="why-text" id="rWhy"></div>
+      <div class="verdict-text" id="rVerdict"></div>
+    </div>
+    <div class="mentions-card" id="mentionsCard">
+      <div class="mentions-title">Diğer Öneriler</div>
+      <div class="tags" id="rMentions"></div>
+    </div>
+    <button id="resetBtn" onclick="resetForm()">Yeni Restoran Analiz Et</button>
   </div>
 
-  <div class="hero-card">
-    <div class="trophy">🏆 En İyi Yemek</div>
-    <div class="dish-name" id="rDish"></div>
-    <div class="badges" id="rBadges"></div>
-    <div class="why" id="rWhy"></div>
-    <div class="verdict" id="rVerdict"></div>
-  </div>
-
-  <div class="mentions-card" id="mentionsCard">
-    <div class="title">Diğer Öneriler</div>
-    <div class="tags" id="rMentions"></div>
-  </div>
-
-  <button id="resetBtn" onclick="reset()">Yeni Restoran Analiz Et</button>
 </div>
-```
 
-  </div>
+<script>
+  // API anahtarını localStorage'dan yükle
+  window.addEventListener("load", () => {
+    const saved = localStorage.getItem("gemini_api_key");
+    if (saved) document.getElementById("apiKey").value = saved;
+  });
 
-  <script>
-    const STEPS = ["Restoran aranıyor...", "Yorumlar taranıyor...", "Lezzetler analiz ediliyor...", "En iyi yemek seçiliyor..."];
-    let stepInterval = null;
+  const STEPS = ["Restoran aranıyor...", "Yorumlar taranıyor...", "Lezzetler analiz ediliyor...", "En iyi yemek seçiliyor..."];
+  let stepInterval = null;
 
-    function setLoading(on) {
-      const btn = document.getElementById("analyzeBtn");
-      if (on) {
-        let i = 0;
-        btn.innerHTML = `<span class="spinner"></span><span id="stepTxt">${STEPS[0]}</span>`;
-        btn.disabled = true;
-        stepInterval = setInterval(() => {
-          i = (i + 1) % STEPS.length;
-          const el = document.getElementById("stepTxt");
-          if (el) el.textContent = STEPS[i];
-        }, 2500);
-      } else {
-        clearInterval(stepInterval);
-        btn.innerHTML = "Analiz Et →";
-        btn.disabled = false;
-      }
+  function setLoading(on) {
+    const btn = document.getElementById("analyzeBtn");
+    if (on) {
+      let i = 0;
+      btn.innerHTML = `<span class="spinner"></span><span id="stepTxt">${STEPS[0]}</span>`;
+      btn.disabled = true;
+      stepInterval = setInterval(() => {
+        i = (i + 1) % STEPS.length;
+        const el = document.getElementById("stepTxt");
+        if (el) el.textContent = STEPS[i];
+      }, 2500);
+    } else {
+      clearInterval(stepInterval);
+      btn.innerHTML = "Analiz Et →";
+      btn.disabled = false;
+    }
+  }
+
+  function showError(msg) {
+    const el = document.getElementById("errorBox");
+    el.innerHTML = "⚠️ " + msg;
+    el.style.display = "block";
+  }
+
+  function badgeClass(s) {
+    return { positive: "badge-pos", mixed: "badge-mix", negative: "badge-neg" }[s] || "badge-neu";
+  }
+  function sentimentLabel(s) {
+    return { positive: "Olumlu yorumlar", mixed: "Karışık yorumlar", negative: "Olumsuz yorumlar" }[s] || "Yorumlar";
+  }
+
+  function showResult(r) {
+    document.getElementById("rName").textContent = r.restaurant_name || "";
+    document.getElementById("rDish").textContent = r.best_dish || "";
+    document.getElementById("rWhy").textContent = r.why || "";
+    document.getElementById("rVerdict").textContent = '"' + (r.verdict || "") + '"';
+
+    const badges = document.getElementById("rBadges");
+    badges.innerHTML = "";
+    if (r.score) {
+      const b = document.createElement("span");
+      b.className = "badge " + badgeClass(r.sentiment);
+      b.textContent = "⭐ " + r.score + "/10";
+      badges.appendChild(b);
+    }
+    const sl = document.createElement("span");
+    sl.className = "badge badge-neu";
+    sl.textContent = sentimentLabel(r.sentiment);
+    badges.appendChild(sl);
+    if (r.review_count > 0) {
+      const rc = document.createElement("span");
+      rc.className = "badge badge-neu";
+      rc.textContent = r.review_count + "+ yorum";
+      badges.appendChild(rc);
     }
 
-    function showError(msg) {
-      const el = document.getElementById("errorBox");
-      el.textContent = "⚠️ " + msg;
-      el.style.display = "block";
+    const mentions = (r.honorable_mentions || []).filter(Boolean);
+    const mentionsCard = document.getElementById("mentionsCard");
+    if (mentions.length > 0) {
+      const container = document.getElementById("rMentions");
+      container.innerHTML = "";
+      mentions.forEach(m => {
+        const t = document.createElement("span");
+        t.className = "tag";
+        t.textContent = m;
+        container.appendChild(t);
+      });
+      mentionsCard.style.display = "block";
+    } else {
+      mentionsCard.style.display = "none";
     }
 
-    function showDebug(data) {
-      const el = document.getElementById("debugBox");
-      el.textContent = JSON.stringify(data, null, 2);
-      el.style.display = "block";
+    document.getElementById("result").style.display = "block";
+    document.getElementById("result").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  async function analyze() {
+    const apiKey = document.getElementById("apiKey").value.trim();
+    const url = document.getElementById("urlInput").value.trim();
+
+    document.getElementById("errorBox").style.display = "none";
+    document.getElementById("result").style.display = "none";
+
+    if (!apiKey) {
+      showError('Lütfen Gemini API anahtarınızı girin. <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#f87171">Ücretsiz al →</a>');
+      return;
     }
+    if (!url) { showError("Lütfen bir Google Maps URL'si girin."); return; }
 
-    function sentimentClass(s) {
-      if (s === "positive") return "badge-score";
-      if (s === "mixed") return "badge-mixed";
-      if (s === "negative") return "badge-negative";
-      return "badge-neutral";
-    }
-    function sentimentLabel(s) {
-      if (s === "positive") return "Olumlu yorumlar";
-      if (s === "mixed") return "Karışık yorumlar";
-      if (s === "negative") return "Olumsuz yorumlar";
-      return "Yorumlar";
-    }
+    localStorage.setItem("gemini_api_key", apiKey);
+    setLoading(true);
 
-    function showResult(r) {
-      document.getElementById("rName").textContent = r.restaurant_name || "";
-      document.getElementById("rDish").textContent = r.best_dish || "";
-      document.getElementById("rWhy").textContent = r.why || "";
-      document.getElementById("rVerdict").textContent = '"' + (r.verdict || "") + '"';
+    const prompt = `Sen bir gurme yemek analistisin. Aşağıdaki Google Maps restoran linkini Google Search ile ara. Restoranın adını, yorumlarını, puanını ve menüsünü bul. En çok övülen yemeği belirle.
 
-      // Badges
-      const badges = document.getElementById("rBadges");
-      badges.innerHTML = "";
-      if (r.score) {
-        const b = document.createElement("span");
-        b.className = "badge " + sentimentClass(r.sentiment);
-        b.textContent = "⭐ " + r.score + "/10";
-        badges.appendChild(b);
-      }
-      const s = document.createElement("span");
-      s.className = "badge badge-neutral";
-      s.textContent = sentimentLabel(r.sentiment);
-      badges.appendChild(s);
-      if (r.review_count > 0) {
-        const rc = document.createElement("span");
-        rc.className = "badge badge-neutral";
-        rc.textContent = r.review_count + "+ yorum";
-        badges.appendChild(rc);
-      }
+Google Maps URL: ${url}
 
-      // Mentions
-      const mentions = (r.honorable_mentions || []).filter(Boolean);
-      const mentionsCard = document.getElementById("mentionsCard");
-      if (mentions.length > 0) {
-        const container = document.getElementById("rMentions");
-        container.innerHTML = "";
-        mentions.forEach(m => {
-          const t = document.createElement("span");
-          t.className = "tag";
-          t.textContent = m;
-          container.appendChild(t);
-        });
-        mentionsCard.style.display = "block";
-      } else {
-        mentionsCard.style.display = "none";
-      }
+Yanıtını SADECE aşağıdaki geçerli JSON formatında ver, başka hiçbir şey yazma, açıklama ekleme:
+{"restaurant_name":"Restoranın adı","best_dish":"En iyi yemeğin adı","score":8.5,"why":"Bu yemeğin neden en iyi olduğunun 2-3 cümlelik açıklaması","honorable_mentions":["2. yemek","3. yemek"],"verdict":"Tek cümlelik gurme tavsiyesi","review_count":150,"sentiment":"positive"}
 
-      document.getElementById("result").style.display = "block";
-    }
+sentiment değeri: positive, mixed veya negative olabilir.`;
 
-    async function analyze() {
-      const url = document.getElementById("urlInput").value.trim();
-      if (!url) return;
-
-      document.getElementById("errorBox").style.display = "none";
-      document.getElementById("debugBox").style.display = "none";
-      document.getElementById("result").style.display = "none";
-      setLoading(true);
-
-      try {
-        const res = await fetch("https://api.anthropic.com/v1/messages", {
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            model: "claude-sonnet-4-20250514",
-            max_tokens: 2000,
-            system: `Sen bir gurme yemek analistisin. Kullanıcının verdiği Google Maps restoran URL'sini web'de ara. Restoranın adını, yorumlarını ve menüsünü bul. En çok övülen yemeği belirle. Yanıtını SADECE şu JSON formatında ver, başka hiçbir şey yazma, kod bloğu veya açıklama ekleme:
-{"restaurant_name":"Restoranın adı","best_dish":"En iyi yemeğin adı","score":8.5,"why":"Neden en iyi olduğunun açıklaması","honorable_mentions":["2. yemek","3. yemek"],"verdict":"Tek cümlelik tavsiye","review_count":100,"sentiment":"positive"}`,
-            tools: [{ type: "web_search_20250305", name: "web_search" }],
-            messages: [{ role: "user", content: "Bu Google Maps restoranını analiz et: " + url }],
+            contents: [{ parts: [{ text: prompt }] }],
+            tools: [{ google_search: {} }],
+            generationConfig: {
+              temperature: 0.3,
+              maxOutputTokens: 1024,
+            },
           }),
-        });
-
-        const data = await res.json();
-
-        if (data.error) {
-          showDebug(data);
-          throw new Error(data.error.message);
         }
+      );
 
-        // Tüm text bloklarını topla
-        const content = data.content || [];
-        const allText = content.filter(b => b.type === "text").map(b => b.text).join("\n");
+      const data = await res.json();
 
-        if (!allText) {
-          showDebug(data);
-          throw new Error("Model metin yanıtı vermedi. Ham yanıt aşağıda görülebilir.");
-        }
+      if (data.error) throw new Error(data.error.message);
 
-        // JSON çıkar
-        const match = allText.match(/\{[\s\S]*\}/);
-        if (!match) {
-          showDebug({ raw_text: allText, full_response: data });
-          throw new Error("JSON formatında yanıt alınamadı. Ham yanıt aşağıda görülebilir.");
-        }
+      // Gemini yanıtından metni çıkar
+      const parts = data?.candidates?.[0]?.content?.parts || [];
+      const allText = parts.map(p => p.text || "").join("\n");
 
-        const parsed = JSON.parse(match[0]);
-        showResult(parsed);
+      if (!allText) throw new Error("Model yanıt vermedi. Lütfen tekrar deneyin.");
 
-      } catch (e) {
-        showError(e.message || "Bilinmeyen bir hata oluştu.");
-      } finally {
-        setLoading(false);
-      }
+      // JSON çıkar (kod bloğu varsa temizle)
+      const clean = allText.replace(/```json|```/g, "").trim();
+      const match = clean.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error("Restoran bilgisi bulunamadı. Farklı bir URL deneyin.");
+
+      showResult(JSON.parse(match[0]));
+
+    } catch (e) {
+      showError(e.message || "Bilinmeyen bir hata oluştu.");
+    } finally {
+      setLoading(false);
     }
+  }
 
-    function reset() {
-      document.getElementById("urlInput").value = "";
-      document.getElementById("result").style.display = "none";
-      document.getElementById("errorBox").style.display = "none";
-      document.getElementById("debugBox").style.display = "none";
-    }
+  function resetForm() {
+    document.getElementById("urlInput").value = "";
+    document.getElementById("result").style.display = "none";
+    document.getElementById("errorBox").style.display = "none";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
-    // Enter tuşu desteği
-    document.getElementById("urlInput").addEventListener("keydown", function(e) {
-      if (e.key === "Enter") analyze();
-    });
-  </script>
+  document.addEventListener("keydown", e => {
+    if (e.key === "Enter") analyze();
+  });
+</script>
 
 </body>
 </html>
