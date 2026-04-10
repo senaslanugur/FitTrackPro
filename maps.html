@@ -3,309 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mekan Yorum Analizörü</title>
+    <title>Harita Analiz Otomasyonu</title>
     <style>
-        :root {
-            --bg-color: #f4f7f6;
-            --card-bg: #ffffff;
-            --primary: #2563eb;
-            --text-dark: #1f2937;
-            --border: #e5e7eb;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
+        body { 
+            background-color: #121212; 
+            color: #e0e0e0; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
         }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-dark);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
+        .container { 
+            background-color: #1e1e1e; 
+            padding: 35px; 
+            border-radius: 12px; 
+            max-width: 650px; 
+            width: 100%; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6); 
+            border: 1px solid #333;
         }
-        .container {
-            max-width: 800px;
-            width: 100%;
-            background-color: var(--card-bg);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        h1 { color: #4ade80; font-size: 24px; text-align: center; margin-top: 0; }
+        p { line-height: 1.6; color: #a0a0a0; }
+        input { 
+            width: 100%; 
+            padding: 14px; 
+            margin: 15px 0; 
+            border: 1px solid #444; 
+            background: #2a2a2a; 
+            color: white; 
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            font-size: 15px;
         }
-        h1 { text-align: center; color: var(--primary); }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
-        input[type="text"], input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            box-sizing: border-box;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
+        input:focus { border-color: #4ade80; outline: none; }
+        #bookmarklet { 
+            display: inline-block; 
+            background-color: #3b82f6; 
+            color: white; 
+            padding: 14px 24px; 
+            text-decoration: none; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            cursor: grab; 
+            text-align: center; 
+            width: calc(100% - 48px); 
+            margin-top: 15px;
             transition: background 0.3s;
         }
-        button:hover { background-color: #1d4ed8; }
-        button:disabled { background-color: #9ca3af; cursor: not-allowed; }
-        .settings-box {
-            background-color: #f8fafc;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border);
+        #bookmarklet:hover { background-color: #2563eb; }
+        #bookmarklet:active { cursor: grabbing; }
+        .alert { 
+            background: #2a1f00; 
+            border-left: 4px solid #f59e0b; 
+            padding: 15px; 
+            margin-bottom: 25px; 
+            border-radius: 6px; 
+            font-size: 14px; 
         }
-        .results {
-            margin-top: 30px;
-            display: none;
-        }
-        .category-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        .card {
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
-        .card.best { border-top: 4px solid var(--success); }
-        .card.mid { border-top: 4px solid var(--warning); }
-        .card.worst { border-top: 4px solid var(--danger); }
-        .card h3 { margin-top: 0; font-size: 18px; }
-        ul { padding-left: 20px; margin-bottom: 0; }
-        li { margin-bottom: 5px; }
-        #loading { text-align: center; margin-top: 20px; display: none; font-weight: bold; color: var(--primary); }
-        .raw-reviews { margin-top: 30px; font-size: 13px; color: #6b7280; border-top: 1px solid var(--border); padding-top: 15px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🍽️ Harita Yorum Analizörü</h1>
+    <h1>🚀 Maps Yorum Analiz Otomasyonu</h1>
     
-    <div class="settings-box">
-        <div class="form-group">
-            <label for="googleApiKey">Google Maps API Key (Places API aktif olmalı):</label>
-            <input type="password" id="googleApiKey" placeholder="AIzaSy...">
-        </div>
-        <div class="form-group">
-            <label for="geminiApiKey">Google Gemini API Key (Ücretsiz AI Analizi için):</label>
-            <input type="password" id="geminiApiKey" placeholder="AIzaSy...">
-        </div>
+    <div class="alert">
+        <strong>Mimari Bilgisi:</strong> CORS politikalarını aşmak ve API maliyetlerinden kurtulmak için bu araç bir DOM kazıma otomasyonu (Bookmarklet) üretir. Bu sayede veriyi doğrudan kendi tarayıcı oturumunuz üzerinden okuyarak aracı bir sunucuya ihtiyaç bırakmaz.
     </div>
 
-    <div class="form-group">
-        <label for="placeInput">Mekan Adı veya Uzun Google Haritalar URL'si:</label>
-        <input type="text" id="placeInput" placeholder="Örn: Nusret Ankara veya https://www.google.com/maps/place/...">
-    </div>
+    <p>1. Google Gemini API Anahtarınızı girin:</p>
+    <input type="password" id="apiKey" placeholder="Gemini API Key (AIzaSy...)">
 
-    <button id="analyzeBtn" onclick="startProcess()">Yorumları Çek ve Analiz Et</button>
-    <div id="loading">İşlem yapılıyor, lütfen bekleyin... Yorumlar çekiliyor ve yapay zeka tarafından analiz ediliyor.</div>
+    <p>2. Aşağıdaki butonu farenizle sürükleyip tarayıcınızın <strong>Yer İmleri (Bookmarks) Çubuğuna</strong> bırakın:</p>
+    <a href="javascript:void(0)" id="bookmarklet" onclick="alert('Lütfen bana tıklamayın! Tarayıcınızın Yer İmleri çubuğuna sürükleyip bırakın.')">Analiz Et 🤖</a>
 
-    <div class="results" id="resultsArea">
-        <h2>📊 Analiz Sonuçları</h2>
-        <h4 id="placeNameDisplay" style="color: #4b5563; margin-top: -10px;"></h4>
-        
-        <div class="category-grid">
-            <div class="card best">
-                <h3>🏆 En İyiler (Övgü Alanlar)</h3>
-                <div id="bestContent"></div>
-            </div>
-            <div class="card mid">
-                <h3>😐 Ortalar (Karışık Yorumlar)</h3>
-                <div id="midContent"></div>
-            </div>
-            <div class="card worst">
-                <h3>🛑 En Kötüler (Şikayet Edilenler)</h3>
-                <div id="worstContent"></div>
-            </div>
-        </div>
-
-        <div class="raw-reviews">
-            <strong>Analiz Edilen Ham Yorumlar:</strong>
-            <ul id="rawReviewsList"></ul>
-        </div>
-    </div>
+    <p style="margin-top: 30px; border-top: 1px solid #333; padding-top: 20px; font-size: 14px;">
+        <strong>Kullanım Adımları:</strong><br><br>
+        1. İstediğiniz mekanın <b>Google Haritalar</b> linkine gidin.<br>
+        2. Sol panelden <b>"Yorumlar"</b> sekmesine tıklayıp yorumların DOM'a yüklenmesi için biraz aşağı kaydırın.<br>
+        3. Kaydettiğiniz <b>Analiz Et 🤖</b> yer imine tıklayın. Arayüz doğrudan sayfanın üzerinde açılacaktır.
+    </p>
 </div>
 
 <script>
-    let mapService;
+    const input = document.getElementById('apiKey');
+    const btn = document.getElementById('bookmarklet');
 
-    // Harita kütüphanesini dinamik yükleme
-    function loadGoogleMapsScript(apiKey) {
-        return new Promise((resolve, reject) => {
-            if (window.google && window.google.maps) {
-                resolve();
-                return;
-            }
-            const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-            script.async = true;
-            script.defer = true;
-            script.onload = resolve;
-            script.onerror = reject;
-            document.head.appendChild(script);
-        });
-    }
-
-    async function startProcess() {
-        const googleKey = document.getElementById('googleApiKey').value.trim();
-        const geminiKey = document.getElementById('geminiApiKey').value.trim();
-        const inputVal = document.getElementById('placeInput').value.trim();
-
-        if (!googleKey || !geminiKey || !inputVal) {
-            alert("Lütfen tüm API anahtarlarını ve mekan bilgisini doldurun.");
+    input.addEventListener('input', () => {
+        const key = input.value.trim();
+        if(!key) {
+            btn.href = "javascript:void(0)";
             return;
         }
 
-        document.getElementById('analyzeBtn').disabled = true;
-        document.getElementById('loading').style.display = 'block';
-        document.getElementById('resultsArea').style.display = 'none';
-
-        try {
-            await loadGoogleMapsScript(googleKey);
-            
-            // Gizli bir div oluşturup Google Places servisini başlatıyoruz
-            const hiddenMap = document.createElement('div');
-            mapService = new google.maps.places.PlacesService(hiddenMap);
-
-            // Girdiyi analiz et (URL mi yoksa isim mi?)
-            let searchQuery = inputVal;
-            if (inputVal.includes("google.com/maps/place/")) {
-                const urlParts = inputVal.split("/place/")[1].split("/")[0];
-                searchQuery = decodeURIComponent(urlParts.replace(/\+/g, ' '));
+        // Bookmarklet olarak çalışacak JavaScript Payload'u
+        const code = `javascript:(async function(){
+            if(!window.location.href.includes('google.com/maps')) {
+                alert('Hata: Lütfen bu aracı sadece Google Haritalar mekan sayfalarında çalıştırın.');
+                return;
             }
-
-            // 1. Mekanı Ara
-            const placeId = await searchPlace(searchQuery);
-            if (!placeId) throw new Error("Mekan bulunamadı.");
-
-            // 2. Yorumları Çek
-            const placeDetails = await getPlaceDetails(placeId);
-            const reviews = placeDetails.reviews || [];
             
-            if (reviews.length === 0) {
-                throw new Error("Bu mekan için hiç yorum bulunamadı.");
+            // DOM üzerinden yorum metinlerini kazı
+            const elems = document.querySelectorAll('.wiI7pd');
+            const reviews = Array.from(elems).map(e => e.innerText).filter(t => t.length > 5);
+            
+            if(reviews.length === 0){
+                alert('Yorum metni okunamadı! Lütfen "Yorumlar" sekmesine tıklayın, DOM yüklenmesi için listeyi biraz aşağı kaydırın ve tekrar deneyin.');
+                return;
             }
-
-            document.getElementById('placeNameDisplay').innerText = `Mekan: ${placeDetails.name} (${reviews.length} yorum bulundu)`;
             
-            // Yorumları metne çevir ve arayüze ekle
-            const reviewsText = reviews.map(r => r.text).join("\n---\n");
-            document.getElementById('rawReviewsList').innerHTML = reviews.map(r => `<li>${r.text}</li>`).join("");
+            // UI Enjeksiyonu
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;top:5%;left:10%;width:80%;height:85%;background:#1e1e1e;color:#e0e0e0;z-index:999999;padding:30px;overflow-y:auto;border-radius:12px;box-shadow:0 15px 50px rgba(0,0,0,0.9);font-family:sans-serif;box-sizing:border-box;border:1px solid #333;';
+            overlay.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #333;padding-bottom:15px;margin-bottom:20px;"><h2 style="margin:0;color:#4ade80;">Yapay Zeka Mekan Analizi</h2><button id="closeAiOverlay" style="background:#ef4444;color:white;border:none;padding:8px 16px;cursor:pointer;border-radius:6px;font-weight:bold;">Kapat</button></div><div id="aiStatus" style="font-size:16px;"><b>' + reviews.length + ' adet yorum başarıyla kazındı.</b><br><br>Gemini modeli verileri ayrıştırıyor, lütfen bekleyin...</div><div id="aiResults" style="display:none;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:20px;"></div>';
+            document.body.appendChild(overlay);
+            document.getElementById('closeAiOverlay').onclick = () => document.body.removeChild(overlay);
 
-            // 3. Gemini ile Analiz Et
-            await analyzeWithGemini(geminiKey, reviewsText);
+            // LLM Prompt
+            const prompt = 'Aşağıdaki müşteri yorumlarını analiz et. Menüde geçen yiyecekleri, içecekleri ve tatlıları tespit et. Duygu durumuna göre bunları "En İyi", "Orta" ve "En Kötü" olarak kategorize et. SADECE aşağıdaki formatta geçerli JSON döndür:\\n{"en_iyi": {"yiyecekler": [], "icecekler": [], "tatlilar": []}, "orta": {"yiyecekler": [], "icecekler": [], "tatlilar": []}, "en_kotu": {"yiyecekler": [], "icecekler": [], "tatlilar": []}}\\nYorumlar:\\n' + reviews.join('\\n---\\n');
 
-        } catch (error) {
-            alert("Bir hata oluştu: " + error.message);
-            console.error(error);
-        } finally {
-            document.getElementById('analyzeBtn').disabled = false;
-            document.getElementById('loading').style.display = 'none';
-        }
-    }
+            try {
+                const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({
+                        contents: [{parts:[{text:prompt}]}], 
+                        generationConfig: {temperature: 0.1}
+                    })
+                });
+                
+                const data = await res.json();
+                let txt = data.candidates[0].content.parts[0].text.trim();
+                
+                // Temizlik
+                txt = txt.replace(/\\\`\\\`\\\`json/g, '').replace(/\\\`\\\`\\\`/g, '').trim();
+                const obj = JSON.parse(txt);
 
-    function searchPlace(query) {
-        return new Promise((resolve, reject) => {
-            const request = { query: query, fields: ['name', 'place_id'] };
-            mapService.findPlaceFromQuery(request, (results, status) => {
-                if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
-                    resolve(results[0].place_id);
-                } else {
-                    reject(new Error("Mekan araması başarısız oldu."));
-                }
-            });
-        });
-    }
+                const mkCol = (title, color, d) => '<div style="background:#2a2a2a;padding:20px;border-radius:8px;border-top:4px solid '+color+';"><h3 style="margin-top:0;color:'+color+';">'+title+'</h3><strong>🍔 Yiyecekler:</strong><ul style="padding-left:20px;margin:8px 0 15px 0;color:#bbb;">'+(d.yiyecekler.map(i=>'<li>'+i+'</li>').join('')||'<li>-</li>')+'</ul><strong>🍹 İçecekler:</strong><ul style="padding-left:20px;margin:8px 0 15px 0;color:#bbb;">'+(d.icecekler.map(i=>'<li>'+i+'</li>').join('')||'<li>-</li>')+'</ul><strong>🍰 Tatlılar:</strong><ul style="padding-left:20px;margin:8px 0 0 0;color:#bbb;">'+(d.tatlilar.map(i=>'<li>'+i+'</li>').join('')||'<li>-</li>')+'</ul></div>';
 
-    function getPlaceDetails(placeId) {
-        return new Promise((resolve, reject) => {
-            const request = { placeId: placeId, fields: ['name', 'reviews'] };
-            mapService.getDetails(request, (place, status) => {
-                if (status === google.maps.places.PlacesServiceStatus.OK) {
-                    resolve(place);
-                } else {
-                    reject(new Error("Mekan detayları alınamadı."));
-                }
-            });
-        });
-    }
-
-    async function analyzeWithGemini(apiKey, reviewsText) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+                document.getElementById('aiResults').innerHTML = mkCol('🏆 En İyiler (Övgüler)', '#4ade80', obj.en_iyi) + mkCol('😐 Ortalar (Karışık)', '#f59e0b', obj.orta) + mkCol('🛑 En Kötüler (Şikayetler)', '#ef4444', obj.en_kotu);
+                
+                document.getElementById('aiStatus').style.display = 'none';
+                document.getElementById('aiResults').style.display = 'grid';
+                
+            } catch(e) {
+                document.getElementById('aiStatus').innerHTML = '<span style="color:#ef4444;">Analiz hatası: ' + e.message + '</span>';
+            }
+        })();`;
         
-        const prompt = `
-        Aşağıdaki müşteri yorumlarını analiz et. Menüde geçen yiyecekleri, içecekleri ve tatlıları tespit et.
-        Müşterilerin duygu durumuna göre bunları "En İyi", "Orta" ve "En Kötü" olarak kategorize et.
-        Eğer bir kategori için veri yoksa boş dizi [] döndür.
-        
-        KESİNLİKLE SADECE GEÇERLİ BİR JSON DÖNDÜR, BAŞKA METİN VEYA MARKDOWN (```json) KULLANMA.
-        
-        JSON Formatı şu şekilde olmalı:
-        {
-            "en_iyi": { "yiyecekler": [], "icecekler": [], "tatlilar": [] },
-            "orta": { "yiyecekler": [], "icecekler": [], "tatlilar": [] },
-            "en_kotu": { "yiyecekler": [], "icecekler": [], "tatlilar": [] }
-        }
-
-        Müşteri Yorumları:
-        ${reviewsText}
-        `;
-
-        const requestBody = {
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.2 }
-        };
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody)
-        });
-
-        if (!response.ok) throw new Error("Yapay zeka analiz servisine ulaşılamadı.");
-
-        const data = await response.json();
-        let jsonStr = data.candidates[0].content.parts[0].text.trim();
-        
-        // Temizlik: Markdown tag'lerini kaldır
-        if(jsonStr.startsWith("```json")) jsonStr = jsonStr.substring(7);
-        if(jsonStr.startsWith("```")) jsonStr = jsonStr.substring(3);
-        if(jsonStr.endsWith("```")) jsonStr = jsonStr.substring(0, jsonStr.length - 3);
-
-        const resultObj = JSON.parse(jsonStr);
-        renderResults(resultObj);
-    }
-
-    function renderResults(data) {
-        const generateHTML = (categoryData) => {
-            return `
-                <strong>🍔 Yiyecekler:</strong>
-                <ul>${categoryData.yiyecekler.length > 0 ? categoryData.yiyecekler.map(i => `<li>${i}</li>`).join('') : '<li>Veri yok</li>'}</ul>
-                <strong>🍹 İçecekler:</strong>
-                <ul>${categoryData.icecekler.length > 0 ? categoryData.icecekler.map(i => `<li>${i}</li>`).join('') : '<li>Veri yok</li>'}</ul>
-                <strong>🍰 Tatlılar:</strong>
-                <ul>${categoryData.tatlilar.length > 0 ? categoryData.tatlilar.map(i => `<li>${i}</li>`).join('') : '<li>Veri yok</li>'}</ul>
-            `;
-        };
-
-        document.getElementById('bestContent').innerHTML = generateHTML(data.en_iyi);
-        document.getElementById('midContent').innerHTML = generateHTML(data.orta);
-        document.getElementById('worstContent').innerHTML = generateHTML(data.en_kotu);
-
-        document.getElementById('resultsArea').style.display = 'block';
-    }
+        btn.href = code.replace(/\n/g, '').replace(/\s{2,}/g, ' ');
+    });
 </script>
-
 </body>
 </html>
