@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIST Teknik Tarayıcı - MVP</title>
+    <script src="https://cdn.jsdelivr.net/npm/technicalindicators@3.1.0/dist/browser.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; }
+        h1 { color: #1e3a8a; }
+        button { padding: 12px 20px; font-size: 16px; background: #1e40af; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        button:disabled { background: #6b7280; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+        th { background: #1e40af; color: white; }
+        .positive { color: green; font-weight: bold; }
+        .loading { color: orange; }
+    </style>
+</head>
+<body>
+    <h1>BIST Teknik Tarayıcı (MACD + RSI + MA + Hacim)</h1>
+    <p>Bu araç, Borsa İstanbul hisselerini tarar ve belirtilen koşullara uyanları listeler.</p>
+    
+    <button onclick="startScan()">Tarama Yap (Yaklaşık 100 Hisse)</button>
+    <p id="status" class="loading"></p>
+    
+    <table id="results">
+        <thead>
+            <tr>
+                <th>Hisse</th>
+                <th>Fiyat</th>
+                <th>RSI</th>
+                <th>MACD Durumu</th>
+                <th>MA20</th>
+                <th>MA50</th>
+                <th>MA200</th>
+                <th>Hacim</th>
+                <th>3Gün Ort. Hacim</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        // Örnek BIST hisseleri (daha fazlasını ekleyebilirsin)
+        const bistSymbols = [
+            "THYAO.IS", "GARAN.IS", "AKBNK.IS", "BIMAS.IS", "EREGL.IS", "FROTO.IS",
+            "KCHOL.IS", "KOZAL.IS", "PETKM.IS", "SISE.IS", "TUPRS.IS", "VAKBN.IS",
+            "ASELS.IS", "TCELL.IS", "ISCTR.IS", "HALKB.IS", "SAHOL.IS", "EKGYO.IS",
+            "GUBRF.IS", "HEKTS.IS", "TKFEN.IS", "ODAS.IS", "SASA.IS", "YKBNK.IS"
+            // İstediğin kadar ekle (toplam 100-150 ideal)
+        ];
+
+        async function fetchHistoricalData(symbol) {
+            try {
+                const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1y`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                const quotes = data.chart.result[0];
+                const timestamps = quotes.timestamp;
+                const o = quotes.indicators.quote[0].open;
+                const h = quotes.indicators.quote[0].high;
+                const l = quotes.indicators.quote[0].low;
+                const c = quotes.indicators.quote[0].close;
+                const v = quotes.indicators.quote[0].volume;
+
+                const closes = c.filter(x => x != null);
+                const volumes = v.filter(x => x != null);
+
+                if (closes.length < 200) return null;
+
+                return {
+                    symbol,
+                    currentPrice: closes[closes.length-1],
+                    closes: closes,
+                    volumes: volumes
+                };
+            } catch (e) {
+                console.error(`Hata: ${symbol}`, e);
+                return null;
+            }
+        }
+
+        function calculateIndicators(data) {
+            const { closes, volumes, currentPrice } = data;
+            
+            // RSI (14)
+            const rsiInput = { values: closes, period: 14 };
+            const rsi = technicalindicators.RSI.calculate(rsiInput);
+            const lastRSI = rsi[rsi.length-1];
+
+            // MA'lar (Simple Moving Average)
+            const ma20 = technicalindicators.SMA.calculate({period: 20, values: closes});
+            const ma50 = technicalindicators.SMA.calculate({period: 50, values: closes});
+            const ma200 = technicalindicators.SMA.calculate({period: 200, values: closes});
+
+            // MACD
+            const macdInput = {
+                values: closes,
+                fastPeriod: 12,
+                slowPeriod: 26,
+                signalPeriod: 9,
+                SimpleMAOscillator: false,
+                SimpleMASignal: false
+            };
+            const macdResult = technicalindicators.MACD.calculate(macdInput);
+            const lastMACD = macdResult[macdResult.length-1];
+            const prevMACD = macdResult[macdResult.length-2];
+
+            // MACD yukarı kesme (bullish crossover)
+            const macdCrossUp = prevMACD && lastMACD && 
+                (prevMACD.MACD < prevMACD.signal) && 
+                (lastMACD.MACD > lastMACD.signal) &&
+                lastMACD.MACD < 0;  // sıfırın altında yukarı kesme
+
+            // Hacim
+            const avgVol3 = volumes.slice(-4, -1).reduce((a,b)=>a+b,0) / 3;
+            const lastVol = volumes[volumes.length-1];
+            const volumeCondition = lastVol > avgVol3 * 1.1; // %10 tolerans
+
+            const priceAboveMA = currentPrice > ma20[ma20.length-1] &&
+                                 currentPrice > ma50[ma50.length-1] &&
+                                 currentPrice > ma200[ma200.length-1];
+
+            return {
+                rsi: lastRSI ? lastRSI.toFixed(2) : 'N/A',
+                macdCrossUp,
+                ma20: ma20[ma20.length-1] ? ma20[ma20.length-1].toFixed(2) : 'N/A',
+                ma50: ma50[ma50.length-1] ? ma50[ma50.length-1].toFixed(2) : 'N/A',
+                ma200: ma200[ma200.length-1] ? ma200[ma200.length-1].toFixed(2) : 'N/A',
+                volumeCondition,
+                currentPrice: currentPrice.toFixed(2),
+                avgVol3: avgVol3.toFixed(0),
+                lastVol: lastVol.toFixed(0)
+            };
+        }
+
+        async function startScan() {
+            const btn = document.querySelector('button');
+            const status = document.getElementById('status');
+            const tbody = document.querySelector('#results tbody');
+            tbody.innerHTML = '';
+            
+            btn.disabled = true;
+            status.textContent = 'Tarama devam ediyor... (Yahoo Finance rate limit olabilir)';
+
+            for (const symbol of bistSymbols) {
+                status.textContent = `İşleniyor: ${symbol}`;
+                const data = await fetchHistoricalData(symbol);
+                if (!data) continue;
+
+                const ind = calculateIndicators(data);
+
+                if (ind.macdCrossUp && 
+                    parseFloat(ind.rsi) > 50 && 
+                    ind.volumeCondition && 
+                    ind.ma20 !== 'N/A') {  // MA'lar hesaplandıysa
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${symbol.replace('.IS','')}</strong></td>
+                        <td>${ind.currentPrice}</td>
+                        <td class="${parseFloat(ind.rsi)>50 ? 'positive' : ''}">${ind.rsi}</td>
+                        <td class="positive">↑ Yukarı Kesme</td>
+                        <td>${ind.ma20}</td>
+                        <td>${ind.ma50}</td>
+                        <td>${ind.ma200}</td>
+                        <td>${ind.lastVol}</td>
+                        <td>${ind.avgVol3}</td>
+                    `;
+                    tbody.appendChild(row);
+                }
+            }
+
+            status.textContent = 'Tarama tamamlandı!';
+            btn.disabled = false;
+        }
+    </script>
+</body>
+</html>
