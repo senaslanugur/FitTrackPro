@@ -3,178 +3,312 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BIST Teknik Tarayıcı - MVP</title>
-    <script src="https://cdn.jsdelivr.net/npm/technicalindicators@3.1.0/dist/browser.js"></script>
+    <title>BIST Teknik Hisse Tarayıcı</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; }
-        h1 { color: #1e3a8a; }
-        button { padding: 12px 20px; font-size: 16px; background: #1e40af; color: white; border: none; border-radius: 6px; cursor: pointer; }
-        button:disabled { background: #6b7280; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
-        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
-        th { background: #1e40af; color: white; }
-        .positive { color: green; font-weight: bold; }
-        .loading { color: orange; }
+        .loading { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
     </style>
 </head>
-<body>
-    <h1>BIST Teknik Tarayıcı (MACD + RSI + MA + Hacim)</h1>
-    <p>Bu araç, Borsa İstanbul hisselerini tarar ve belirtilen koşullara uyanları listeler.</p>
-    
-    <button onclick="startScan()">Tarama Yap (Yaklaşık 100 Hisse)</button>
-    <p id="status" class="loading"></p>
-    
-    <table id="results">
-        <thead>
-            <tr>
-                <th>Hisse</th>
-                <th>Fiyat</th>
-                <th>RSI</th>
-                <th>MACD Durumu</th>
-                <th>MA20</th>
-                <th>MA50</th>
-                <th>MA200</th>
-                <th>Hacim</th>
-                <th>3Gün Ort. Hacim</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+<body class="bg-gray-900 text-gray-100 min-h-screen p-6">
+
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold text-blue-400 mb-2">🇹🇷 BIST Teknik Hisse Tarayıcı</h1>
+        <p class="text-gray-400 mb-6 text-sm">
+            Koşullar: MACD &lt; 0 iken yukarı kesmesi, RSI &gt; 50, Fiyat &gt; MA20/50/200, Hacim &gt; Son 3 Gün Ortalaması.
+            <br><span class="text-yellow-500">⚠️ Not: Tarayıcı kısıtlamaları nedeniyle tüm BIST'i değil, aşağıdaki listedeki hisseleri tarar. Listeyi virgülle ayırarak düzenleyebilirsiniz.</span>
+        </p>
+
+        <div class="bg-gray-800 p-4 rounded-lg shadow-lg mb-6">
+            <label class="block text-sm font-medium text-gray-300 mb-2">Taranacak Hisseler (Virgülle ayırın, .IS uzantısına gerek yok):</label>
+            <textarea id="symbolInput" class="w-full bg-gray-700 text-white p-3 rounded border border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none" rows="3">THYAO, GARAN, ASELS, EREGL, TUPRS, SASA, KCHOL, HEKTS, DOHOL, FROTO, TOASO, TCELL, BIMAS, MGROS</textarea>
+            
+            <div class="mt-4 flex items-center justify-between">
+                <button onclick="startScan()" id="scanBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded transition duration-200 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    Taramayı Başlat
+                </button>
+                <span id="statusText" class="text-sm text-gray-400">Hazır</span>
+            </div>
+            <div id="progressBar" class="w-full bg-gray-700 rounded-full h-2.5 mt-3 hidden">
+                <div id="progressFill" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto bg-gray-800 rounded-lg shadow-lg">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-700 text-gray-300 text-sm uppercase tracking-wider">
+                        <th class="p-4 border-b border-gray-600">Hisse</th>
+                        <th class="p-4 border-b border-gray-600 text-right">Fiyat</th>
+                        <th class="p-4 border-b border-gray-600 text-right">RSI (14)</th>
+                        <th class="p-4 border-b border-gray-600 text-center">MACD Durumu</th>
+                        <th class="p-4 border-b border-gray-600 text-center">MA (20/50/200)</th>
+                        <th class="p-4 border-b border-gray-600 text-center">Hacim</th>
+                        <th class="p-4 border-b border-gray-600 text-center">Sonuç</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsBody" class="text-sm">
+                    <tr>
+                        <td colspan="7" class="p-8 text-center text-gray-500">Tarama başlatılmadı.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
     <script>
-        // Örnek BIST hisseleri (daha fazlasını ekleyebilirsin)
-        const bistSymbols = [
-            "THYAO.IS", "GARAN.IS", "AKBNK.IS", "BIMAS.IS", "EREGL.IS", "FROTO.IS",
-            "KCHOL.IS", "KOZAL.IS", "PETKM.IS", "SISE.IS", "TUPRS.IS", "VAKBN.IS",
-            "ASELS.IS", "TCELL.IS", "ISCTR.IS", "HALKB.IS", "SAHOL.IS", "EKGYO.IS",
-            "GUBRF.IS", "HEKTS.IS", "TKFEN.IS", "ODAS.IS", "SASA.IS", "YKBNK.IS"
-            // İstediğin kadar ekle (toplam 100-150 ideal)
-        ];
-
-        async function fetchHistoricalData(symbol) {
-            try {
-                const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1y`;
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                const quotes = data.chart.result[0];
-                const timestamps = quotes.timestamp;
-                const o = quotes.indicators.quote[0].open;
-                const h = quotes.indicators.quote[0].high;
-                const l = quotes.indicators.quote[0].low;
-                const c = quotes.indicators.quote[0].close;
-                const v = quotes.indicators.quote[0].volume;
-
-                const closes = c.filter(x => x != null);
-                const volumes = v.filter(x => x != null);
-
-                if (closes.length < 200) return null;
-
-                return {
-                    symbol,
-                    currentPrice: closes[closes.length-1],
-                    closes: closes,
-                    volumes: volumes
-                };
-            } catch (e) {
-                console.error(`Hata: ${symbol}`, e);
-                return null;
-            }
-        }
-
-        function calculateIndicators(data) {
-            const { closes, volumes, currentPrice } = data;
-            
-            // RSI (14)
-            const rsiInput = { values: closes, period: 14 };
-            const rsi = technicalindicators.RSI.calculate(rsiInput);
-            const lastRSI = rsi[rsi.length-1];
-
-            // MA'lar (Simple Moving Average)
-            const ma20 = technicalindicators.SMA.calculate({period: 20, values: closes});
-            const ma50 = technicalindicators.SMA.calculate({period: 50, values: closes});
-            const ma200 = technicalindicators.SMA.calculate({period: 200, values: closes});
-
-            // MACD
-            const macdInput = {
-                values: closes,
-                fastPeriod: 12,
-                slowPeriod: 26,
-                signalPeriod: 9,
-                SimpleMAOscillator: false,
-                SimpleMASignal: false
-            };
-            const macdResult = technicalindicators.MACD.calculate(macdInput);
-            const lastMACD = macdResult[macdResult.length-1];
-            const prevMACD = macdResult[macdResult.length-2];
-
-            // MACD yukarı kesme (bullish crossover)
-            const macdCrossUp = prevMACD && lastMACD && 
-                (prevMACD.MACD < prevMACD.signal) && 
-                (lastMACD.MACD > lastMACD.signal) &&
-                lastMACD.MACD < 0;  // sıfırın altında yukarı kesme
-
-            // Hacim
-            const avgVol3 = volumes.slice(-4, -1).reduce((a,b)=>a+b,0) / 3;
-            const lastVol = volumes[volumes.length-1];
-            const volumeCondition = lastVol > avgVol3 * 1.1; // %10 tolerans
-
-            const priceAboveMA = currentPrice > ma20[ma20.length-1] &&
-                                 currentPrice > ma50[ma50.length-1] &&
-                                 currentPrice > ma200[ma200.length-1];
-
-            return {
-                rsi: lastRSI ? lastRSI.toFixed(2) : 'N/A',
-                macdCrossUp,
-                ma20: ma20[ma20.length-1] ? ma20[ma20.length-1].toFixed(2) : 'N/A',
-                ma50: ma50[ma50.length-1] ? ma50[ma50.length-1].toFixed(2) : 'N/A',
-                ma200: ma200[ma200.length-1] ? ma200[ma200.length-1].toFixed(2) : 'N/A',
-                volumeCondition,
-                currentPrice: currentPrice.toFixed(2),
-                avgVol3: avgVol3.toFixed(0),
-                lastVol: lastVol.toFixed(0)
-            };
-        }
+        // CORS Proxy (Yahoo Finance verilerini tarayıcıda çekebilmek için)
+        const PROXY_URL = 'https://api.allorigins.win/get?url=';
+        const YAHOO_CHART_URL = 'https://query1.finance.yahoo.com/v8/finance/chart/';
 
         async function startScan() {
-            const btn = document.querySelector('button');
-            const status = document.getElementById('status');
-            const tbody = document.querySelector('#results tbody');
-            tbody.innerHTML = '';
-            
-            btn.disabled = true;
-            status.textContent = 'Tarama devam ediyor... (Yahoo Finance rate limit olabilir)';
+            const input = document.getElementById('symbolInput').value;
+            const symbols = input.split(',').map(s => s.trim().toUpperCase() + '.IS').filter(s => s.length > 3);
+            const resultsBody = document.getElementById('resultsBody');
+            const statusText = document.getElementById('statusText');
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            const scanBtn = document.getElementById('scanBtn');
 
-            for (const symbol of bistSymbols) {
-                status.textContent = `İşleniyor: ${symbol}`;
-                const data = await fetchHistoricalData(symbol);
-                if (!data) continue;
+            if (symbols.length === 0) {
+                alert('Lütfen en az bir hisse senedi girin.');
+                return;
+            }
 
-                const ind = calculateIndicators(data);
+            resultsBody.innerHTML = '';
+            progressBar.classList.remove('hidden');
+            scanBtn.disabled = true;
+            scanBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
-                if (ind.macdCrossUp && 
-                    parseFloat(ind.rsi) > 50 && 
-                    ind.volumeCondition && 
-                    ind.ma20 !== 'N/A') {  // MA'lar hesaplandıysa
+            let matchCount = 0;
 
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><strong>${symbol.replace('.IS','')}</strong></td>
-                        <td>${ind.currentPrice}</td>
-                        <td class="${parseFloat(ind.rsi)>50 ? 'positive' : ''}">${ind.rsi}</td>
-                        <td class="positive">↑ Yukarı Kesme</td>
-                        <td>${ind.ma20}</td>
-                        <td>${ind.ma50}</td>
-                        <td>${ind.ma200}</td>
-                        <td>${ind.lastVol}</td>
-                        <td>${ind.avgVol3}</td>
-                    `;
-                    tbody.appendChild(row);
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                statusText.innerText = `Taranıyor: ${symbol.replace('.IS', '')} (${i + 1}/${symbols.length})`;
+                progressFill.style.width = `${((i + 1) / symbols.length) * 100}%`;
+
+                try {
+                    const data = await fetchStockData(symbol);
+                    if (data && data.chart && data.chart.result && data.chart.result[0]) {
+                        const result = analyzeStock(symbol, data.chart.result[0]);
+                        if (result.isMatch) {
+                            matchCount++;
+                            addResultRow(result, true);
+                        } else {
+                            // İsterseniz eşleşmeyenleri de ekleyebilirsiniz, şu an sadece eşleşenleri veya tümünü gri renkte ekleyelim
+                            addResultRow(result, false);
+                        }
+                    } else {
+                        addErrorRow(symbol, 'Veri alınamadı');
+                    }
+                } catch (error) {
+                    addErrorRow(symbol, 'Hata: ' + error.message);
+                }
+                
+                // API limitine takılmamak için kısa bir bekleme
+                await new Promise(r => setTimeout(r, 300));
+            }
+
+            statusText.innerText = `Tarama tamamlandı! ${matchCount} adet koşul sağlayan hisse bulundu.`;
+            scanBtn.disabled = false;
+            scanBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            progressBar.classList.add('hidden');
+        }
+
+        async function fetchStockData(symbol) {
+            // 1 yıllık günlük veri çekiyoruz (MA200 için gerekli)
+            const targetUrl = encodeURIComponent(`${YAHOO_CHART_URL}${symbol}?interval=1d&range=1y`);
+            const response = await fetch(PROXY_URL + targetUrl);
+            const data = await response.json();
+            return JSON.parse(data.contents);
+        }
+
+        function analyzeStock(symbol, chartData) {
+            const timestamps = chartData.timestamp;
+            const quotes = chartData.indicators.quote[0];
+            const closes = quotes.close;
+            const volumes = quotes.volume;
+
+            // Null değerleri temizle
+            const validData = [];
+            for (let i = 0; i < closes.length; i++) {
+                if (closes[i] !== null && volumes[i] !== null) {
+                    validData.push({ close: closes[i], volume: volumes[i] });
                 }
             }
 
-            status.textContent = 'Tarama tamamlandı!';
-            btn.disabled = false;
+            if (validData.length < 200) {
+                return { symbol: symbol.replace('.IS', ''), isMatch: false, error: 'Yetersiz veri (< 200 gün)' };
+            }
+
+            const currentPrice = validData[validData.length - 1].close;
+            const currentVolume = validData[validData.length - 1].volume;
+
+            // 1. Hareketli Ortalamalar
+            const ma20 = calculateSMA(validData, 20);
+            const ma50 = calculateSMA(validData, 50);
+            const ma200 = calculateSMA(validData, 200);
+
+            const maCondition = currentPrice > ma20 && currentPrice > ma50 && currentPrice > ma200;
+
+            // 2. RSI (14)
+            const rsi = calculateRSI(validData, 14);
+            const rsiCondition = rsi > 50;
+
+            // 3. MACD
+            const macdData = calculateMACD(validData);
+            // MACD < 0 VE MACD çizgisi Signal çizgisini yukarı kesmiş olmalı (veya üzerinde olmalı)
+            const macdCondition = macdData.currentMacd < 0 && macdData.currentMacd > macdData.currentSignal && macdData.prevMacd <= macdData.prevSignal;
+
+            // 4. Hacim (Son 3 gün ortalamasının üzerinde)
+            const avgVol3 = (validData[validData.length-2].volume + validData[validData.length-3].volume + validData[validData.length-4].volume) / 3;
+            const volumeCondition = currentVolume > avgVol3;
+
+            const isMatch = maCondition && rsiCondition && macdCondition && volumeCondition;
+
+            return {
+                symbol: symbol.replace('.IS', ''),
+                price: currentPrice.toFixed(2),
+                rsi: rsi.toFixed(2),
+                macd: macdData.currentMacd.toFixed(4),
+                signal: macdData.currentSignal.toFixed(4),
+                ma20: ma20.toFixed(2),
+                ma50: ma50.toFixed(2),
+                ma200: ma200.toFixed(2),
+                volume: currentVolume.toLocaleString('tr-TR'),
+                avgVol3: avgVol3.toLocaleString('tr-TR'),
+                isMatch: isMatch,
+                maCondition: maCondition,
+                macdCondition: macdCondition,
+                volumeCondition: volumeCondition
+            };
+        }
+
+        function calculateSMA(data, period) {
+            let sum = 0;
+            for (let i = data.length - period; i < data.length; i++) {
+                sum += data[i].close;
+            }
+            return sum / period;
+        }
+
+        function calculateRSI(data, period) {
+            let gains = 0;
+            let losses = 0;
+
+            // İlk ortalama için
+            for (let i = data.length - period; i < data.length; i++) {
+                const change = data[i].close - data[i - 1].close;
+                if (change > 0) gains += change;
+                else losses += Math.abs(change);
+            }
+
+            let avgGain = gains / period;
+            let avgLoss = losses / period;
+
+            // Daha hassas RSI için son birkaç günü daha dikkate alabiliriz ama basit SMA tabanlı RSI yeterli
+            const rs = avgGain / avgLoss;
+            return 100 - (100 / (1 + rs));
+        }
+
+        function calculateMACD(data) {
+            // EMA hesaplaması için
+            const ema12 = calculateEMA(data, 12);
+            const ema26 = calculateEMA(data, 26);
+            
+            const macdLine = ema12.map((val, i) => val - ema26[i]);
+            const signalLine = calculateEMAFromArr(macdLine, 9);
+
+            const currentMacd = macdLine[macdLine.length - 1];
+            const currentSignal = signalLine[signalLine.length - 1];
+            const prevMacd = macdLine[macdLine.length - 2];
+            const prevSignal = signalLine[signalLine.length - 2];
+
+            return { currentMacd, currentSignal, prevMacd, prevSignal };
+        }
+
+        function calculateEMA(data, period) {
+            const k = 2 / (period + 1);
+            const emaArray = [];
+            let ema = data[0].close; // Başlangıç için SMA kullanmak daha doğru ama basitlik için ilk fiyat
+            
+            // Daha doğru başlangıç için ilk 'period' kadar SMA
+            let sum = 0;
+            for(let i=0; i<period; i++) sum += data[i].close;
+            ema = sum / period;
+            emaArray.push(ema);
+
+            for (let i = period; i < data.length; i++) {
+                ema = (data[i].close * k) + (ema * (1 - k));
+                emaArray.push(ema);
+            }
+            return emaArray;
+        }
+
+        function calculateEMAFromArr(arr, period) {
+            const k = 2 / (period + 1);
+            const emaArray = [];
+            let sum = 0;
+            for(let i=0; i<period; i++) sum += arr[i];
+            let ema = sum / period;
+            emaArray.push(ema);
+
+            for (let i = period; i < arr.length; i++) {
+                ema = (arr[i] * k) + (ema * (1 - k));
+                emaArray.push(ema);
+            }
+            return emaArray;
+        }
+
+        function addResultRow(result, isMatch) {
+            const tbody = document.getElementById('resultsBody');
+            const row = document.createElement('tr');
+            
+            const bgClass = isMatch ? 'bg-green-900/40 hover:bg-green-900/60' : 'bg-gray-800 hover:bg-gray-700 opacity-60';
+            const borderClass = isMatch ? 'border-l-4 border-green-500' : 'border-l-4 border-gray-600';
+            
+            const macdStatus = result.macdCondition ? '<span class="text-green-400 font-bold">✓ Kesti</span>' : '<span class="text-red-400">✗</span>';
+            const maStatus = result.maCondition ? '<span class="text-green-400 font-bold">✓ Üstünde</span>' : '<span class="text-red-400">✗</span>';
+            const volStatus = result.volumeCondition ? '<span class="text-green-400 font-bold">✓ Yüksek</span>' : '<span class="text-red-400">✗</span>';
+
+            row.className = `${bgClass} ${borderClass} transition duration-150`;
+            row.innerHTML = `
+                <td class="p-4 font-bold text-white">${result.symbol}</td>
+                <td class="p-4 text-right font-mono">${result.price} ₺</td>
+                <td class="p-4 text-right font-mono ${parseFloat(result.rsi) > 50 ? 'text-green-400' : 'text-red-400'}">${result.rsi}</td>
+                <td class="p-4 text-center text-xs">
+                    MACD: ${result.macd} <br>
+                    Sig: ${result.signal} <br>
+                    ${macdStatus}
+                </td>
+                <td class="p-4 text-center text-xs">
+                    MA20: ${result.ma20} <br>
+                    MA50: ${result.ma50} <br>
+                    MA200: ${result.ma200} <br>
+                    ${maStatus}
+                </td>
+                <td class="p-4 text-center text-xs">
+                    Güncel: ${result.volume} <br>
+                    Ort(3): ${result.avgVol3} <br>
+                    ${volStatus}
+                </td>
+                <td class="p-4 text-center">
+                    ${isMatch ? '<span class="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg shadow-green-500/50">ALAN</span>' : '<span class="text-gray-500 text-xs">Sağlamıyor</span>'}
+                </td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        function addErrorRow(symbol, error) {
+            const tbody = document.getElementById('resultsBody');
+            const row = document.createElement('tr');
+            row.className = 'bg-red-900/20 border-l-4 border-red-500';
+            row.innerHTML = `
+                <td class="p-4 font-bold text-red-400">${symbol.replace('.IS', '')}</td>
+                <td colspan="6" class="p-4 text-red-300 text-sm">${error}</td>
+            `;
+            tbody.appendChild(row);
         }
     </script>
 </body>
