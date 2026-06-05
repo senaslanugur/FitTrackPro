@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚀 Pro Tarayıcı: Tüm BIST & Kripto</title>
+    <title>🚀 Pro Tarayıcı: BIST 100 & Kripto</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -18,7 +18,11 @@
         .fail { color: #dc2626; font-weight: 600; }
         .neutral { color: #6b7280; }
         .signal-row { background-color: #f0fdf4 !important; border-left: 4px solid #16a34a; }
+        .error-row { background-color: #fef2f2 !important; border-left: 4px solid #dc2626; }
         .progress-bar { transition: width 0.3s ease-in-out; }
+        .sortable { cursor: pointer; user-select: none; }
+        .sortable:hover { background-color: #e5e7eb; }
+        .sort-arrow { font-size: 10px; margin-left: 4px; }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 p-4 md:p-8">
@@ -26,11 +30,11 @@
     <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-xl overflow-hidden">
         <header class="bg-blue-900 text-white p-6">
             <h1 class="text-3xl font-bold flex items-center gap-2">🚀 Pro Piyasa Tarayıcı</h1>
-            <p class="text-blue-200 mt-1">Tüm BIST Hisseleri ve En Yüksek Hacimli Kriptolar için Gelişmiş Teknik Analiz</p>
+            <p class="text-blue-200 mt-1">BIST 100 ve En Yüksek Hacimli Kriptolar için Gelişmiş Teknik Analiz</p>
         </header>
 
         <div class="flex border-b px-6">
-            <button id="tab-bist" onclick="switchTab('bist')" class="px-6 py-4 text-lg tab-active">🇹🇷 Tüm BIST Hisseleri</button>
+            <button id="tab-bist" onclick="switchTab('bist')" class="px-6 py-4 text-lg tab-active">🇹🇷 BIST 100</button>
             <button id="tab-crypto" onclick="switchTab('crypto')" class="px-6 py-4 text-lg tab-inactive">₿ Kripto Paralar (Top 150)</button>
         </div>
 
@@ -40,12 +44,28 @@
                     <button id="scanBtn" onclick="startScan()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow transition flex items-center gap-2">
                         <span>🔍 Taramayı Başlat</span>
                     </button>
-                    <label class="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
-                        <input type="checkbox" id="filterSignals" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
-                        Sadece AL Sinyali Olanları Göster
-                    </label>
                 </div>
                 <div id="statusText" class="text-sm text-gray-600 font-mono">Hazır. Tarama bekleniyor.</div>
+            </div>
+
+            <!-- Filtreler -->
+            <div class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p class="text-sm font-semibold text-yellow-900 mb-2">🔧 Filtreler:</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <label class="flex items-center gap-2 text-sm cursor-pointer">
+                        <input type="checkbox" id="filterSignals" class="w-4 h-4 text-blue-600 rounded">
+                        <span>🟢 Sadece AL Sinyali Olanlar</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-sm cursor-pointer">
+                        <input type="checkbox" id="filterErrors" class="w-4 h-4 text-red-600 rounded">
+                        <span>❌ Sadece Veri Alınamayanlar</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-sm cursor-pointer">
+                        <input type="checkbox" id="filterHighVolume" class="w-4 h-4 text-green-600 rounded">
+                        <span>📊 Hacim > 2x Ortalama</span>
+                    </label>
+                </div>
+                <p class="text-xs text-yellow-700 mt-2">⚠️ Not: Yahoo Finance API tarayıcıdan erişimi kısıtlıyor. BIST 100 hisseleri yavaş taranır (~3-5 dakika). Kripto verileri anlıktır.</p>
             </div>
 
             <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4 hidden" id="progressContainer">
@@ -53,15 +73,15 @@
             </div>
 
             <div class="overflow-x-auto border rounded-lg">
-                <table class="w-full text-sm text-left text-gray-600">
+                <table class="w-full text-sm text-left text-gray-600" id="resultsTable">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-100 border-b">
                         <tr>
-                            <th class="px-4 py-3">Sembol</th>
-                            <th class="px-4 py-3 text-right">Fiyat</th>
-                            <th class="px-4 py-3 text-right">RSI (14)</th>
+                            <th class="px-4 py-3 sortable" onclick="sortTable(0)">Sembol <span class="sort-arrow">⇅</span></th>
+                            <th class="px-4 py-3 text-right sortable" onclick="sortTable(1)">Fiyat <span class="sort-arrow">⇅</span></th>
+                            <th class="px-4 py-3 text-right sortable" onclick="sortTable(2)">RSI (14) <span class="sort-arrow">⇅</span></th>
                             <th class="px-4 py-3 text-center">MACD Durumu</th>
                             <th class="px-4 py-3 text-center">Trend (MA 20/50/200)</th>
-                            <th class="px-4 py-3 text-right">Hacim (vs 3G Ort)</th>
+                            <th class="px-4 py-3 text-right sortable" onclick="sortTable(5)">Hacim <span class="sort-arrow">⇅</span></th>
                             <th class="px-4 py-3 text-center">Sonuç</th>
                         </tr>
                     </thead>
@@ -74,12 +94,24 @@
     </div>
 
     <script>
-        const BIST_ALL_STOCKS = [
-            "A1CAP", "ACSEL", "ADEL", "ADESE", "AFHOL", "AGHOL", "AGROT", "AHGAZ", "AHSGY", "AKBNK", "AKCNS", "AKENR", "AKFGY", "AKFIS", "AKGRT", "AKMGY", "AKSA", "AKSGY", "AKSUE", "ALARK", "ALCAR", "ALCTL", "ALFAS", "ALGYO", "ALKIM", "ALKLC", "ALMFB", "ALTNY", "ANANT", "ANHYT", "ANSGR", "ARCLK", "ARDYZ", "ARSAN", "ARZUM", "ASGYO", "ASTOR", "ATAGY", "ATLAS", "AVHOL", "AVOD", "AYCES", "AYDEM", "AYEN", "AYGAZ", "AZTEK", "B2AGM", "BAGFS", "BAHKM", "BAKAB", "BANVT", "BARMA", "BASCM", "BASGZ", "BAYRK", "BCRAL", "BEGYO", "BESAS", "BEYAZ", "BIESA", "BIMAS", "BINHO", "BIOEN", "BJKAS", "BMSTL", "BNTAS", "BRLSM", "BRKSN", "BRKVY", "BRMEN", "BRYTZ", "BSOKE", "BTCIM", "BTCHA", "BUZCE", "BVSAN", "CALKA", "CAMIS", "CATES", "CCLSM", "CEMTS", "CEOEM", "CMBTN", "CMENT", "COSMO", "CRDFA", "CRFSA", "CUSAN", "CWARG", "DAGI", "DAPGM", "DCTTR", "DEFAC", "DERHL", "DERIM", "DESA", "DESPC", "DEVA", "DFHOL", "DGNMO", "DHRND", "DILEK", "DLCCK", "DLKHY", "DMSAS", "DOAS", "DOBUR", "DOFER", "DOHOL", "DOKTA", "DURAL", "DURKN", "DYOBY", "EBEBK", "ECZYT", "EDATA", "EDIP", "EFESC", "EGEEN", "EGGUB", "EGPRO", "EGSER", "EGYAP", "EKGYO", "EKOS", "EKSUN", "ELITE", "EMKEL", "ENJSA", "ENSRI", "EPLAS", "EREGL", "EREN", "ESCAR", "ESCOM", "ESTUR", "EUPWR", "EUREN", "EYGYO", "FENER", "FIBAB", "FINES", "FLYGN", "FMYCL", "FONET", "FROTO", "GARAN", "GAREL", "GEDIK", "GENIL", "GERSA", "GLCVY", "GLRYH", "GOKNR", "GOLTS", "GOZDE", "GSDHO", "GSRAY", "GUNDG", "GZNMI", "HACMT", "HATSN", "HATEK", "HAZAR", "HEKTS", "HKTM", "HLBGY", "HLMET", "HRKET", "HUBVC", "HUNER", "HURRI", "ICBCT", "ICUGS", "IDCTS", "IHAAS", "IHLGM", "IHGZT", "IHYAY", "IMASM", "INDES", "INFO", "INGCH", "INTEM", "INVES", "IPEKE", "ISBTR", "ISCTR", "ISDMR", "ISFAS", "ISFIN", "ISGYO", "ISGSY", "ISKPL", "ISMEN", "ISNTR", "ISSEN", "ISYAT", "ISYEN", "IZFAS", "IZMDC", "JANTS", "KAREL", "KARSN", "KARTN", "KATMR", "KAYSE", "KCAER", "KCHOL", "KENT", "KERVN", "KLGYO", "KLMSN", "KLSER", "KMPST", "KOCMT", "KONTR", "KOPOL", "KORDS", "KORSA", "KOZAA", "KOZAL", "KRDMA", "KRDMB", "KRDMD", "KRONT", "KRTEK", "KSGYV", "KTLEV", "KTSKR", "KUYAS", "KZBGY", "LIDER", "LIDFA", "LKMNH", "LMKDC", "LOGO", "LTFHE", "MAGEN", "MAKIM", "MAKTK", "MAKVA", "MARKA", "MAVI", "MCATE", "MEDTR", "MEGAS", "MEKAG", "MELKI", "MERIT", "MERKO", "METUR", "MGROS", "MIATK", "MKSEN", "MLGYZ", "MNDRS", "MNDTR", "MOGAN", "MOGLY", "MPARK", "MRGYO", "MRSHL", "MSGSY", "MTRKS", "MURZY", "MUZ", "MZLUB", "NTHOL", "NUGYO", "OBASE", "OBAMS", "ODEAB", "ODINE", "ONCSM", "ONRGY", "ONTAM", "ORCAY", "ORGE", "ORKIM", "ORMA", "OSMEN", "OYAKC", "OYYAT", "OZATD", "OZBAL", "OZKGY", "PAMEL", "PARSN", "PASGY", "PASEU", "PATEK", "PCILT", "PDG", "PEGYO", "PENGD", "PERAS", "PERIT", "PETKM", "PETUN", "PGSUS", "PHNMY", "PKART", "PKENT", "PLTUR", "PNLSN", "PRDGS", "PRKME", "PRZMA", "PSGYO", "QNBFB", "RALYH", "RAYSG", "REEDR", "RGKAS", "RGYAS", "RNBOW", "RYSGU", "SAHOL", "SAMAT", "SANFM", "SANKO", "SARAY", "SARKY", "SARTL", "SASA", "SBTLY", "SCIL", "SEGMN", "SELEC", "SELVA", "SERNT", "SILVR", "SINPA", "SISAY", "SKYLP", "SKYMD", "SMRTG", "SNGYO", "SNICA", "SNKRN", "SOKE", "SOKM", "SONME", "SRVGY", "SUMAS", "SURGY", "TARKO", "TATEN", "TAVHL", "TCELL", "TEKTU", "TERA", "TETMT", "TFNVK", "THYAO", "TKFEN", "TKNSA", "TLMAN", "TMPOL", "TNZTP", "TOASO", "TSGYO", "TSPOR", "TUREX", "TURGG", "TUPRS", "TV18", "TYANA", "ULKER", "ULUSE", "UMPAS", "USAK", "VAKBN", "VAKFN", "VAKKO", "VBTY", "VDFLO", "VEGZY", "VERUS", "VESBE", "VESTL", "VKGYO", "VRGYO", "YAYLA", "YAZIC", "YAZLA", "YGYO", "YKBNK", "YKSLN", "YONGA", "YYAPI", "ZEDUR", "ZRGYO", "ZOREN"
+        // ==========================================
+        // BIST 100 HİSSELERİ (En Likit 100 Hisse)
+        // ==========================================
+        const BIST_100_STOCKS = [
+            "THYAO", "GARAN", "ASELS", "EREGL", "TUPRS", "SASA", "KCHOL", "HEKTS", "DOHOL", "FROTO", 
+            "TOASO", "TCELL", "BIMAS", "MGROS", "AKBNK", "ISCTR", "YKBNK", "VAKBN", "HALKB", "PGSUS",
+            "SAHOL", "KOZAL", "KOZAA", "SISE", "TAVHL", "ARCLK", "VESTL", "PETKM", "EKGYO", "ALARK",
+            "ENKAI", "ULKER", "KRDMD", "OYAKC", "FENER", "GSRAY", "BJKAS", "TRGYO", "ISGYO", "VKGYO",
+            "AKSA", "SOKM", "BRYTZ", "TMSN", "KLSER", "DOAS", "OTKAR", "KARTN", "KARSN", "BRISA",
+            "KLKIM", "MARTI", "GUBRF", "NETAS", "LOGO", "PATEK", "TURSG", "ANSGR", "ADANA", "BOLKM",
+            "AYGAZ", "GOZDE", "ESEN", "ICBCT", "IZFAS", "KONYA", "MHRGY", "NTHOL", "OZKGY", "SAMAT",
+            "SELEC", "SRVGY", "TARKO", "TKFEN", "TSKB", "TUREX", "YGYO", "ZOREN", "AKSEN", "AYEN",
+            "BURVA", "CIMSA", "DAGI", "EGEEN", "ENJSA", "GESAN", "GLYHO", "HATSN", "INVEO", "JANTS",
+            "KATMR", "KZBGY", "LIDER", "MAKIM", "OBASE", "PARSN", "PEGYO", "REEDR", "SARKY", "SKYLP"
         ];
 
         // ==========================================
-        // TEKNİK ANALİZ MOTORU (Değişmedi)
+        // TEKNİK ANALİZ MOTORU
         // ==========================================
         
         function calculateSMA(data, period) {
@@ -155,76 +187,53 @@
         }
 
         // ==========================================
-        // 🆕 YENİ BIST VERİ ÇEKME MOTORU (Stooq API)
+        // 🆕 YAHOO FİNANCE VERİ ÇEKME (RETRY + PROXY ROTASYONU)
         // ==========================================
         
-        // Stooq CSV çıktısını parse eder
-        function parseStooqCSV(csv) {
-            const lines = csv.trim().split('\n');
-            if (lines.length < 30) throw new Error("Yetersiz geçmiş veri");
-            
-            const closes = [];
-            const volumes = [];
-            
-            // Başlık satırını atla (Date,Open,High,Low,Close,Volume)
-            for (let i = 1; i < lines.length; i++) {
-                const parts = lines[i].split(',');
-                if (parts.length >= 6) {
-                    const close = parseFloat(parts[4]);
-                    const volume = parseFloat(parts[5]) || 0;
-                    if (!isNaN(close) && close > 0) {
-                        closes.push(close);
-                        volumes.push(volume);
-                    }
-                }
-            }
-            
-            if (closes.length < 30) throw new Error("Veri parse edilemedi");
-            return { closes, volumes };
-        }
-
         async function fetchBISTData(ticker) {
-            // 1. ÖNCELİK: Stooq API (CORS engeli YOK, çok hızlı)
-            try {
-                const stooqUrl = `https://stooq.com/q/d/l/?s=${ticker.toLowerCase()}.is&i=d`;
-                const res = await fetch(stooqUrl);
-                if (res.ok) {
-                    const csv = await res.text();
-                    if (csv && !csv.includes('No data') && csv.includes(',')) {
-                        return parseStooqCSV(csv);
-                    }
-                }
-            } catch (e) {
-                console.warn(`Stooq ${ticker} için başarısız:`, e);
-            }
-            
-            // 2. YEDEK: Yahoo Finance (Birden fazla proxy ile)
             const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}.IS?interval=1d&range=1y`;
+            
+            // 3 farklı proxy'yi sırayla dene
             const proxies = [
+                `https://corsproxy.io/?${encodeURIComponent(yahooUrl)}`,
                 `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`,
-                `https://thingproxy.freeboard.io/fetch/${yahooUrl}`,
-                `https://corsproxy.io/?${encodeURIComponent(yahooUrl)}`
+                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(yahooUrl)}`
             ];
             
+            // Her proxy için 3 kez dene (retry mekanizması)
             for (const proxyUrl of proxies) {
-                try {
-                    const res = await fetch(proxyUrl);
-                    if (res.ok) {
+                for (let attempt = 0; attempt < 3; attempt++) {
+                    try {
+                        const res = await fetch(proxyUrl, {
+                            headers: {
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                            }
+                        });
+                        
+                        if (!res.ok) continue;
+                        
                         const data = await res.json();
-                        if (data.chart?.result?.[0]) {
+                        
+                        // JSON parse başarılı mı kontrol et
+                        if (data && data.chart && data.chart.result && data.chart.result[0]) {
                             const quotes = data.chart.result[0].indicators.quote[0];
-                            return {
-                                closes: quotes.close.filter(v => v !== null),
-                                volumes: quotes.volume.filter(v => v !== null)
-                            };
+                            const closes = quotes.close.filter(v => v !== null);
+                            const volumes = quotes.volume.filter(v => v !== null);
+                            
+                            if (closes.length >= 30) {
+                                return { closes, volumes };
+                            }
                         }
+                    } catch (e) {
+                        console.warn(`Proxy denemesi başarısız (${attempt + 1}/3):`, e);
                     }
-                } catch (e) {
-                    console.warn(`Yahoo proxy başarısız:`, e);
+                    
+                    // Retry arası bekleme
+                    await new Promise(r => setTimeout(r, 500));
                 }
             }
             
-            throw new Error("Tüm veri kaynakları başarısız");
+            throw new Error("Tüm proxy'ler başarısız");
         }
 
         async function fetchCryptoData(symbol) {
@@ -247,6 +256,82 @@
         }
 
         // ==========================================
+        // TABLO SIRALAMA (SORT)
+        // ==========================================
+        
+        let sortState = { column: -1, ascending: true };
+        let allResults = []; // Tüm veriyi sakla
+
+        function sortTable(columnIndex) {
+            const tbody = document.getElementById('resultsBody');
+            
+            // Sıralama yönünü değiştir
+            if (sortState.column === columnIndex) {
+                sortState.ascending = !sortState.ascending;
+            } else {
+                sortState.column = columnIndex;
+                sortState.ascending = true;
+            }
+            
+            // Veriyi sırala
+            const sortedData = [...allResults].sort((a, b) => {
+                let valA = a.sortValues[columnIndex];
+                let valB = b.sortValues[columnIndex];
+                
+                // Null/undefined değerleri sona at
+                if (valA === null || valA === undefined) return 1;
+                if (valB === null || valB === undefined) return -1;
+                
+                // Sayısal karşılaştırma
+                if (typeof valA === 'number' && typeof valB === 'number') {
+                    return sortState.ascending ? valA - valB : valB - valA;
+                }
+                
+                // String karşılaştırma
+                return sortState.ascending ? 
+                    String(valA).localeCompare(String(valB)) : 
+                    String(valB).localeCompare(String(valA));
+            });
+            
+            // Tabloyu yeniden çiz
+            renderTable(sortedData);
+            
+            // Okları güncelle
+            document.querySelectorAll('.sort-arrow').forEach((arrow, idx) => {
+                if (idx === columnIndex) {
+                    arrow.textContent = sortState.ascending ? '↑' : '↓';
+                } else {
+                    arrow.textContent = '⇅';
+                }
+            });
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('resultsBody');
+            tbody.innerHTML = '';
+            
+            const filterSignals = document.getElementById('filterSignals').checked;
+            const filterErrors = document.getElementById('filterErrors').checked;
+            const filterHighVolume = document.getElementById('filterHighVolume').checked;
+            
+            data.forEach(r => {
+                // Filtreleme
+                if (filterSignals && !r.isSignal) return;
+                if (filterErrors && !r.isError) return;
+                if (filterHighVolume && r.volumeRatio < 2) return;
+                
+                const tr = document.createElement('tr');
+                tr.className = `border-b hover:bg-gray-50 ${r.isSignal ? 'signal-row' : ''} ${r.isError ? 'error-row' : ''}`;
+                tr.innerHTML = r.html;
+                tbody.appendChild(tr);
+            });
+            
+            if (tbody.children.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-12 text-center text-gray-400 italic">Filtrelere uyan sonuç bulunamadı.</td></tr>';
+            }
+        }
+
+        // ==========================================
         // ANA TARAMA DÖNGÜSÜ
         // ==========================================
         
@@ -261,6 +346,7 @@
             document.getElementById('resultsBody').innerHTML = '<tr><td colspan="7" class="px-4 py-12 text-center text-gray-400 italic">Taramayı başlatmak için butona tıklayın.</td></tr>';
             document.getElementById('statusText').innerText = "Hazır.";
             document.getElementById('progressContainer').classList.add('hidden');
+            allResults = [];
         }
 
         async function startScan() {
@@ -269,23 +355,21 @@
             
             const btn = document.getElementById('scanBtn');
             const statusText = document.getElementById('statusText');
-            const tbody = document.getElementById('resultsBody');
             const progressContainer = document.getElementById('progressContainer');
             const progressBar = document.getElementById('progressBar');
-            const filterOnlySignals = document.getElementById('filterSignals').checked;
 
             btn.disabled = true;
             btn.innerHTML = `<span class="loading-spinner"></span> Taranıyor...`;
-            tbody.innerHTML = '';
             progressContainer.classList.remove('hidden');
             progressBar.style.width = '0%';
+            allResults = [];
 
             let symbolsToScan = [];
             let assetType = '';
 
             try {
                 if (currentTab === 'bist') {
-                    symbolsToScan = BIST_ALL_STOCKS;
+                    symbolsToScan = BIST_100_STOCKS;
                     assetType = 'BIST';
                 } else {
                     statusText.innerText = "Binance'den en yüksek hacimli kriptolar çekiliyor...";
@@ -303,85 +387,103 @@
             let successCount = 0;
             let failCount = 0;
 
-            const CHUNK_SIZE = 4; // BIST için biraz daha hızlı
-
-            for (let i = 0; i < total; i += CHUNK_SIZE) {
-                const chunk = symbolsToScan.slice(i, i + CHUNK_SIZE);
-                const promises = chunk.map(async (symbol) => {
-                    statusText.innerText = `${assetType} Taranıyor: ${symbol} (${processed + 1}/${total}) | ✅${successCount} ❌${failCount}`;
-                    let rowData = { symbol, assetType };
-                    
-                    try {
-                        let data;
-                        if (assetType === 'BIST') data = await fetchBISTData(symbol);
-                        else data = await fetchCryptoData(symbol);
-
-                        const closes = data.closes;
-                        const volumes = data.volumes;
-                        const currentPrice = closes[closes.length - 1];
-                        const currentVolume = volumes[volumes.length - 1];
-
-                        const rsi = calculateRSI(closes, 14);
-                        const rsiMet = rsi !== null && rsi > 50;
-
-                        const ma20 = calculateSMA(closes, 20);
-                        const ma50 = calculateSMA(closes, 50);
-                        const ma200 = calculateSMA(closes, 200);
-                        const maMet = ma20 && ma50 && ma200 && (currentPrice > ma20) && (currentPrice > ma50) && (currentPrice > ma200);
-
-                        const macdCheck = checkMACDBullishCrossBelowZero(closes);
-                        const macdMet = macdCheck.met;
-
-                        let volMet = false;
-                        let volText = "N/A";
-                        if (volumes.length >= 4) {
-                            const avgVol = (volumes[volumes.length - 2] + volumes[volumes.length - 3] + volumes[volumes.length - 4]) / 3;
-                            volMet = currentVolume > avgVol;
-                            const ratio = (currentVolume / avgVol).toFixed(2);
-                            volText = `${ratio}x`;
-                        }
-
-                        const allMet = rsiMet && maMet && macdMet && volMet;
-                        successCount++;
-
-                        rowData.html = `
-                            <td class="px-4 py-3 font-bold text-gray-900">${symbol} <span class="text-xs text-gray-400">(${assetType})</span></td>
-                            <td class="px-4 py-3 text-right font-mono">${currentPrice.toFixed(assetType === 'Kripto' ? 4 : 2)}</td>
-                            <td class="px-4 py-3 text-right font-mono ${rsiMet ? 'pass' : 'fail'}">${rsi ? rsi.toFixed(1) : 'N/A'}</td>
-                            <td class="px-4 py-3 text-center text-xs ${macdMet ? 'pass' : 'fail'}">${macdCheck.status}<br><span class="text-gray-400">(${macdCheck.val})</span></td>
-                            <td class="px-4 py-3 text-center text-xs">
-                                <span class="${currentPrice > ma20 ? 'pass' : 'fail'}">20</span> | 
-                                <span class="${currentPrice > ma50 ? 'pass' : 'fail'}">50</span> | 
-                                <span class="${currentPrice > ma200 ? 'pass' : 'fail'}">200</span>
-                            </td>
-                            <td class="px-4 py-3 text-right text-xs ${volMet ? 'pass' : 'fail'}">${volText}</td>
-                            <td class="px-4 py-3 text-center font-bold ${allMet ? 'pass bg-green-50' : 'neutral'}">${allMet ? "🟢 AL" : "⚪ YOK"}</td>
-                        `;
-                        rowData.isSignal = allMet;
-                        
-                    } catch (error) {
-                        failCount++;
-                        rowData.html = `<td class="px-4 py-3 font-bold">${symbol}</td><td colspan="6" class="px-4 py-3 text-red-400 text-xs italic">Veri alınamadı.</td>`;
-                        rowData.isSignal = false;
-                    }
-                    return rowData;
-                });
-
-                const chunkResults = await Promise.all(promises);
+            // TEK TEK TARA (Rate limit için)
+            for (let i = 0; i < total; i++) {
+                const symbol = symbolsToScan[i];
+                statusText.innerText = `${assetType} Taranıyor: ${symbol} (${i + 1}/${total}) | ✅${successCount} ❌${failCount}`;
                 
-                chunkResults.forEach(r => {
-                    if (filterOnlySignals && !r.isSignal) return;
-                    const tr = document.createElement('tr');
-                    tr.className = `border-b hover:bg-gray-50 ${r.isSignal ? 'signal-row' : ''}`;
-                    tr.innerHTML = r.html;
-                    tbody.appendChild(tr);
-                });
+                let rowData = { 
+                    symbol, 
+                    assetType,
+                    sortValues: [],
+                    isError: false,
+                    isSignal: false,
+                    volumeRatio: 0,
+                    html: ''
+                };
+                
+                try {
+                    let data;
+                    if (assetType === 'BIST') {
+                        data = await fetchBISTData(symbol);
+                    } else {
+                        data = await fetchCryptoData(symbol);
+                    }
 
-                processed += chunk.length;
+                    const closes = data.closes;
+                    const volumes = data.volumes;
+                    const currentPrice = closes[closes.length - 1];
+                    const currentVolume = volumes[volumes.length - 1];
+
+                    const rsi = calculateRSI(closes, 14);
+                    const rsiMet = rsi !== null && rsi > 50;
+
+                    const ma20 = calculateSMA(closes, 20);
+                    const ma50 = calculateSMA(closes, 50);
+                    const ma200 = calculateSMA(closes, 200);
+                    const maMet = ma20 && ma50 && ma200 && (currentPrice > ma20) && (currentPrice > ma50) && (currentPrice > ma200);
+
+                    const macdCheck = checkMACDBullishCrossBelowZero(closes);
+                    const macdMet = macdCheck.met;
+
+                    let volMet = false;
+                    let volText = "N/A";
+                    let volumeRatio = 0;
+                    if (volumes.length >= 4) {
+                        const avgVol = (volumes[volumes.length - 2] + volumes[volumes.length - 3] + volumes[volumes.length - 4]) / 3;
+                        volMet = currentVolume > avgVol;
+                        volumeRatio = currentVolume / avgVol;
+                        volText = `${volumeRatio.toFixed(2)}x`;
+                    }
+
+                    const allMet = rsiMet && maMet && macdMet && volMet;
+                    successCount++;
+
+                    rowData.isSignal = allMet;
+                    rowData.volumeRatio = volumeRatio;
+                    rowData.sortValues = [
+                        symbol,
+                        currentPrice,
+                        rsi,
+                        macdCheck.met ? 1 : 0,
+                        maMet ? 1 : 0,
+                        volumeRatio,
+                        allMet ? 1 : 0
+                    ];
+
+                    rowData.html = `
+                        <td class="px-4 py-3 font-bold text-gray-900">${symbol} <span class="text-xs text-gray-400">(${assetType})</span></td>
+                        <td class="px-4 py-3 text-right font-mono">${currentPrice.toFixed(assetType === 'Kripto' ? 4 : 2)}</td>
+                        <td class="px-4 py-3 text-right font-mono ${rsiMet ? 'pass' : 'fail'}">${rsi ? rsi.toFixed(1) : 'N/A'}</td>
+                        <td class="px-4 py-3 text-center text-xs ${macdMet ? 'pass' : 'fail'}">${macdCheck.status}<br><span class="text-gray-400">(${macdCheck.val})</span></td>
+                        <td class="px-4 py-3 text-center text-xs">
+                            <span class="${currentPrice > ma20 ? 'pass' : 'fail'}">20</span> | 
+                            <span class="${currentPrice > ma50 ? 'pass' : 'fail'}">50</span> | 
+                            <span class="${currentPrice > ma200 ? 'pass' : 'fail'}">200</span>
+                        </td>
+                        <td class="px-4 py-3 text-right text-xs ${volMet ? 'pass' : 'fail'}">${volText}</td>
+                        <td class="px-4 py-3 text-center font-bold ${allMet ? 'pass bg-green-50' : 'neutral'}">${allMet ? "🟢 AL" : "⚪ YOK"}</td>
+                    `;
+                    
+                } catch (error) {
+                    failCount++;
+                    rowData.isError = true;
+                    rowData.sortValues = [symbol, 0, 0, 0, 0, 0, 0];
+                    rowData.html = `<td class="px-4 py-3 font-bold">${symbol}</td><td colspan="6" class="px-4 py-3 text-red-400 text-xs italic">Veri alınamadı.</td>`;
+                }
+                
+                allResults.push(rowData);
+                processed++;
                 progressBar.style.width = `${(processed / total) * 100}%`;
                 
-                // Rate limit için kısa bekleme
-                await new Promise(r => setTimeout(r, 250));
+                // Tabloyu her 5 hissede bir güncelle (performans için)
+                if (processed % 5 === 0 || processed === total) {
+                    renderTable(allResults);
+                }
+                
+                // Rate limit için bekleme (BIST için daha uzun)
+                const delay = assetType === 'BIST' ? 1500 : 200;
+                await new Promise(r => setTimeout(r, delay));
             }
 
             statusText.innerText = `✅ Tarama tamamlandı. (${total} varlık | ${successCount} başarılı, ${failCount} başarısız)`;
@@ -395,9 +497,10 @@
             btn.innerHTML = `<span>🔍 Taramayı Başlat</span>`;
         }
 
-        document.getElementById('filterSignals').addEventListener('change', () => {
-             if(!isScanning) alert("Filtreyi uygulamak için lütfen taramayı tekrar başlatın.");
-        });
+        // Filtre değiştiğinde tabloyu yeniden çiz
+        document.getElementById('filterSignals').addEventListener('change', () => renderTable(allResults));
+        document.getElementById('filterErrors').addEventListener('change', () => renderTable(allResults));
+        document.getElementById('filterHighVolume').addEventListener('change', () => renderTable(allResults));
     </script>
 </body>
 </html>
