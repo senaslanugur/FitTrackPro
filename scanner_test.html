@@ -1,507 +1,2159 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚀 Pro Tarayıcı: BIST 100 & Kripto</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>BIST Screener Pro</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .tab-active { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: bold; }
-        .tab-inactive { border-bottom: 3px solid transparent; color: #6b7280; }
-        .loading-spinner {
-            border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%;
-            width: 16px; height: 16px; animation: spin 1s linear infinite; display: inline-block;
+        :root {
+            --bg: #09090f;
+            --bg2: #0f0f1a;
+            --bg3: #151524;
+            --bg4: #1c1c2e;
+            --border: rgba(99, 102, 241, 0.15);
+            --border2: rgba(99, 102, 241, 0.3);
+            --accent: #6366f1;
+            --accent2: #818cf8;
+            --accent3: #a5b4fc;
+            --green: #22c55e;
+            --green-bg: rgba(34, 197, 94, 0.1);
+            --red: #ef4444;
+            --red-bg: rgba(239, 68, 68, 0.1);
+            --amber: #f59e0b;
+            --amber-bg: rgba(245, 158, 11, 0.1);
+            --text: #e2e8f0;
+            --text2: #94a3b8;
+            --text3: #64748b;
+            --mono: 'JetBrains Mono', monospace;
+            --sans: 'Syne', sans-serif;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .pass { color: #16a34a; font-weight: 600; }
-        .fail { color: #dc2626; font-weight: 600; }
-        .neutral { color: #6b7280; }
-        .signal-row { background-color: #f0fdf4 !important; border-left: 4px solid #16a34a; }
-        .error-row { background-color: #fef2f2 !important; border-left: 4px solid #dc2626; }
-        .progress-bar { transition: width 0.3s ease-in-out; }
-        .sortable { cursor: pointer; user-select: none; }
-        .sortable:hover { background-color: #e5e7eb; }
-        .sort-arrow { font-size: 10px; margin-left: 4px; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Grid noise texture */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── LAYOUT ── */
+        .shell {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ── HEADER ── */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 28px;
+            background: rgba(9, 9, 15, 0.85);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-mark {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--mono);
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text span {
+            color: var(--accent2);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .badge-live {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: var(--green-bg);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--green);
+            font-weight: 500;
+        }
+
+        .badge-live::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0.3
+            }
+        }
+
+        /* ── TABS ── */
+        .tab-bar {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            padding: 0 28px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            padding: 12px 18px;
+            background: none;
+            border: none;
+            color: var(--text3);
+            font-family: var(--sans);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all .2s;
+            position: relative;
+            top: 1px;
+        }
+
+        .tab-btn.active {
+            color: var(--accent3);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--text2);
+        }
+
+        .tab-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            background: var(--accent);
+            color: #fff;
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+
+        /* ── PANELS ── */
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        /* ── SCREENER PANEL ── */
+        .screener-layout {
+            display: flex;
+            gap: 0;
+            min-height: calc(100vh - 103px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 300px;
+            flex-shrink: 0;
+            background: var(--bg2);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 16px 20px 14px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-title {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text3);
+        }
+
+        .btn-reset {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text3);
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 3px 8px;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .btn-reset:hover {
+            color: var(--text2);
+            border-color: var(--border2);
+        }
+
+        .filter-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .filter-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .filter-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .filter-scroll::-webkit-scrollbar-thumb {
+            background: var(--border2);
+            border-radius: 2px;
+        }
+
+        .filter-group {}
+
+        .filter-group-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--accent2);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .filter-group-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .filter-row {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .filter-label {
+            font-size: 12px;
+            color: var(--text2);
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .filter-val {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--accent3);
+        }
+
+        input[type=range] {
+            width: 100%;
+            height: 3px;
+            border-radius: 2px;
+            background: var(--bg4);
+            appearance: none;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 2px solid var(--bg2);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .range-inputs {
+            display: flex;
+            gap: 6px;
+        }
+
+        .range-input-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .range-sublabel {
+            font-size: 10px;
+            color: var(--text3);
+            font-family: var(--mono);
+        }
+
+        input[type=number] {
+            width: 100%;
+            padding: 5px 8px;
+            background: var(--bg4);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 12px;
+            outline: none;
+            transition: border .2s;
+        }
+
+        input[type=number]:focus {
+            border-color: var(--accent);
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .toggle-label {
+            font-size: 12px;
+            color: var(--text2);
+            font-weight: 500;
+        }
+
+        .toggle {
+            position: relative;
+            width: 36px;
+            height: 20px;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            border-radius: 10px;
+            background: var(--bg4);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--text3);
+            left: 2px;
+            top: 2px;
+            transition: .2s;
+        }
+
+        .toggle input:checked+.toggle-slider {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .toggle input:checked+.toggle-slider::before {
+            transform: translateX(16px);
+            background: #fff;
+        }
+
+        .select-input {
+            width: 100%;
+            padding: 6px 10px;
+            background: var(--bg4);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 12px;
+            outline: none;
+            cursor: pointer;
+            transition: border .2s;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%2364748b' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+        }
+
+        .select-input:focus {
+            border-color: var(--accent);
+        }
+
+        .sma-checks {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+        }
+
+        .sma-check {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .sma-check-label {
+            font-size: 10px;
+            font-family: var(--mono);
+            color: var(--text3);
+        }
+
+        .check-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            background: var(--bg4);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .check-box.on {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .check-box.on::after {
+            content: '✓';
+            font-size: 10px;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn-scan {
+            width: 100%;
+            padding: 11px 0;
+            background: var(--accent);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-family: var(--sans);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-scan:hover {
+            background: var(--accent2);
+            transform: translateY(-1px);
+        }
+
+        .btn-scan:active {
+            transform: translateY(0);
+        }
+
+        .btn-scan.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            display: none;
+        }
+
+        .btn-scan.loading .spinner {
+            display: block;
+        }
+
+        .btn-scan.loading .scan-text {
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Stats bar */
+        .stats-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            background: var(--bg2);
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .stat-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: var(--bg4);
+            border: 1px solid var(--border);
+            font-family: var(--mono);
+            font-size: 11px;
+        }
+
+        .stat-chip-label {
+            color: var(--text3);
+        }
+
+        .stat-chip-val {
+            color: var(--accent3);
+            font-weight: 600;
+        }
+
+        .stats-bar-right {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-export {
+            padding: 5px 12px;
+            background: var(--bg4);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text2);
+            font-family: var(--mono);
+            font-size: 11px;
+            cursor: pointer;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-export:hover {
+            border-color: var(--border2);
+            color: var(--text);
+        }
+
+        .btn-telegram-send {
+            padding: 5px 12px;
+            background: rgba(0, 136, 204, 0.15);
+            border: 1px solid rgba(0, 136, 204, 0.3);
+            border-radius: 6px;
+            color: #29b6f6;
+            font-family: var(--mono);
+            font-size: 11px;
+            cursor: pointer;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-telegram-send:hover {
+            background: rgba(0, 136, 204, 0.25);
+        }
+
+        /* Table area */
+        .table-wrap {
+            flex: 1;
+            overflow: auto;
+        }
+
+        .table-wrap::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .table-wrap::-webkit-scrollbar-track {
+            background: var(--bg2);
+        }
+
+        .table-wrap::-webkit-scrollbar-thumb {
+            background: var(--border2);
+            border-radius: 3px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--mono);
+            font-size: 12px;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        thead th {
+            padding: 10px 14px;
+            text-align: left;
+            background: var(--bg3);
+            border-bottom: 1px solid var(--border2);
+            color: var(--text3);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+            transition: color .2s;
+        }
+
+        thead th:hover {
+            color: var(--text2);
+        }
+
+        thead th.sorted {
+            color: var(--accent3);
+        }
+
+        thead th .sort-arrow {
+            font-size: 9px;
+            margin-left: 4px;
+            opacity: 0.6;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background .15s;
+            cursor: pointer;
+        }
+
+        tbody tr:hover {
+            background: var(--bg3);
+        }
+
+        tbody td {
+            padding: 9px 14px;
+            white-space: nowrap;
+        }
+
+        .td-ticker {
+            font-weight: 600;
+            color: var(--accent3);
+            font-size: 13px;
+        }
+
+        .td-name {
+            color: var(--text2);
+            font-size: 11px;
+            max-width: 140px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-family: var(--sans);
+            font-weight: 400;
+        }
+
+        .td-price {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .badge-pos {
+            color: var(--green);
+        }
+
+        .badge-neg {
+            color: var(--red);
+        }
+
+        .macd-cross {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 7px;
+            border-radius: 4px;
+            background: var(--green-bg);
+            color: var(--green);
+            font-size: 10px;
+            font-weight: 600;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .macd-neutral {
+            color: var(--text3);
+        }
+
+        .rsi-bar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .rsi-bar {
+            width: 60px;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--bg4);
+            overflow: hidden;
+        }
+
+        .rsi-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width .3s;
+        }
+
+        .rsi-num {
+            min-width: 32px;
+        }
+
+        .vol-arrow {
+            font-size: 10px;
+            margin-left: 3px;
+        }
+
+        .vol-up {
+            color: var(--green);
+        }
+
+        .vol-down {
+            color: var(--red);
+        }
+
+        .sma-tags {
+            display: flex;
+            gap: 3px;
+        }
+
+        .sma-tag {
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-weight: 600;
+            border: 1px solid;
+        }
+
+        .sma-tag.above {
+            background: var(--green-bg);
+            color: var(--green);
+            border-color: rgba(34, 197, 94, 0.2);
+        }
+
+        .sma-tag.below {
+            background: var(--red-bg);
+            color: var(--red);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        /* Empty state */
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            text-align: center;
+            color: var(--text3);
+        }
+
+        .empty-icon {
+            font-size: 40px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .empty-title {
+            font-family: var(--sans);
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text2);
+        }
+
+        .empty-sub {
+            font-size: 13px;
+        }
+
+        /* Error state */
+        .error-bar {
+            display: none;
+            margin: 12px 20px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            background: var(--red-bg);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--red);
+            font-size: 12px;
+            font-family: var(--mono);
+        }
+
+        .error-bar.show {
+            display: block;
+        }
+
+        /* ── SETTINGS PANEL ── */
+        .settings-layout {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 32px 28px;
+        }
+
+        .settings-section {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .settings-section-title {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .settings-section-title .icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .icon-tg {
+            background: rgba(41, 182, 246, 0.15);
+        }
+
+        .icon-scan {
+            background: rgba(99, 102, 241, 0.15);
+        }
+
+        .icon-alert {
+            background: rgba(245, 158, 11, 0.15);
+        }
+
+        .settings-desc {
+            font-size: 12px;
+            color: var(--text3);
+            margin-bottom: 20px;
+            margin-top: 2px;
+            line-height: 1.6;
+        }
+
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 14px;
+        }
+
+        .form-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--text3);
+        }
+
+        .form-input {
+            padding: 9px 12px;
+            background: var(--bg4);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 13px;
+            outline: none;
+            transition: border .2s;
+            width: 100%;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent);
+        }
+
+        .form-input::placeholder {
+            color: var(--text3);
+        }
+
+        .form-hint {
+            font-size: 11px;
+            color: var(--text3);
+            margin-top: 2px;
+        }
+
+        .form-hint a {
+            color: var(--accent3);
+            text-decoration: none;
+        }
+
+        .form-hint a:hover {
+            text-decoration: underline;
+        }
+
+        .form-row-h {
+            display: flex;
+            gap: 12px;
+        }
+
+        .form-row-h .form-row {
+            flex: 1;
+        }
+
+        .btn-primary {
+            padding: 9px 20px;
+            background: var(--accent);
+            border: none;
+            border-radius: 7px;
+            color: #fff;
+            font-family: var(--sans);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent2);
+        }
+
+        .btn-secondary {
+            padding: 9px 20px;
+            background: var(--bg4);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            color: var(--text2);
+            font-family: var(--sans);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--border2);
+            color: var(--text);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .telegram-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 7px;
+            background: var(--bg4);
+            border: 1px solid var(--border);
+            font-size: 12px;
+            font-family: var(--mono);
+            margin-top: 12px;
+        }
+
+        .tg-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text3);
+        }
+
+        .tg-dot.ok {
+            background: var(--green);
+        }
+
+        .tg-dot.err {
+            background: var(--red);
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .schedule-opt {
+            padding: 10px 8px;
+            border-radius: 7px;
+            border: 1px solid var(--border);
+            background: var(--bg4);
+            cursor: pointer;
+            transition: all .2s;
+            text-align: center;
+        }
+
+        .schedule-opt:hover {
+            border-color: var(--border2);
+        }
+
+        .schedule-opt.selected {
+            border-color: var(--accent);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .schedule-opt-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text2);
+        }
+
+        .schedule-opt-sub {
+            font-size: 10px;
+            color: var(--text3);
+            margin-top: 2px;
+        }
+
+        /* Alert conditions */
+        .alert-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+
+        .alert-tag {
+            padding: 4px 10px;
+            border-radius: 5px;
+            border: 1px solid var(--border);
+            background: var(--bg4);
+            cursor: pointer;
+            transition: all .2s;
+            font-size: 11px;
+            color: var(--text2);
+            font-family: var(--mono);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .alert-tag.on {
+            border-color: var(--accent);
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--accent3);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            padding: 12px 18px;
+            border-radius: 8px;
+            background: var(--bg3);
+            border: 1px solid var(--border2);
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all .3s cubic-bezier(.34, 1.56, .64, 1);
+            max-width: 320px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-color: rgba(34, 197, 94, 0.4);
+            background: rgba(34, 197, 94, 0.08);
+            color: var(--green);
+        }
+
+        .toast.error {
+            border-color: rgba(239, 68, 68, 0.4);
+            background: rgba(239, 68, 68, 0.08);
+            color: var(--red);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .sidebar {
+                width: 260px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .screener-layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+        }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800 p-4 md:p-8">
 
-    <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-xl overflow-hidden">
-        <header class="bg-blue-900 text-white p-6">
-            <h1 class="text-3xl font-bold flex items-center gap-2">🚀 Pro Piyasa Tarayıcı</h1>
-            <p class="text-blue-200 mt-1">BIST 100 ve En Yüksek Hacimli Kriptolar için Gelişmiş Teknik Analiz</p>
+<body>
+    <div class="shell">
+
+        <!-- HEADER -->
+        <header>
+            <div class="logo">
+                <div class="logo-mark">BS</div>
+                <div class="logo-text">BIST <span>Screener</span> Pro</div>
+            </div>
+            <div class="header-right">
+                <div class="badge-live">CANLI</div>
+                <span style="font-family:var(--mono);font-size:11px;color:var(--text3)" id="last-update">—</span>
+            </div>
         </header>
 
-        <div class="flex border-b px-6">
-            <button id="tab-bist" onclick="switchTab('bist')" class="px-6 py-4 text-lg tab-active">🇹🇷 BIST 100</button>
-            <button id="tab-crypto" onclick="switchTab('crypto')" class="px-6 py-4 text-lg tab-inactive">₿ Kripto Paralar (Top 150)</button>
+        <!-- TABS -->
+        <div class="tab-bar">
+            <button class="tab-btn active" onclick="switchTab('screener',this)">
+                Tarama <span class="tab-count" id="result-count">0</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('settings',this)">⚙ Ayarlar</button>
         </div>
 
-        <div class="p-6">
-            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 bg-gray-50 p-4 rounded-lg">
-                <div class="flex items-center gap-4">
-                    <button id="scanBtn" onclick="startScan()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow transition flex items-center gap-2">
-                        <span>🔍 Taramayı Başlat</span>
-                    </button>
+        <!-- ═══════════════ SCREENER PANEL ═══════════════ -->
+        <div class="panel active" id="panel-screener">
+            <div class="screener-layout">
+
+                <!-- SIDEBAR FILTERS -->
+                <div class="sidebar">
+                    <div class="sidebar-header">
+                        <div class="sidebar-title">Filtreler</div>
+                        <button class="btn-reset" onclick="resetFilters()">Sıfırla</button>
+                    </div>
+                    <div class="filter-scroll">
+
+                        <!-- MACD -->
+                        <div class="filter-group">
+                            <div class="filter-group-label">MACD</div>
+
+                            <div class="toggle-row">
+                                <span class="toggle-label">Bullish Crossover (Negatif Bölge)</span>
+                                <label class="toggle">
+                                    <input type="checkbox" id="f-macd-cross" checked onchange="applyFilters()">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="filter-row" style="margin-top:4px">
+                                <div class="filter-label">
+                                    <span>MACD Aralığı</span>
+                                    <span class="filter-val" id="macd-range-val">sınırsız</span>
+                                </div>
+                                <div class="range-inputs">
+                                    <div class="range-input-wrap">
+                                        <span class="range-sublabel">Min</span>
+                                        <input type="number" id="f-macd-min" value="" placeholder="—" step="0.0001"
+                                            oninput="applyFilters()">
+                                    </div>
+                                    <div class="range-input-wrap">
+                                        <span class="range-sublabel">Max</span>
+                                        <input type="number" id="f-macd-max" value="" placeholder="—" step="0.0001"
+                                            oninput="applyFilters()">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RSI -->
+                        <div class="filter-group">
+                            <div class="filter-group-label">RSI (14)</div>
+                            <div class="filter-row">
+                                <div class="filter-label">
+                                    <span>RSI Aralığı</span>
+                                    <span class="filter-val" id="rsi-range-val">0 – 100</span>
+                                </div>
+                                <div class="range-inputs">
+                                    <div class="range-input-wrap">
+                                        <span class="range-sublabel">Min</span>
+                                        <input type="number" id="f-rsi-min" value="0" min="0" max="100" step="1"
+                                            oninput="syncRsiSliders();applyFilters()">
+                                    </div>
+                                    <div class="range-input-wrap">
+                                        <span class="range-sublabel">Max</span>
+                                        <input type="number" id="f-rsi-max" value="100" min="0" max="100" step="1"
+                                            oninput="syncRsiSliders();applyFilters()">
+                                    </div>
+                                </div>
+                                <div style="display:flex;gap:8px;margin-top:6px;align-items:center">
+                                    <input type="range" id="rsi-slider-min" min="0" max="100" value="0" step="1"
+                                        oninput="syncRsiInputs('min',this.value)">
+                                    <input type="range" id="rsi-slider-max" min="0" max="100" value="100" step="1"
+                                        oninput="syncRsiInputs('max',this.value)">
+                                </div>
+                            </div>
+                            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:2px">
+                                <button class="btn-reset" onclick="setRsi(0,30)">Aşırı Satım</button>
+                                <button class="btn-reset" onclick="setRsi(30,50)">30-50</button>
+                                <button class="btn-reset" onclick="setRsi(50,70)">50-70</button>
+                                <button class="btn-reset" onclick="setRsi(70,100)">Aşırı Alım</button>
+                            </div>
+                        </div>
+
+                        <!-- SMA -->
+                        <div class="filter-group">
+                            <div class="filter-group-label">Hareketli Ortalama</div>
+                            <div class="filter-label" style="margin-bottom:8px">Fiyat SMA üzerinde</div>
+                            <div class="sma-checks">
+                                <div class="sma-check">
+                                    <div class="check-box" id="sma20-box" onclick="toggleSma('sma20')"></div>
+                                    <span class="sma-check-label">SMA20</span>
+                                </div>
+                                <div class="sma-check">
+                                    <div class="check-box" id="sma50-box" onclick="toggleSma('sma50')"></div>
+                                    <span class="sma-check-label">SMA50</span>
+                                </div>
+                                <div class="sma-check">
+                                    <div class="check-box" id="sma200-box" onclick="toggleSma('sma200')"></div>
+                                    <span class="sma-check-label">SMA200</span>
+                                </div>
+                            </div>
+                            <div class="toggle-row" style="margin-top:12px">
+                                <span class="toggle-label">Golden Cross (SMA50 > SMA200)</span>
+                                <label class="toggle">
+                                    <input type="checkbox" id="f-golden-cross" onchange="applyFilters()">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- VOLUME -->
+                        <div class="filter-group">
+                            <div class="filter-group-label">Hacim</div>
+                            <div class="toggle-row">
+                                <span class="toggle-label">Son 3 günden yüksek</span>
+                                <label class="toggle">
+                                    <input type="checkbox" id="f-vol-spike" checked onchange="applyFilters()">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="filter-row" style="margin-top:8px">
+                                <div class="filter-label">
+                                    <span>Min Hacim (lot)</span>
+                                </div>
+                                <input type="number" id="f-vol-min" value="" placeholder="Tümü" step="100000"
+                                    oninput="applyFilters()" style="width:100%">
+                            </div>
+                        </div>
+
+                        <!-- PRICE -->
+                        <div class="filter-group">
+                            <div class="filter-group-label">Fiyat / Değişim</div>
+                            <div class="range-inputs">
+                                <div class="range-input-wrap">
+                                    <span class="range-sublabel">Min Fiyat (₺)</span>
+                                    <input type="number" id="f-price-min" value="" placeholder="—" step="0.5"
+                                        oninput="applyFilters()">
+                                </div>
+                                <div class="range-input-wrap">
+                                    <span class="range-sublabel">Max Fiyat (₺)</span>
+                                    <input type="number" id="f-price-max" value="" placeholder="—" step="0.5"
+                                        oninput="applyFilters()">
+                                </div>
+                            </div>
+                            <div class="range-inputs" style="margin-top:8px">
+                                <div class="range-input-wrap">
+                                    <span class="range-sublabel">Min Değişim%</span>
+                                    <input type="number" id="f-chg-min" value="" placeholder="—" step="0.1"
+                                        oninput="applyFilters()">
+                                </div>
+                                <div class="range-input-wrap">
+                                    <span class="range-sublabel">Max Değişim%</span>
+                                    <input type="number" id="f-chg-max" value="" placeholder="—" step="0.1"
+                                        oninput="applyFilters()">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- MARKET CAP -->
+                        <div class="filter-group">
+                            <div class="filter-group-label">Piyasa Değeri</div>
+                            <select class="select-input" id="f-mcap" onchange="applyFilters()">
+                                <option value="">Tümü</option>
+                                <option value="large">Büyük (&gt; 10B ₺)</option>
+                                <option value="mid">Orta (1B – 10B ₺)</option>
+                                <option value="small">Küçük (&lt; 1B ₺)</option>
+                            </select>
+                        </div>
+
+                        <!-- SEARCH -->
+                        <div class="filter-group">
+                            <div class="filter-group-label">Hisse Arama</div>
+                            <input type="text" id="f-search" placeholder="THYAO, EREGL..." oninput="applyFilters()"
+                                style="width:100%;padding:7px 10px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:12px;outline:none;">
+                        </div>
+
+                    </div><!-- /filter-scroll -->
+
+                    <div class="sidebar-footer">
+                        <button class="btn-scan" id="scan-btn" onclick="fetchData()">
+                            <div class="spinner"></div>
+                            <span class="scan-text">▶ Tara</span>
+                        </button>
+                    </div>
+                </div><!-- /sidebar -->
+
+                <!-- MAIN CONTENT -->
+                <div class="main-content">
+                    <div class="error-bar" id="error-bar"></div>
+
+                    <div class="stats-bar">
+                        <div class="stat-chip"><span class="stat-chip-label">Toplam</span><span class="stat-chip-val"
+                                id="stat-total">0</span></div>
+                        <div class="stat-chip"><span class="stat-chip-label">Eşleşme</span><span class="stat-chip-val"
+                                id="stat-match">0</span></div>
+                        <div class="stat-chip"><span class="stat-chip-label">MACD Cross</span><span
+                                class="stat-chip-val" id="stat-macd">0</span></div>
+                        <div class="stat-chip"><span class="stat-chip-label">Hacim Artışı</span><span
+                                class="stat-chip-val" id="stat-vol">0</span></div>
+                        <div class="stats-bar-right">
+                            <button class="btn-export" onclick="exportCSV()">⬇ CSV</button>
+                            <button class="btn-telegram-send" id="btn-tg-send" onclick="sendToTelegram()">✈
+                                Telegram</button>
+                        </div>
+                    </div>
+
+                    <div class="table-wrap" id="table-wrap">
+                        <div class="empty-state">
+                            <div class="empty-icon">📊</div>
+                            <div class="empty-title">Veri yok</div>
+                            <div class="empty-sub">"Tara" butonuna basarak BIST verilerini çekin</div>
+                        </div>
+                    </div>
+                </div><!-- /main-content -->
+
+            </div><!-- /screener-layout -->
+        </div><!-- /panel-screener -->
+
+        <!-- ═══════════════ SETTINGS PANEL ═══════════════ -->
+        <div class="panel" id="panel-settings">
+            <div class="settings-layout">
+
+                <!-- Telegram Bot -->
+                <div class="settings-section">
+                    <div class="settings-section-title">
+                        <div class="icon icon-tg">✈</div>
+                        Telegram Bot Bağlantısı
+                    </div>
+                    <p class="settings-desc">
+                        Bot token ve chat ID girerek tarama sonuçlarını doğrudan Telegram'a gönderin.
+                        Bot oluşturmak için <a href="https://t.me/BotFather" target="_blank">@BotFather</a> kullanın.
+                        Chat ID'nizi öğrenmek için <a href="https://t.me/userinfobot" target="_blank">@userinfobot</a>'a
+                        mesaj atın.
+                    </p>
+                    <div class="form-row">
+                        <label class="form-label">Bot Token</label>
+                        <input type="password" class="form-input" id="tg-token" placeholder="1234567890:AAHxyz..."
+                            oninput="saveTgSettings()">
+                        <span class="form-hint">BotFather'dan aldığınız HTTP API token</span>
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">Chat ID</label>
+                        <input type="text" class="form-input" id="tg-chat" placeholder="-100123456789"
+                            oninput="saveTgSettings()">
+                        <span class="form-hint">Bireysel kullanıcı veya grup/kanal ID'si</span>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn-primary" onclick="testTelegram()">Bağlantıyı Test Et</button>
+                        <button class="btn-secondary" onclick="clearTgSettings()">Temizle</button>
+                    </div>
+                    <div class="telegram-status" id="tg-status">
+                        <div class="tg-dot" id="tg-dot"></div>
+                        <span id="tg-status-text">Henüz test edilmedi</span>
+                    </div>
                 </div>
-                <div id="statusText" class="text-sm text-gray-600 font-mono">Hazır. Tarama bekleniyor.</div>
-            </div>
 
-            <!-- Filtreler -->
-            <div class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p class="text-sm font-semibold text-yellow-900 mb-2">🔧 Filtreler:</p>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <label class="flex items-center gap-2 text-sm cursor-pointer">
-                        <input type="checkbox" id="filterSignals" class="w-4 h-4 text-blue-600 rounded">
-                        <span>🟢 Sadece AL Sinyali Olanlar</span>
-                    </label>
-                    <label class="flex items-center gap-2 text-sm cursor-pointer">
-                        <input type="checkbox" id="filterErrors" class="w-4 h-4 text-red-600 rounded">
-                        <span>❌ Sadece Veri Alınamayanlar</span>
-                    </label>
-                    <label class="flex items-center gap-2 text-sm cursor-pointer">
-                        <input type="checkbox" id="filterHighVolume" class="w-4 h-4 text-green-600 rounded">
-                        <span>📊 Hacim > 2x Ortalama</span>
-                    </label>
+                <!-- Tarama Ayarları -->
+                <div class="settings-section">
+                    <div class="settings-section-title">
+                        <div class="icon icon-scan">⚙</div>
+                        Tarama Ayarları
+                    </div>
+                    <p class="settings-desc">Otomatik tarama ve bildirim seçenekleri.</p>
+
+                    <div class="form-row">
+                        <label class="form-label">Hisse Limiti</label>
+                        <select class="form-input" id="s-limit" onchange="saveSettings()">
+                            <option value="100">İlk 100 hisse</option>
+                            <option value="200">İlk 200 hisse</option>
+                            <option value="500" selected>İlk 500 hisse</option>
+                            <option value="1000">Tüm BIST (1000+)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <label class="form-label">Otomatik Yenileme</label>
+                        <select class="form-input" id="s-auto-refresh" onchange="saveSettings();toggleAutoRefresh()">
+                            <option value="0" selected>Kapalı</option>
+                            <option value="60">Her 1 dakika</option>
+                            <option value="300">Her 5 dakika</option>
+                            <option value="900">Her 15 dakika</option>
+                            <option value="1800">Her 30 dakika</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <label class="form-label">Proxy / CORS URL (isteğe bağlı)</label>
+                        <input type="text" class="form-input" id="s-proxy" placeholder="https://cors-proxy.example.com/"
+                            oninput="saveSettings()">
+                        <span class="form-hint">Tarayıcı CORS kısıtlaması için proxy adresi. Boş bırakılırsa doğrudan
+                            istek atılır.</span>
+                    </div>
                 </div>
-                <p class="text-xs text-yellow-700 mt-2">⚠️ Not: Yahoo Finance API tarayıcıdan erişimi kısıtlıyor. BIST 100 hisseleri yavaş taranır (~3-5 dakika). Kripto verileri anlıktır.</p>
-            </div>
 
-            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4 hidden" id="progressContainer">
-                <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full progress-bar" style="width: 0%"></div>
-            </div>
+                <!-- Bildirim Koşulları -->
+                <div class="settings-section">
+                    <div class="settings-section-title">
+                        <div class="icon icon-alert">🔔</div>
+                        Telegram Bildirim Koşulları
+                    </div>
+                    <p class="settings-desc">Hangi koşullar sağlandığında Telegram'a mesaj gönderilsin?</p>
+                    <div class="alert-tags" id="alert-conditions">
+                        <div class="alert-tag on" data-key="macd_cross" onclick="toggleAlertTag(this)">✓ MACD Cross
+                        </div>
+                        <div class="alert-tag on" data-key="vol_spike" onclick="toggleAlertTag(this)">✓ Hacim Artışı
+                        </div>
+                        <div class="alert-tag" data-key="rsi_oversold" onclick="toggleAlertTag(this)">RSI &lt; 30</div>
+                        <div class="alert-tag" data-key="rsi_overbought" onclick="toggleAlertTag(this)">RSI &gt; 70
+                        </div>
+                        <div class="alert-tag" data-key="above_sma20" onclick="toggleAlertTag(this)">SMA20 Üzeri</div>
+                        <div class="alert-tag" data-key="above_sma50" onclick="toggleAlertTag(this)">SMA50 Üzeri</div>
+                        <div class="alert-tag" data-key="golden_cross" onclick="toggleAlertTag(this)">Golden Cross</div>
+                    </div>
 
-            <div class="overflow-x-auto border rounded-lg">
-                <table class="w-full text-sm text-left text-gray-600" id="resultsTable">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-100 border-b">
-                        <tr>
-                            <th class="px-4 py-3 sortable" onclick="sortTable(0)">Sembol <span class="sort-arrow">⇅</span></th>
-                            <th class="px-4 py-3 text-right sortable" onclick="sortTable(1)">Fiyat <span class="sort-arrow">⇅</span></th>
-                            <th class="px-4 py-3 text-right sortable" onclick="sortTable(2)">RSI (14) <span class="sort-arrow">⇅</span></th>
-                            <th class="px-4 py-3 text-center">MACD Durumu</th>
-                            <th class="px-4 py-3 text-center">Trend (MA 20/50/200)</th>
-                            <th class="px-4 py-3 text-right sortable" onclick="sortTable(5)">Hacim <span class="sort-arrow">⇅</span></th>
-                            <th class="px-4 py-3 text-center">Sonuç</th>
-                        </tr>
-                    </thead>
-                    <tbody id="resultsBody">
-                        <tr><td colspan="7" class="px-4 py-12 text-center text-gray-400 italic">Taramayı başlatmak için butona tıklayın.</td></tr>
-                    </tbody>
-                </table>
+                    <div class="form-row">
+                        <label class="form-label">Otomatik Gönderim</label>
+                        <div class="schedule-grid" id="schedule-grid">
+                            <div class="schedule-opt" data-val="none" onclick="setSchedule(this)">
+                                <div class="schedule-opt-label">Kapalı</div>
+                                <div class="schedule-opt-sub">Manuel gönderim</div>
+                            </div>
+                            <div class="schedule-opt selected" data-val="open" onclick="setSchedule(this)">
+                                <div class="schedule-opt-label">Açılışta</div>
+                                <div class="schedule-opt-sub">10:00</div>
+                            </div>
+                            <div class="schedule-opt" data-val="close" onclick="setSchedule(this)">
+                                <div class="schedule-opt-label">Kapanışta</div>
+                                <div class="schedule-opt-sub">18:00</div>
+                            </div>
+                            <div class="schedule-opt" data-val="both" onclick="setSchedule(this)">
+                                <div class="schedule-opt-label">Her ikisi</div>
+                                <div class="schedule-opt-sub">10:00 + 18:00</div>
+                            </div>
+                            <div class="schedule-opt" data-val="every1h" onclick="setSchedule(this)">
+                                <div class="schedule-opt-label">Saatlik</div>
+                                <div class="schedule-opt-sub">10:00 – 18:00</div>
+                            </div>
+                            <div class="schedule-opt" data-val="every4h" onclick="setSchedule(this)">
+                                <div class="schedule-opt-label">4 Saatlik</div>
+                                <div class="schedule-opt-sub">10:00, 14:00, 18:00</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label class="form-label">Mesaj Şablonu</label>
+                        <textarea class="form-input" id="tg-template" rows="4"
+                            style="resize:vertical;font-size:11px;line-height:1.6" oninput="saveSettings()">📊 *BIST Screener Sonuçları*
+🕐 {tarih} | {saati}
+
+🔍 *{adet} hisse* filtreleri karşıladı:
+{liste}
+
+_Filtreler: {filtreler}_</textarea>
+                        <span class="form-hint">Kullanılabilir değişkenler: {tarih} {saat} {adet} {liste}
+                            {filtreler}</span>
+                    </div>
+
+                    <div class="btn-row">
+                        <button class="btn-primary"
+                            onclick="saveSettings();showToast('Ayarlar kaydedildi','success')">Ayarları Kaydet</button>
+                        <button class="btn-secondary" onclick="resetSettings()">Varsayılanlar</button>
+                    </div>
+                </div>
+
             </div>
-        </div>
-    </div>
+        </div><!-- /panel-settings -->
+
+    </div><!-- /shell -->
+    <div class="toast" id="toast"></div>
 
     <script>
-        // ==========================================
-        // BIST 100 HİSSELERİ (En Likit 100 Hisse)
-        // ==========================================
-        const BIST_100_STOCKS = [
-            "THYAO", "GARAN", "ASELS", "EREGL", "TUPRS", "SASA", "KCHOL", "HEKTS", "DOHOL", "FROTO", 
-            "TOASO", "TCELL", "BIMAS", "MGROS", "AKBNK", "ISCTR", "YKBNK", "VAKBN", "HALKB", "PGSUS",
-            "SAHOL", "KOZAL", "KOZAA", "SISE", "TAVHL", "ARCLK", "VESTL", "PETKM", "EKGYO", "ALARK",
-            "ENKAI", "ULKER", "KRDMD", "OYAKC", "FENER", "GSRAY", "BJKAS", "TRGYO", "ISGYO", "VKGYO",
-            "AKSA", "SOKM", "BRYTZ", "TMSN", "KLSER", "DOAS", "OTKAR", "KARTN", "KARSN", "BRISA",
-            "KLKIM", "MARTI", "GUBRF", "NETAS", "LOGO", "PATEK", "TURSG", "ANSGR", "ADANA", "BOLKM",
-            "AYGAZ", "GOZDE", "ESEN", "ICBCT", "IZFAS", "KONYA", "MHRGY", "NTHOL", "OZKGY", "SAMAT",
-            "SELEC", "SRVGY", "TARKO", "TKFEN", "TSKB", "TUREX", "YGYO", "ZOREN", "AKSEN", "AYEN",
-            "BURVA", "CIMSA", "DAGI", "EGEEN", "ENJSA", "GESAN", "GLYHO", "HATSN", "INVEO", "JANTS",
-            "KATMR", "KZBGY", "LIDER", "MAKIM", "OBASE", "PARSN", "PEGYO", "REEDR", "SARKY", "SKYLP"
-        ];
+        // ══════════════════════════════════════════════════════════
+        //  STATE
+        // ══════════════════════════════════════════════════════════
+        let rawData = [];
+        let filteredData = [];
+        let sortKey = 'ticker';
+        let sortDir = 1;
+        let smaChecks = { sma20: false, sma50: false, sma200: false };
+        let autoRefreshTimer = null;
 
-        // ==========================================
-        // TEKNİK ANALİZ MOTORU
-        // ==========================================
-        
-        function calculateSMA(data, period) {
-            if (data.length < period) return null;
-            const slice = data.slice(-period);
-            return slice.reduce((a, b) => a + b, 0) / period;
+        const SCANNER_URL = 'https://scanner.tradingview.com/turkey/scan';
+
+        // ══════════════════════════════════════════════════════════
+        //  INIT
+        // ══════════════════════════════════════════════════════════
+        (function init() {
+            loadSettings();
+        })();
+
+        // ══════════════════════════════════════════════════════════
+        //  TAB
+        // ══════════════════════════════════════════════════════════
+        function switchTab(name, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('panel-' + name).classList.add('active');
         }
 
-        function calculateEMAArray(data, period) {
-            if (data.length < period) return [];
-            const k = 2 / (period + 1);
-            let emaArray = [];
-            let ema = data.slice(0, period).reduce((a, b) => a + b, 0) / period;
-            emaArray.push(ema);
-            for (let i = period; i < data.length; i++) {
-                ema = data[i] * k + ema * (1 - k);
-                emaArray.push(ema);
-            }
-            return emaArray;
-        }
+        // ══════════════════════════════════════════════════════════
+        //  FETCH DATA
+        // ══════════════════════════════════════════════════════════
+        async function fetchData() {
+            const btn = document.getElementById('scan-btn');
+            btn.classList.add('loading');
+            hideError();
 
-        function calculateRSI(closes, period = 14) {
-            if (closes.length < period + 1) return null;
-            let gains = 0, losses = 0;
-            for (let i = 1; i <= period; i++) {
-                let diff = closes[i] - closes[i - 1];
-                if (diff > 0) gains += diff; else losses -= diff;
-            }
-            let avgGain = gains / period;
-            let avgLoss = losses / period;
-            for (let i = period + 1; i < closes.length; i++) {
-                let diff = closes[i] - closes[i - 1];
-                let currentGain = diff > 0 ? diff : 0;
-                let currentLoss = diff < 0 ? -diff : 0;
-                avgGain = (avgGain * (period - 1) + currentGain) / period;
-                avgLoss = (avgLoss * (period - 1) + currentLoss) / period;
-            }
-            if (avgLoss === 0) return 100;
-            const rs = avgGain / avgLoss;
-            return 100 - (100 / (1 + rs));
-        }
+            const limit = parseInt(document.getElementById('s-limit').value || '500');
+            const proxy = (document.getElementById('s-proxy').value || '').trim();
 
-        function checkMACDBullishCrossBelowZero(closes) {
-            if (closes.length < 35) return { status: "Yetersiz Veri", met: false, val: 0 };
-            const ema12 = calculateEMAArray(closes, 12);
-            const ema26 = calculateEMAArray(closes, 26);
-            
-            const macdLine = [];
-            const offset = ema12.length - ema26.length;
-            for (let i = 0; i < ema26.length; i++) {
-                macdLine.push(ema12[i + offset] - ema26[i]);
-            }
-            
-            const signalLine = calculateEMAArray(macdLine, 9);
-            if (signalLine.length < 2) return { status: "Yetersiz Veri", met: false, val: 0 };
-
-            const macdToday = macdLine[macdLine.length - 1];
-            const signalToday = signalLine[signalLine.length - 1];
-            
-            const macdYesterday = macdLine[macdLine.length - 1 - 8]; 
-            const signalYesterday = signalLine[signalLine.length - 2];
-
-            const isBelowZero = macdToday < 0;
-            const crossedUp = (macdYesterday < signalYesterday) && (macdToday > signalToday);
-            const isBullishTrend = isBelowZero && macdToday > signalToday;
-
-            const met = isBelowZero && crossedUp;
-            const status = met ? "✅ 0 Altı Yukarı Kesim" : 
-                          (isBelowZero && isBullishTrend ? "⚠️ 0 Altı Pozitif" : 
-                          (macdToday > 0 ? "❌ 0 Üstü" : "⬇️ Negatif"));
-                          
-            return { status, met, val: macdToday.toFixed(4) };
-        }
-
-        // ==========================================
-        // 🆕 YAHOO FİNANCE VERİ ÇEKME (RETRY + PROXY ROTASYONU)
-        // ==========================================
-        
-        async function fetchBISTData(ticker) {
-            const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}.IS?interval=1d&range=1y`;
-            
-            // 3 farklı proxy'yi sırayla dene
-            const proxies = [
-                `https://corsproxy.io/?${encodeURIComponent(yahooUrl)}`,
-                `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`,
-                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(yahooUrl)}`
-            ];
-            
-            // Her proxy için 3 kez dene (retry mekanizması)
-            for (const proxyUrl of proxies) {
-                for (let attempt = 0; attempt < 3; attempt++) {
-                    try {
-                        const res = await fetch(proxyUrl, {
-                            headers: {
-                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                            }
-                        });
-                        
-                        if (!res.ok) continue;
-                        
-                        const data = await res.json();
-                        
-                        // JSON parse başarılı mı kontrol et
-                        if (data && data.chart && data.chart.result && data.chart.result[0]) {
-                            const quotes = data.chart.result[0].indicators.quote[0];
-                            const closes = quotes.close.filter(v => v !== null);
-                            const volumes = quotes.volume.filter(v => v !== null);
-                            
-                            if (closes.length >= 30) {
-                                return { closes, volumes };
-                            }
-                        }
-                    } catch (e) {
-                        console.warn(`Proxy denemesi başarısız (${attempt + 1}/3):`, e);
-                    }
-                    
-                    // Retry arası bekleme
-                    await new Promise(r => setTimeout(r, 500));
-                }
-            }
-            
-            throw new Error("Tüm proxy'ler başarısız");
-        }
-
-        async function fetchCryptoData(symbol) {
-            const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&limit=250`;
-            const res = await fetch(url);
-            if (!res.ok) throw new Error("Veri yok");
-            const data = await res.json();
-            return {
-                closes: data.map(d => parseFloat(d[4])),
-                volumes: data.map(d => parseFloat(d[5]))
+            const payload = {
+                filter: [],
+                options: { lang: 'en' },
+                symbols: { query: { types: ['stock'] }, tickers: [] },
+                columns: [
+                    'name', 'description', 'close', 'volume', 'open', 'high', 'low',
+                    'change', 'change_abs',
+                    'MACD.macd', 'MACD.signal',
+                    'RSI',
+                    'SMA20', 'SMA50', 'SMA200',
+                    'market_cap_basic',
+                    'volume[1]', 'volume[2]', 'volume[3]',
+                    'MACD.macd[1]', 'MACD.signal[1]'
+                ],
+                sort: { sortBy: 'market_cap_basic', sortOrder: 'desc' },
+                range: [0, limit]
             };
-        }
 
-        async function getTopCryptos() {
-            const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
-            const data = await res.json();
-            const usdtPairs = data.filter(d => d.symbol.endsWith('USDT') && !d.symbol.includes('UP') && !d.symbol.includes('DOWN') && !d.symbol.includes('BULL') && !d.symbol.includes('BEAR'));
-            usdtPairs.sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume));
-            return usdtPairs.slice(0, 150).map(d => d.symbol);
-        }
+            const url = proxy ? (proxy.replace(/\/$/, '') + '/' + SCANNER_URL) : SCANNER_URL;
 
-        // ==========================================
-        // TABLO SIRALAMA (SORT)
-        // ==========================================
-        
-        let sortState = { column: -1, ascending: true };
-        let allResults = []; // Tüm veriyi sakla
+            try {
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': 'https://www.tradingview.com',
+                        'Referer': 'https://www.tradingview.com/'
+                    },
+                    body: JSON.stringify(payload)
+                });
 
-        function sortTable(columnIndex) {
-            const tbody = document.getElementById('resultsBody');
-            
-            // Sıralama yönünü değiştir
-            if (sortState.column === columnIndex) {
-                sortState.ascending = !sortState.ascending;
-            } else {
-                sortState.column = columnIndex;
-                sortState.ascending = true;
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+                const json = await resp.json();
+
+                if (!json.data || !json.data.length) throw new Error('Veri boş geldi. API kısıtlanmış olabilir.');
+
+                rawData = json.data.map(item => {
+                    const d = item.d;
+                    return {
+                        ticker: d[0] || '',
+                        description: d[1] || '',
+                        close: parseFloat(d[2]) || 0,
+                        volume: parseFloat(d[3]) || 0,
+                        open: parseFloat(d[4]) || 0,
+                        high: parseFloat(d[5]) || 0,
+                        low: parseFloat(d[6]) || 0,
+                        change_pct: parseFloat(d[7]) || 0,
+                        change_abs: parseFloat(d[8]) || 0,
+                        macd: d[9] != null ? parseFloat(d[9]) : null,
+                        macd_signal: d[10] != null ? parseFloat(d[10]) : null,
+                        rsi: d[11] != null ? parseFloat(d[11]) : null,
+                        sma20: d[12] != null ? parseFloat(d[12]) : null,
+                        sma50: d[13] != null ? parseFloat(d[13]) : null,
+                        sma200: d[14] != null ? parseFloat(d[14]) : null,
+                        market_cap: d[15] != null ? parseFloat(d[15]) : null,
+                        volume_1: d[16] != null ? parseFloat(d[16]) : null,
+                        volume_2: d[17] != null ? parseFloat(d[17]) : null,
+                        volume_3: d[18] != null ? parseFloat(d[18]) : null,
+                        macd_prev: d[19] != null ? parseFloat(d[19]) : null,
+                        macd_sig_prev: d[20] != null ? parseFloat(d[20]) : null,
+                    };
+                });
+
+                document.getElementById('last-update').textContent = 'Son: ' + new Date().toLocaleTimeString('tr-TR');
+                document.getElementById('stat-total').textContent = rawData.length;
+
+                applyFilters();
+            } catch (err) {
+                showError('Hata: ' + err.message + (proxy ? '' : ' — Ayarlar\'dan bir CORS proxy deneyin.'));
+            } finally {
+                btn.classList.remove('loading');
             }
-            
-            // Veriyi sırala
-            const sortedData = [...allResults].sort((a, b) => {
-                let valA = a.sortValues[columnIndex];
-                let valB = b.sortValues[columnIndex];
-                
-                // Null/undefined değerleri sona at
-                if (valA === null || valA === undefined) return 1;
-                if (valB === null || valB === undefined) return -1;
-                
-                // Sayısal karşılaştırma
-                if (typeof valA === 'number' && typeof valB === 'number') {
-                    return sortState.ascending ? valA - valB : valB - valA;
-                }
-                
-                // String karşılaştırma
-                return sortState.ascending ? 
-                    String(valA).localeCompare(String(valB)) : 
-                    String(valB).localeCompare(String(valA));
+        }
+
+        // ══════════════════════════════════════════════════════════
+        //  FILTERS
+        // ══════════════════════════════════════════════════════════
+        function applyFilters() {
+            if (!rawData.length) return;
+
+            const macdCross = document.getElementById('f-macd-cross').checked;
+            const volSpike = document.getElementById('f-vol-spike').checked;
+            const goldenCross = document.getElementById('f-golden-cross').checked;
+
+            const rsiMin = parseFloat(document.getElementById('f-rsi-min').value) || 0;
+            const rsiMax = parseFloat(document.getElementById('f-rsi-max').value) || 100;
+
+            const macdMin = document.getElementById('f-macd-min').value !== '' ? parseFloat(document.getElementById('f-macd-min').value) : null;
+            const macdMax = document.getElementById('f-macd-max').value !== '' ? parseFloat(document.getElementById('f-macd-max').value) : null;
+
+            const volMin = document.getElementById('f-vol-min').value !== '' ? parseFloat(document.getElementById('f-vol-min').value) : null;
+
+            const priceMin = document.getElementById('f-price-min').value !== '' ? parseFloat(document.getElementById('f-price-min').value) : null;
+            const priceMax = document.getElementById('f-price-max').value !== '' ? parseFloat(document.getElementById('f-price-max').value) : null;
+
+            const chgMin = document.getElementById('f-chg-min').value !== '' ? parseFloat(document.getElementById('f-chg-min').value) : null;
+            const chgMax = document.getElementById('f-chg-max').value !== '' ? parseFloat(document.getElementById('f-chg-max').value) : null;
+
+            const mcap = document.getElementById('f-mcap').value;
+            const search = document.getElementById('f-search').value.trim().toUpperCase();
+
+            // Update range display
+            document.getElementById('rsi-range-val').textContent = `${rsiMin} – ${rsiMax}`;
+            const mMinTxt = macdMin !== null ? macdMin : '—';
+            const mMaxTxt = macdMax !== null ? macdMax : '—';
+            document.getElementById('macd-range-val').textContent = `${mMinTxt} / ${mMaxTxt}`;
+
+            let macdCount = 0, volCount = 0;
+
+            filteredData = rawData.filter(s => {
+                // Search
+                if (search && !s.ticker.includes(search) && !s.description.toUpperCase().includes(search)) return false;
+
+                // MACD Bullish Crossover in Negative Territory
+                const isMacdCross = s.macd !== null && s.macd_signal !== null && s.macd_prev !== null && s.macd_sig_prev !== null
+                    && s.macd < 0
+                    && s.macd > s.macd_signal
+                    && s.macd_prev <= s.macd_sig_prev;
+                if (macdCross && !isMacdCross) return false;
+                if (isMacdCross) macdCount++;
+
+                // MACD range
+                if (macdMin !== null && (s.macd === null || s.macd < macdMin)) return false;
+                if (macdMax !== null && (s.macd === null || s.macd > macdMax)) return false;
+
+                // RSI
+                if (s.rsi === null) return false;
+                if (s.rsi < rsiMin || s.rsi > rsiMax) return false;
+
+                // Volume spike
+                const isVolSpike = s.volume !== null && s.volume_1 !== null && s.volume_2 !== null && s.volume_3 !== null
+                    && s.volume > s.volume_1 && s.volume > s.volume_2 && s.volume > s.volume_3;
+                if (volSpike && !isVolSpike) return false;
+                if (isVolSpike) volCount++;
+
+                // Volume min
+                if (volMin !== null && s.volume < volMin) return false;
+
+                // Price
+                if (priceMin !== null && s.close < priceMin) return false;
+                if (priceMax !== null && s.close > priceMax) return false;
+
+                // Change
+                if (chgMin !== null && s.change_pct < chgMin) return false;
+                if (chgMax !== null && s.change_pct > chgMax) return false;
+
+                // SMA checks
+                if (smaChecks.sma20 && (s.sma20 === null || s.close <= s.sma20)) return false;
+                if (smaChecks.sma50 && (s.sma50 === null || s.close <= s.sma50)) return false;
+                if (smaChecks.sma200 && (s.sma200 === null || s.close <= s.sma200)) return false;
+
+                // Golden Cross
+                if (goldenCross && (s.sma50 === null || s.sma200 === null || s.sma50 <= s.sma200)) return false;
+
+                // Market cap
+                if (mcap === 'large' && (s.market_cap === null || s.market_cap < 10e9)) return false;
+                if (mcap === 'mid' && (s.market_cap === null || s.market_cap < 1e9 || s.market_cap > 10e9)) return false;
+                if (mcap === 'small' && (s.market_cap === null || s.market_cap > 1e9)) return false;
+
+                return true;
             });
-            
-            // Tabloyu yeniden çiz
-            renderTable(sortedData);
-            
-            // Okları güncelle
-            document.querySelectorAll('.sort-arrow').forEach((arrow, idx) => {
-                if (idx === columnIndex) {
-                    arrow.textContent = sortState.ascending ? '↑' : '↓';
-                } else {
-                    arrow.textContent = '⇅';
-                }
+
+            document.getElementById('stat-match').textContent = filteredData.length;
+            document.getElementById('stat-macd').textContent = macdCount;
+            document.getElementById('stat-vol').textContent = volCount;
+            document.getElementById('result-count').textContent = filteredData.length;
+
+            sortAndRender();
+        }
+
+        // ══════════════════════════════════════════════════════════
+        //  SORT & RENDER TABLE
+        // ══════════════════════════════════════════════════════════
+        function sortAndRender() {
+            const data = [...filteredData].sort((a, b) => {
+                let av = a[sortKey], bv = b[sortKey];
+                if (av === null) return 1; if (bv === null) return -1;
+                if (typeof av === 'string') return av.localeCompare(bv) * sortDir;
+                return (av - bv) * sortDir;
             });
+            renderTable(data);
+        }
+
+        function setSort(key) {
+            if (sortKey === key) sortDir *= -1;
+            else { sortKey = key; sortDir = -1; }
+            sortAndRender();
         }
 
         function renderTable(data) {
-            const tbody = document.getElementById('resultsBody');
-            tbody.innerHTML = '';
-            
-            const filterSignals = document.getElementById('filterSignals').checked;
-            const filterErrors = document.getElementById('filterErrors').checked;
-            const filterHighVolume = document.getElementById('filterHighVolume').checked;
-            
-            data.forEach(r => {
-                // Filtreleme
-                if (filterSignals && !r.isSignal) return;
-                if (filterErrors && !r.isError) return;
-                if (filterHighVolume && r.volumeRatio < 2) return;
-                
-                const tr = document.createElement('tr');
-                tr.className = `border-b hover:bg-gray-50 ${r.isSignal ? 'signal-row' : ''} ${r.isError ? 'error-row' : ''}`;
-                tr.innerHTML = r.html;
-                tbody.appendChild(tr);
-            });
-            
-            if (tbody.children.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-12 text-center text-gray-400 italic">Filtrelere uyan sonuç bulunamadı.</td></tr>';
-            }
-        }
+            const wrap = document.getElementById('table-wrap');
 
-        // ==========================================
-        // ANA TARAMA DÖNGÜSÜ
-        // ==========================================
-        
-        let currentTab = 'bist';
-        let isScanning = false;
-
-        function switchTab(tab) {
-            if (isScanning) return;
-            currentTab = tab;
-            document.getElementById('tab-bist').className = tab === 'bist' ? 'px-6 py-4 text-lg tab-active' : 'px-6 py-4 text-lg tab-inactive';
-            document.getElementById('tab-crypto').className = tab === 'crypto' ? 'px-6 py-4 text-lg tab-active' : 'px-6 py-4 text-lg tab-inactive';
-            document.getElementById('resultsBody').innerHTML = '<tr><td colspan="7" class="px-4 py-12 text-center text-gray-400 italic">Taramayı başlatmak için butona tıklayın.</td></tr>';
-            document.getElementById('statusText').innerText = "Hazır.";
-            document.getElementById('progressContainer').classList.add('hidden');
-            allResults = [];
-        }
-
-        async function startScan() {
-            if (isScanning) return;
-            isScanning = true;
-            
-            const btn = document.getElementById('scanBtn');
-            const statusText = document.getElementById('statusText');
-            const progressContainer = document.getElementById('progressContainer');
-            const progressBar = document.getElementById('progressBar');
-
-            btn.disabled = true;
-            btn.innerHTML = `<span class="loading-spinner"></span> Taranıyor...`;
-            progressContainer.classList.remove('hidden');
-            progressBar.style.width = '0%';
-            allResults = [];
-
-            let symbolsToScan = [];
-            let assetType = '';
-
-            try {
-                if (currentTab === 'bist') {
-                    symbolsToScan = BIST_100_STOCKS;
-                    assetType = 'BIST';
-                } else {
-                    statusText.innerText = "Binance'den en yüksek hacimli kriptolar çekiliyor...";
-                    symbolsToScan = await getTopCryptos();
-                    assetType = 'Kripto';
-                }
-            } catch (e) {
-                statusText.innerText = "Hata: " + e.message;
-                resetScanState();
+            if (!data.length) {
+                wrap.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <div class="empty-title">Sonuç bulunamadı</div>
+      <div class="empty-sub">Filtreleri genişletin veya yeni tarama yapın</div>
+    </div>`;
                 return;
             }
 
-            const total = symbolsToScan.length;
-            let processed = 0;
-            let successCount = 0;
-            let failCount = 0;
+            const headers = [
+                { key: 'ticker', label: 'Hisse' },
+                { key: 'description', label: 'Şirket' },
+                { key: 'close', label: 'Fiyat' },
+                { key: 'change_pct', label: 'Değ%' },
+                { key: 'rsi', label: 'RSI(14)' },
+                { key: 'macd', label: 'MACD' },
+                { key: 'macd_signal', label: 'Signal' },
+                { key: 'sma20', label: 'SMA20' },
+                { key: 'sma50', label: 'SMA50' },
+                { key: 'sma200', label: 'SMA200' },
+                { key: 'volume', label: 'Hacim' },
+            ];
 
-            // TEK TEK TARA (Rate limit için)
-            for (let i = 0; i < total; i++) {
-                const symbol = symbolsToScan[i];
-                statusText.innerText = `${assetType} Taranıyor: ${symbol} (${i + 1}/${total}) | ✅${successCount} ❌${failCount}`;
-                
-                let rowData = { 
-                    symbol, 
-                    assetType,
-                    sortValues: [],
-                    isError: false,
-                    isSignal: false,
-                    volumeRatio: 0,
-                    html: ''
-                };
-                
-                try {
-                    let data;
-                    if (assetType === 'BIST') {
-                        data = await fetchBISTData(symbol);
-                    } else {
-                        data = await fetchCryptoData(symbol);
-                    }
+            let thead = '<thead><tr>';
+            headers.forEach(h => {
+                const arrow = sortKey === h.key ? (sortDir === 1 ? '▲' : '▼') : '↕';
+                const cls = sortKey === h.key ? ' sorted' : '';
+                thead += `<th class="${cls}" onclick="setSort('${h.key}')">${h.label} <span class="sort-arrow">${arrow}</span></th>`;
+            });
+            thead += '<th>Kesişim</th><th>SMA Durum</th></tr></thead>';
 
-                    const closes = data.closes;
-                    const volumes = data.volumes;
-                    const currentPrice = closes[closes.length - 1];
-                    const currentVolume = volumes[volumes.length - 1];
+            let tbody = '<tbody>';
+            data.forEach(s => {
+                const isCross = s.macd !== null && s.macd_signal !== null && s.macd_prev !== null && s.macd_sig_prev !== null
+                    && s.macd < 0 && s.macd > s.macd_signal && s.macd_prev <= s.macd_sig_prev;
 
-                    const rsi = calculateRSI(closes, 14);
-                    const rsiMet = rsi !== null && rsi > 50;
+                const chgCls = s.change_pct >= 0 ? 'badge-pos' : 'badge-neg';
+                const chgSign = s.change_pct >= 0 ? '+' : '';
 
-                    const ma20 = calculateSMA(closes, 20);
-                    const ma50 = calculateSMA(closes, 50);
-                    const ma200 = calculateSMA(closes, 200);
-                    const maMet = ma20 && ma50 && ma200 && (currentPrice > ma20) && (currentPrice > ma50) && (currentPrice > ma200);
+                const rsiColor = s.rsi < 30 ? '#ef4444' : s.rsi > 70 ? '#f59e0b' : '#22c55e';
+                const rsiBar = `<div class="rsi-bar-wrap">
+      <div class="rsi-bar"><div class="rsi-bar-fill" style="width:${s.rsi || 0}%;background:${rsiColor}"></div></div>
+      <span class="rsi-num" style="color:${rsiColor}">${s.rsi !== null ? s.rsi.toFixed(1) : '—'}</span>
+    </div>`;
 
-                    const macdCheck = checkMACDBullishCrossBelowZero(closes);
-                    const macdMet = macdCheck.met;
+                const crossCell = isCross
+                    ? `<span class="macd-cross">▲ CROSS</span>`
+                    : `<span class="macd-neutral">—</span>`;
 
-                    let volMet = false;
-                    let volText = "N/A";
-                    let volumeRatio = 0;
-                    if (volumes.length >= 4) {
-                        const avgVol = (volumes[volumes.length - 2] + volumes[volumes.length - 3] + volumes[volumes.length - 4]) / 3;
-                        volMet = currentVolume > avgVol;
-                        volumeRatio = currentVolume / avgVol;
-                        volText = `${volumeRatio.toFixed(2)}x`;
-                    }
+                const smaTags = [
+                    ['SMA20', s.sma20], ['SMA50', s.sma50], ['SMA200', s.sma200]
+                ].map(([lbl, val]) => {
+                    if (val === null) return `<span class="sma-tag" style="opacity:0.3">${lbl}</span>`;
+                    const cls = s.close > val ? 'above' : 'below';
+                    return `<span class="sma-tag ${cls}">${lbl}</span>`;
+                }).join('');
 
-                    const allMet = rsiMet && maMet && macdMet && volMet;
-                    successCount++;
+                const volChange = s.volume_1 ? ((s.volume - s.volume_1) / s.volume_1 * 100) : 0;
+                const volArrow = s.volume > (s.volume_1 || 0)
+                    ? `<span class="vol-arrow vol-up">▲${volChange.toFixed(0)}%</span>`
+                    : `<span class="vol-arrow vol-down">▼${Math.abs(volChange).toFixed(0)}%</span>`;
 
-                    rowData.isSignal = allMet;
-                    rowData.volumeRatio = volumeRatio;
-                    rowData.sortValues = [
-                        symbol,
-                        currentPrice,
-                        rsi,
-                        macdCheck.met ? 1 : 0,
-                        maMet ? 1 : 0,
-                        volumeRatio,
-                        allMet ? 1 : 0
-                    ];
+                const volFmt = s.volume >= 1e6
+                    ? (s.volume / 1e6).toFixed(1) + 'M'
+                    : s.volume >= 1e3
+                        ? (s.volume / 1e3).toFixed(0) + 'K'
+                        : s.volume.toFixed(0);
 
-                    rowData.html = `
-                        <td class="px-4 py-3 font-bold text-gray-900">${symbol} <span class="text-xs text-gray-400">(${assetType})</span></td>
-                        <td class="px-4 py-3 text-right font-mono">${currentPrice.toFixed(assetType === 'Kripto' ? 4 : 2)}</td>
-                        <td class="px-4 py-3 text-right font-mono ${rsiMet ? 'pass' : 'fail'}">${rsi ? rsi.toFixed(1) : 'N/A'}</td>
-                        <td class="px-4 py-3 text-center text-xs ${macdMet ? 'pass' : 'fail'}">${macdCheck.status}<br><span class="text-gray-400">(${macdCheck.val})</span></td>
-                        <td class="px-4 py-3 text-center text-xs">
-                            <span class="${currentPrice > ma20 ? 'pass' : 'fail'}">20</span> | 
-                            <span class="${currentPrice > ma50 ? 'pass' : 'fail'}">50</span> | 
-                            <span class="${currentPrice > ma200 ? 'pass' : 'fail'}">200</span>
-                        </td>
-                        <td class="px-4 py-3 text-right text-xs ${volMet ? 'pass' : 'fail'}">${volText}</td>
-                        <td class="px-4 py-3 text-center font-bold ${allMet ? 'pass bg-green-50' : 'neutral'}">${allMet ? "🟢 AL" : "⚪ YOK"}</td>
-                    `;
-                    
-                } catch (error) {
-                    failCount++;
-                    rowData.isError = true;
-                    rowData.sortValues = [symbol, 0, 0, 0, 0, 0, 0];
-                    rowData.html = `<td class="px-4 py-3 font-bold">${symbol}</td><td colspan="6" class="px-4 py-3 text-red-400 text-xs italic">Veri alınamadı.</td>`;
-                }
-                
-                allResults.push(rowData);
-                processed++;
-                progressBar.style.width = `${(processed / total) * 100}%`;
-                
-                // Tabloyu her 5 hissede bir güncelle (performans için)
-                if (processed % 5 === 0 || processed === total) {
-                    renderTable(allResults);
-                }
-                
-                // Rate limit için bekleme (BIST için daha uzun)
-                const delay = assetType === 'BIST' ? 1500 : 200;
-                await new Promise(r => setTimeout(r, delay));
+                tbody += `<tr onclick="openTV('${s.ticker}')">
+      <td class="td-ticker">${s.ticker.replace('BIST:', '')}</td>
+      <td class="td-name" title="${s.description}">${s.description}</td>
+      <td class="td-price">₺${s.close.toFixed(2)}</td>
+      <td class="${chgCls}">${chgSign}${s.change_pct.toFixed(2)}%</td>
+      <td>${rsiBar}</td>
+      <td style="color:var(--text2)">${s.macd !== null ? s.macd.toFixed(4) : '—'}</td>
+      <td style="color:var(--text2)">${s.macd_signal !== null ? s.macd_signal.toFixed(4) : '—'}</td>
+      <td style="color:var(--text3)">${s.sma20 !== null ? s.sma20.toFixed(2) : '—'}</td>
+      <td style="color:var(--text3)">${s.sma50 !== null ? s.sma50.toFixed(2) : '—'}</td>
+      <td style="color:var(--text3)">${s.sma200 !== null ? s.sma200.toFixed(2) : '—'}</td>
+      <td>${volFmt}${volArrow}</td>
+      <td>${crossCell}</td>
+      <td><div class="sma-tags">${smaTags}</div></td>
+    </tr>`;
+            });
+            tbody += '</tbody>';
+
+            wrap.innerHTML = `<table>${thead}${tbody}</table>`;
+        }
+
+        function openTV(ticker) {
+            const symbol = ticker.replace('BIST:', '');
+            window.open(`https://www.tradingview.com/chart/?symbol=BIST:${symbol}`, '_blank');
+        }
+
+        // ══════════════════════════════════════════════════════════
+        //  FILTER HELPERS
+        // ══════════════════════════════════════════════════════════
+        function resetFilters() {
+            document.getElementById('f-macd-cross').checked = true;
+            document.getElementById('f-vol-spike').checked = true;
+            document.getElementById('f-golden-cross').checked = false;
+            document.getElementById('f-rsi-min').value = 0;
+            document.getElementById('f-rsi-max').value = 100;
+            document.getElementById('rsi-slider-min').value = 0;
+            document.getElementById('rsi-slider-max').value = 100;
+            document.getElementById('f-macd-min').value = '';
+            document.getElementById('f-macd-max').value = '';
+            document.getElementById('f-vol-min').value = '';
+            document.getElementById('f-price-min').value = '';
+            document.getElementById('f-price-max').value = '';
+            document.getElementById('f-chg-min').value = '';
+            document.getElementById('f-chg-max').value = '';
+            document.getElementById('f-mcap').value = '';
+            document.getElementById('f-search').value = '';
+            smaChecks = { sma20: false, sma50: false, sma200: false };
+            ['sma20', 'sma50', 'sma200'].forEach(k => document.getElementById(k + '-box').classList.remove('on'));
+            applyFilters();
+        }
+
+        function setRsi(min, max) {
+            document.getElementById('f-rsi-min').value = min;
+            document.getElementById('f-rsi-max').value = max;
+            document.getElementById('rsi-slider-min').value = min;
+            document.getElementById('rsi-slider-max').value = max;
+            applyFilters();
+        }
+
+        function syncRsiSliders() {
+            document.getElementById('rsi-slider-min').value = document.getElementById('f-rsi-min').value;
+            document.getElementById('rsi-slider-max').value = document.getElementById('f-rsi-max').value;
+            applyFilters();
+        }
+
+        function syncRsiInputs(which, val) {
+            if (which === 'min') document.getElementById('f-rsi-min').value = val;
+            else document.getElementById('f-rsi-max').value = val;
+            applyFilters();
+        }
+
+        function toggleSma(key) {
+            smaChecks[key] = !smaChecks[key];
+            document.getElementById(key + '-box').classList.toggle('on', smaChecks[key]);
+            applyFilters();
+        }
+
+        // ══════════════════════════════════════════════════════════
+        //  EXPORT CSV
+        // ══════════════════════════════════════════════════════════
+        function exportCSV() {
+            if (!filteredData.length) { showToast('Dışa aktarılacak veri yok', 'error'); return; }
+            const cols = ['ticker', 'description', 'close', 'change_pct', 'rsi', 'macd', 'macd_signal', 'sma20', 'sma50', 'sma200', 'volume', 'volume_1', 'volume_2', 'volume_3'];
+            const header = ['Hisse', 'Şirket', 'Fiyat', 'Değişim%', 'RSI(14)', 'MACD', 'Signal', 'SMA20', 'SMA50', 'SMA200', 'Hacim(T)', 'Hacim(T-1)', 'Hacim(T-2)', 'Hacim(T-3)'];
+            const rows = filteredData.map(s => cols.map(c => s[c] !== null && s[c] !== undefined ? s[c] : '').join(','));
+            const csv = '\uFEFF' + header.join(',') + '\n' + rows.join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `bist_screener_${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            showToast('CSV indirildi', 'success');
+        }
+
+        // ══════════════════════════════════════════════════════════
+        //  TELEGRAM
+        // ══════════════════════════════════════════════════════════
+        function getTgConfig() {
+            return {
+                token: document.getElementById('tg-token').value.trim(),
+                chat: document.getElementById('tg-chat').value.trim(),
+            };
+        }
+
+        async function sendTelegramMsg(token, chat, text) {
+            const resp = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chat, text, parse_mode: 'Markdown' })
+            });
+            const data = await resp.json();
+            if (!data.ok) throw new Error(data.description);
+            return data;
+        }
+
+        async function testTelegram() {
+            const { token, chat } = getTgConfig();
+            if (!token || !chat) { showToast('Token ve Chat ID gerekli', 'error'); return; }
+            const dot = document.getElementById('tg-dot');
+            const statusText = document.getElementById('tg-status-text');
+            dot.className = 'tg-dot';
+            statusText.textContent = 'Test ediliyor...';
+            try {
+                await sendTelegramMsg(token, chat, '✅ *BIST Screener Pro* bağlantı testi başarılı!');
+                dot.classList.add('ok');
+                statusText.textContent = 'Bağlantı başarılı — Telegram mesajı gönderildi';
+                showToast('Telegram bağlantısı başarılı ✓', 'success');
+            } catch (e) {
+                dot.classList.add('err');
+                statusText.textContent = 'Hata: ' + e.message;
+                showToast('Telegram hatası: ' + e.message, 'error');
             }
-
-            statusText.innerText = `✅ Tarama tamamlandı. (${total} varlık | ${successCount} başarılı, ${failCount} başarısız)`;
-            resetScanState();
         }
 
-        function resetScanState() {
-            isScanning = false;
-            const btn = document.getElementById('scanBtn');
-            btn.disabled = false;
-            btn.innerHTML = `<span>🔍 Taramayı Başlat</span>`;
+        async function sendToTelegram() {
+            const { token, chat } = getTgConfig();
+            if (!token || !chat) {
+                showToast('Önce Ayarlar\'dan Telegram yapılandırın', 'error');
+                switchTab('settings', document.querySelectorAll('.tab-btn')[1]);
+                return;
+            }
+            if (!filteredData.length) { showToast('Gönderilecek sonuç yok', 'error'); return; }
+
+            const template = document.getElementById('tg-template').value;
+            const now = new Date();
+            const tarih = now.toLocaleDateString('tr-TR');
+            const saat = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+
+            const activeFilters = [];
+            if (document.getElementById('f-macd-cross').checked) activeFilters.push('MACD Cross');
+            if (document.getElementById('f-vol-spike').checked) activeFilters.push('Hacim ↑');
+            if (smaChecks.sma20) activeFilters.push('SMA20 Üzeri');
+            if (smaChecks.sma50) activeFilters.push('SMA50 Üzeri');
+            if (smaChecks.sma200) activeFilters.push('SMA200 Üzeri');
+
+            const liste = filteredData.slice(0, 20).map(s => {
+                const sign = s.change_pct >= 0 ? '+' : '';
+                const cross = (s.macd !== null && s.macd_signal !== null && s.macd > s.macd_signal) ? ' 🔀' : '';
+                return `• *${s.ticker.replace('BIST:', '')}* — ₺${s.close.toFixed(2)} (${sign}${s.change_pct.toFixed(2)}%) | RSI: ${s.rsi !== null ? s.rsi.toFixed(1) : '—'}${cross}`;
+            }).join('\n') + (filteredData.length > 20 ? `\n_...ve ${filteredData.length - 20} hisse daha_` : '');
+
+            const msg = template
+                .replace('{tarih}', tarih)
+                .replace('{saat}', saat)
+                .replace('{adet}', filteredData.length)
+                .replace('{liste}', liste)
+                .replace('{filtreler}', activeFilters.join(', ') || 'Tümü');
+
+            try {
+                await sendTelegramMsg(token, chat, msg);
+                showToast(`${filteredData.length} hisse Telegram'a gönderildi ✓`, 'success');
+            } catch (e) {
+                showToast('Gönderim hatası: ' + e.message, 'error');
+            }
         }
 
-        // Filtre değiştiğinde tabloyu yeniden çiz
-        document.getElementById('filterSignals').addEventListener('change', () => renderTable(allResults));
-        document.getElementById('filterErrors').addEventListener('change', () => renderTable(allResults));
-        document.getElementById('filterHighVolume').addEventListener('change', () => renderTable(allResults));
+        function clearTgSettings() {
+            document.getElementById('tg-token').value = '';
+            document.getElementById('tg-chat').value = '';
+            document.getElementById('tg-dot').className = 'tg-dot';
+            document.getElementById('tg-status-text').textContent = 'Henüz test edilmedi';
+            saveSettings();
+            showToast('Telegram ayarları silindi', 'success');
+        }
+
+        // ══════════════════════════════════════════════════════════
+        //  AUTO REFRESH
+        // ══════════════════════════════════════════════════════════
+        function toggleAutoRefresh() {
+            if (autoRefreshTimer) { clearInterval(autoRefreshTimer); autoRefreshTimer = null; }
+            const secs = parseInt(document.getElementById('s-auto-refresh').value || '0');
+            if (secs > 0 && rawData.length) {
+                autoRefreshTimer = setInterval(() => fetchData(), secs * 1000);
+            }
+        }
+
+        // ══════════════════════════════════════════════════════════
+        //  SETTINGS PERSIST (localStorage)
+        // ══════════════════════════════════════════════════════════
+        function saveSettings() {
+            const cfg = {
+                tgToken: document.getElementById('tg-token').value,
+                tgChat: document.getElementById('tg-chat').value,
+                tgTemplate: document.getElementById('tg-template').value,
+                limit: document.getElementById('s-limit').value,
+                autoRefresh: document.getElementById('s-auto-refresh').value,
+                proxy: document.getElementById('s-proxy').value,
+            };
+            try { localStorage.setItem('bist_screener_cfg', JSON.stringify(cfg)); } catch (e) { }
+        }
+
+        function saveTgSettings() { saveSettings(); }
+
+        function loadSettings() {
+            try {
+                const raw = localStorage.getItem('bist_screener_cfg');
+                if (!raw) return;
+                const cfg = JSON.parse(raw);
+                if (cfg.tgToken) document.getElementById('tg-token').value = cfg.tgToken;
+                if (cfg.tgChat) document.getElementById('tg-chat').value = cfg.tgChat;
+                if (cfg.tgTemplate) document.getElementById('tg-template').value = cfg.tgTemplate;
+                if (cfg.limit) document.getElementById('s-limit').value = cfg.limit;
+                if (cfg.autoRefresh) document.getElementById('s-auto-refresh').value = cfg.autoRefresh;
+                if (cfg.proxy) document.getElementById('s-proxy').value = cfg.proxy;
+            } catch (e) { }
+        }
+
+        function resetSettings() {
+            localStorage.removeItem('bist_screener_cfg');
+            document.getElementById('tg-token').value = '';
+            document.getElementById('tg-chat').value = '';
+            document.getElementById('s-limit').value = '500';
+            document.getElementById('s-auto-refresh').value = '0';
+            document.getElementById('s-proxy').value = '';
+            document.getElementById('tg-template').value = `📊 *BIST Screener Sonuçları*\n🕐 {tarih} | {saat}\n\n🔍 *{adet} hisse* filtreleri karşıladı:\n{liste}\n\n_Filtreler: {filtreler}_`;
+            showToast('Ayarlar varsayılanlarına döndürüldü', 'success');
+        }
+
+        // ══════════════════════════════════════════════════════════
+        //  ALERT TAGS & SCHEDULE
+        // ══════════════════════════════════════════════════════════
+        function toggleAlertTag(el) {
+            el.classList.toggle('on');
+            const isOn = el.classList.contains('on');
+            el.textContent = (isOn ? '✓ ' : '') + el.getAttribute('data-key').replace(/_/g, ' ');
+        }
+
+        function setSchedule(el) {
+            document.querySelectorAll('.schedule-opt').forEach(e => e.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        // ══════════════════════════════════════════════════════════
+        //  ERROR / TOAST
+        // ══════════════════════════════════════════════════════════
+        function showError(msg) {
+            const el = document.getElementById('error-bar');
+            el.textContent = msg;
+            el.classList.add('show');
+        }
+
+        function hideError() {
+            document.getElementById('error-bar').classList.remove('show');
+        }
+
+        function showToast(msg, type = '') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast ' + type + ' show';
+            setTimeout(() => t.classList.remove('show'), 3500);
+        }
     </script>
 </body>
-</html>
 
+</html>
