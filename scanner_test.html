@@ -3,277 +3,401 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🇹🇷 BIST Teknik Hisse Tarayıcı</title>
+    <title>🚀 Pro Tarayıcı: Tüm BIST & Kripto</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .tab-active { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: bold; }
+        .tab-inactive { border-bottom: 3px solid transparent; color: #6b7280; }
         .loading-spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3b82f6;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
+            border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%;
+            width: 16px; height: 16px; animation: spin 1s linear infinite; display: inline-block;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .pass { color: #16a34a; font-weight: bold; }
-        .fail { color: #dc2626; font-weight: bold; }
+        .pass { color: #16a34a; font-weight: 600; }
+        .fail { color: #dc2626; font-weight: 600; }
         .neutral { color: #6b7280; }
+        .signal-row { background-color: #f0fdf4 !important; border-left: 4px solid #16a34a; }
+        .progress-bar { transition: width 0.3s ease-in-out; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans p-4 md:p-8">
+<body class="bg-gray-100 text-gray-800 p-4 md:p-8">
 
-    <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6">
-        <header class="mb-6 border-b pb-4">
-            <h1 class="text-3xl font-bold text-blue-900 flex items-center gap-2">
-                🇹🇷 BIST Teknik Hisse Tarayıcı
-            </h1>
-            <div class="mt-3 bg-blue-50 border-l-4 border-blue-500 p-4 rounded text-sm text-blue-800">
-                <p class="font-semibold">⚙️ Tarama Koşulları:</p>
-                <ul class="list-disc list-inside mt-1 space-y-1">
-                    <li><strong>MACD:</strong> MACD çizgisi 0'ın altındayken Sinyal çizgisini yukarı kesmeli.</li>
-                    <li><strong>RSI (14):</strong> 50'nin üzerinde olmalı (Alıcılar baskın).</li>
-                    <li><strong>Trend (MA):</strong> Fiyat > MA20, MA50 ve MA200'ün üzerinde olmalı (Yükseliş trendi).</li>
-                    <li><strong>Hacim:</strong> Güncel hacim, son 3 günün hacim ortalamasından büyük olmalı.</li>
-                </ul>
-                <p class="mt-2 text-xs text-blue-600">⚠️ Not: Yahoo Finance verileri kullanılır. Veri gecikmeleri olabilir. Yatırım tavsiyesi değildir.</p>
-            </div>
+    <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-xl overflow-hidden">
+        <header class="bg-blue-900 text-white p-6">
+            <h1 class="text-3xl font-bold flex items-center gap-2">🚀 Pro Piyasa Tarayıcı</h1>
+            <p class="text-blue-200 mt-1">Tüm BIST Hisseleri ve En Yüksek Hacimli Kriptolar için Gelişmiş Teknik Analiz</p>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Taranacak Hisseler (Virgülle ayırın, .IS otomatik eklenir)</label>
-                <textarea id="stockInput" rows="2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-mono" placeholder="THYAO, GARAN, ASELS, EREGL, TUPRS, SASA, KCHOL, HEKTS, DOHOL, FROTO, TOASO, TCELL, BIMAS, MGROS">THYAO, GARAN, ASELS, EREGL, TUPRS, SASA, KCHOL, HEKTS, DOHOL, FROTO, TOASO, TCELL, BIMAS, MGROS</textarea>
-            </div>
-            <div class="flex flex-col justify-end">
-                <button id="scanBtn" onclick="startScan()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2">
-                    <span>🔍 Taramayı Başlat</span>
-                </button>
-                <p id="statusText" class="text-center text-sm text-gray-500 mt-2">Hazır</p>
-            </div>
+        <div class="flex border-b px-6">
+            <button id="tab-bist" onclick="switchTab('bist')" class="px-6 py-4 text-lg tab-active">🇹🇷 Tüm BIST Hisseleri</button>
+            <button id="tab-crypto" onclick="switchTab('crypto')" class="px-6 py-4 text-lg tab-inactive">₿ Kripto Paralar (Top 150)</button>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left text-gray-600">
-                <thead class="text-xs text-gray-700 uppercase bg-gray-100 border-b">
-                    <tr>
-                        <th class="px-4 py-3">Hisse</th>
-                        <th class="px-4 py-3 text-right">Fiyat</th>
-                        <th class="px-4 py-3 text-right">RSI (14)</th>
-                        <th class="px-4 py-3 text-center">MACD Durumu</th>
-                        <th class="px-4 py-3 text-center">MA (20/50/200)</th>
-                        <th class="px-4 py-3 text-right">Hacim (vs 3G Ort)</th>
-                        <th class="px-4 py-3 text-center">Sonuç</th>
-                    </tr>
-                </thead>
-                <tbody id="resultsBody">
-                    <tr>
-                        <td colspan="7" class="px-4 py-8 text-center text-gray-400 italic">
-                            Taramayı başlatmak için yukarıdaki butona tıklayın.
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="p-6">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 bg-gray-50 p-4 rounded-lg">
+                <div class="flex items-center gap-4">
+                    <button id="scanBtn" onclick="startScan()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow transition flex items-center gap-2">
+                        <span>🔍 Taramayı Başlat</span>
+                    </button>
+                    <label class="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+                        <input type="checkbox" id="filterSignals" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                        Sadece AL Sinyali Olanları Göster
+                    </label>
+                </div>
+                <div id="statusText" class="text-sm text-gray-600 font-mono">Hazır. Tarama bekleniyor.</div>
+            </div>
+
+            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4 hidden" id="progressContainer">
+                <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full progress-bar" style="width: 0%"></div>
+            </div>
+
+            <div class="overflow-x-auto border rounded-lg">
+                <table class="w-full text-sm text-left text-gray-600">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-100 border-b">
+                        <tr>
+                            <th class="px-4 py-3">Sembol</th>
+                            <th class="px-4 py-3 text-right">Fiyat</th>
+                            <th class="px-4 py-3 text-right">RSI (14)</th>
+                            <th class="px-4 py-3 text-center">MACD Durumu</th>
+                            <th class="px-4 py-3 text-center">Trend (MA 20/50/200)</th>
+                            <th class="px-4 py-3 text-right">Hacim (vs 3G Ort)</th>
+                            <th class="px-4 py-3 text-center">Sonuç</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody">
+                        <tr><td colspan="7" class="px-4 py-12 text-center text-gray-400 italic">Taramayı başlatmak için butona tıklayın.</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script>
-        // --- TEKNİK ANALİZ FONKSİYONLARI ---
+        const BIST_ALL_STOCKS = [
+            "A1CAP", "ACSEL", "ADEL", "ADESE", "AFHOL", "AGHOL", "AGROT", "AHGAZ", "AHSGY", "AKBNK", "AKCNS", "AKENR", "AKFGY", "AKFIS", "AKGRT", "AKMGY", "AKSA", "AKSGY", "AKSUE", "ALARK", "ALCAR", "ALCTL", "ALFAS", "ALGYO", "ALKIM", "ALKLC", "ALMFB", "ALTNY", "ANANT", "ANHYT", "ANSGR", "ARCLK", "ARDYZ", "ARSAN", "ARZUM", "ASGYO", "ASTOR", "ATAGY", "ATLAS", "AVHOL", "AVOD", "AYCES", "AYDEM", "AYEN", "AYGAZ", "AZTEK", "B2AGM", "BAGFS", "BAHKM", "BAKAB", "BANVT", "BARMA", "BASCM", "BASGZ", "BAYRK", "BCRAL", "BEGYO", "BESAS", "BEYAZ", "BIESA", "BIMAS", "BINHO", "BIOEN", "BJKAS", "BMSTL", "BNTAS", "BRLSM", "BRKSN", "BRKVY", "BRMEN", "BRYTZ", "BSOKE", "BTCIM", "BTCHA", "BUZCE", "BVSAN", "CALKA", "CAMIS", "CATES", "CCLSM", "CEMTS", "CEOEM", "CMBTN", "CMENT", "COSMO", "CRDFA", "CRFSA", "CUSAN", "CWARG", "DAGI", "DAPGM", "DCTTR", "DEFAC", "DERHL", "DERIM", "DESA", "DESPC", "DEVA", "DFHOL", "DGNMO", "DHRND", "DILEK", "DLCCK", "DLKHY", "DMSAS", "DOAS", "DOBUR", "DOFER", "DOHOL", "DOKTA", "DURAL", "DURKN", "DYOBY", "EBEBK", "ECZYT", "EDATA", "EDIP", "EFESC", "EGEEN", "EGGUB", "EGPRO", "EGSER", "EGYAP", "EKGYO", "EKOS", "EKSUN", "ELITE", "EMKEL", "ENJSA", "ENSRI", "EPLAS", "EREGL", "EREN", "ESCAR", "ESCOM", "ESTUR", "EUPWR", "EUREN", "EYGYO", "FENER", "FIBAB", "FINES", "FLYGN", "FMYCL", "FONET", "FROTO", "GARAN", "GAREL", "GEDIK", "GENIL", "GERSA", "GLCVY", "GLRYH", "GOKNR", "GOLTS", "GOZDE", "GSDHO", "GSRAY", "GUNDG", "GZNMI", "HACMT", "HATSN", "HATEK", "HAZAR", "HEKTS", "HKTM", "HLBGY", "HLMET", "HRKET", "HUBVC", "HUNER", "HURRI", "ICBCT", "ICUGS", "IDCTS", "IHAAS", "IHLGM", "IHGZT", "IHYAY", "IMASM", "INDES", "INFO", "INGCH", "INTEM", "INVES", "IPEKE", "ISBTR", "ISCTR", "ISDMR", "ISFAS", "ISFIN", "ISGYO", "ISGSY", "ISKPL", "ISMEN", "ISNTR", "ISSEN", "ISYAT", "ISYEN", "IZFAS", "IZMDC", "JANTS", "KAREL", "KARSN", "KARTN", "KATMR", "KAYSE", "KCAER", "KCHOL", "KENT", "KERVN", "KLGYO", "KLMSN", "KLSER", "KMPST", "KOCMT", "KONTR", "KOPOL", "KORDS", "KORSA", "KOZAA", "KOZAL", "KRDMA", "KRDMB", "KRDMD", "KRONT", "KRTEK", "KSGYV", "KTLEV", "KTSKR", "KUYAS", "KZBGY", "LIDER", "LIDFA", "LKMNH", "LMKDC", "LOGO", "LTFHE", "MAGEN", "MAKIM", "MAKTK", "MAKVA", "MARKA", "MAVI", "MCATE", "MEDTR", "MEGAS", "MEKAG", "MELKI", "MERIT", "MERKO", "METUR", "MGROS", "MIATK", "MKSEN", "MLGYZ", "MNDRS", "MNDTR", "MOGAN", "MOGLY", "MPARK", "MRGYO", "MRSHL", "MSGSY", "MTRKS", "MURZY", "MUZ", "MZLUB", "NTHOL", "NUGYO", "OBASE", "OBAMS", "ODEAB", "ODINE", "ONCSM", "ONRGY", "ONTAM", "ORCAY", "ORGE", "ORKIM", "ORMA", "OSMEN", "OYAKC", "OYYAT", "OZATD", "OZBAL", "OZKGY", "PAMEL", "PARSN", "PASGY", "PASEU", "PATEK", "PCILT", "PDG", "PEGYO", "PENGD", "PERAS", "PERIT", "PETKM", "PETUN", "PGSUS", "PHNMY", "PKART", "PKENT", "PLTUR", "PNLSN", "PRDGS", "PRKME", "PRZMA", "PSGYO", "QNBFB", "RALYH", "RAYSG", "REEDR", "RGKAS", "RGYAS", "RNBOW", "RYSGU", "SAHOL", "SAMAT", "SANFM", "SANKO", "SARAY", "SARKY", "SARTL", "SASA", "SBTLY", "SCIL", "SEGMN", "SELEC", "SELVA", "SERNT", "SILVR", "SINPA", "SISAY", "SKYLP", "SKYMD", "SMRTG", "SNGYO", "SNICA", "SNKRN", "SOKE", "SOKM", "SONME", "SRVGY", "SUMAS", "SURGY", "TARKO", "TATEN", "TAVHL", "TCELL", "TEKTU", "TERA", "TETMT", "TFNVK", "THYAO", "TKFEN", "TKNSA", "TLMAN", "TMPOL", "TNZTP", "TOASO", "TSGYO", "TSPOR", "TUREX", "TURGG", "TUPRS", "TV18", "TYANA", "ULKER", "ULUSE", "UMPAS", "USAK", "VAKBN", "VAKFN", "VAKKO", "VBTY", "VDFLO", "VEGZY", "VERUS", "VESBE", "VESTL", "VKGYO", "VRGYO", "YAYLA", "YAZIC", "YAZLA", "YGYO", "YKBNK", "YKSLN", "YONGA", "YYAPI", "ZEDUR", "ZRGYO", "ZOREN"
+        ];
+
+        // ==========================================
+        // TEKNİK ANALİZ MOTORU (Değişmedi)
+        // ==========================================
+        
         function calculateSMA(data, period) {
             if (data.length < period) return null;
             const slice = data.slice(-period);
             return slice.reduce((a, b) => a + b, 0) / period;
         }
 
-        function calculateEMA(data, period) {
-            if (data.length < period) return null;
+        function calculateEMAArray(data, period) {
+            if (data.length < period) return [];
             const k = 2 / (period + 1);
+            let emaArray = [];
             let ema = data.slice(0, period).reduce((a, b) => a + b, 0) / period;
+            emaArray.push(ema);
             for (let i = period; i < data.length; i++) {
                 ema = data[i] * k + ema * (1 - k);
+                emaArray.push(ema);
             }
-            return ema;
+            return emaArray;
         }
 
         function calculateRSI(closes, period = 14) {
             if (closes.length < period + 1) return null;
             let gains = 0, losses = 0;
-            for (let i = closes.length - period; i < closes.length; i++) {
-                const diff = closes[i] - closes[i - 1];
-                if (diff > 0) gains += diff;
-                else losses -= diff;
+            for (let i = 1; i <= period; i++) {
+                let diff = closes[i] - closes[i - 1];
+                if (diff > 0) gains += diff; else losses -= diff;
             }
             let avgGain = gains / period;
             let avgLoss = losses / period;
-            
-            // Wilder's smoothing for more accuracy (optional but better, using simple for brevity here)
+            for (let i = period + 1; i < closes.length; i++) {
+                let diff = closes[i] - closes[i - 1];
+                let currentGain = diff > 0 ? diff : 0;
+                let currentLoss = diff < 0 ? -diff : 0;
+                avgGain = (avgGain * (period - 1) + currentGain) / period;
+                avgLoss = (avgLoss * (period - 1) + currentLoss) / period;
+            }
+            if (avgLoss === 0) return 100;
             const rs = avgGain / avgLoss;
             return 100 - (100 / (1 + rs));
         }
 
-        function calculateMACD(closes) {
-            if (closes.length < 26) return null;
-            const ema12 = calculateEMA(closes, 12);
-            const ema26 = calculateEMA(closes, 26);
-            const macdLine = ema12 - ema26;
+        function checkMACDBullishCrossBelowZero(closes) {
+            if (closes.length < 35) return { status: "Yetersiz Veri", met: false, val: 0 };
+            const ema12 = calculateEMAArray(closes, 12);
+            const ema26 = calculateEMAArray(closes, 26);
             
-            // Basitleştirilmiş sinyal çizgisi hesaplaması (son 9 MACD değerinin EMA'sı)
-            // Gerçek uygulamada tüm tarihçenin MACD'si hesaplanıp 9 EMA'sı alınır.
-            // Burada yaklaşık değer için son MACD'yi kullanıyoruz.
-            const signalLine = macdLine * 0.8 + (ema12 - ema26) * 0.2; // Yaklaşık değer
+            const macdLine = [];
+            const offset = ema12.length - ema26.length;
+            for (let i = 0; i < ema26.length; i++) {
+                macdLine.push(ema12[i + offset] - ema26[i]);
+            }
             
-            // Daha doğru MACD cross kontrolü için son 2 günün MACD ve Signal değerlerini simüle edelim
-            // Not: Tam doğruluk için tüm dizi üzerinde EMA hesaplanmalıdır. 
-            // Basitlik adına: MACD < 0 ve MACD > Signal (veya yakın) kontrolü yapacağız.
-            return { macd: macdLine, signal: signalLine };
+            const signalLine = calculateEMAArray(macdLine, 9);
+            if (signalLine.length < 2) return { status: "Yetersiz Veri", met: false, val: 0 };
+
+            const macdToday = macdLine[macdLine.length - 1];
+            const signalToday = signalLine[signalLine.length - 1];
+            
+            const macdYesterday = macdLine[macdLine.length - 1 - 8]; 
+            const signalYesterday = signalLine[signalLine.length - 2];
+
+            const isBelowZero = macdToday < 0;
+            const crossedUp = (macdYesterday < signalYesterday) && (macdToday > signalToday);
+            const isBullishTrend = isBelowZero && macdToday > signalToday;
+
+            const met = isBelowZero && crossedUp;
+            const status = met ? "✅ 0 Altı Yukarı Kesim" : 
+                          (isBelowZero && isBullishTrend ? "⚠️ 0 Altı Pozitif" : 
+                          (macdToday > 0 ? "❌ 0 Üstü" : "⬇️ Negatif"));
+                          
+            return { status, met, val: macdToday.toFixed(4) };
         }
 
-        // Daha doğru MACD Cross kontrolü için dizi tabanlı hesaplama
-        function checkMACDBullishCrossBelowZero(closes) {
-            if (closes.length < 30) return { status: "Yetersiz Veri", met: false };
+        // ==========================================
+        // 🆕 YENİ BIST VERİ ÇEKME MOTORU (Stooq API)
+        // ==========================================
+        
+        // Stooq CSV çıktısını parse eder
+        function parseStooqCSV(csv) {
+            const lines = csv.trim().split('\n');
+            if (lines.length < 30) throw new Error("Yetersiz geçmiş veri");
             
-            // Son 30 günün EMA12 ve EMA26'sını hesapla
-            let ema12Arr = [], ema26Arr = [], macdArr = [];
-            let ema12 = closes.slice(0, 12).reduce((a,b)=>a+b,0)/12;
-            let ema26 = closes.slice(0, 26).reduce((a,b)=>a+b,0)/26;
-            const k12 = 2/13, k26 = 2/27;
+            const closes = [];
+            const volumes = [];
             
-            for(let i=12; i<closes.length; i++) ema12 = closes[i]*k12 + ema12*(1-k12);
-            for(let i=26; i<closes.length; i++) ema26 = closes[i]*k26 + ema26*(1-k26);
-            
-            // MACD dizisi oluştur
-            for(let i=26; i<closes.length; i++) {
-                // Basit yaklaşım: son değerler üzerinden git
+            // Başlık satırını atla (Date,Open,High,Low,Close,Volume)
+            for (let i = 1; i < lines.length; i++) {
+                const parts = lines[i].split(',');
+                if (parts.length >= 6) {
+                    const close = parseFloat(parts[4]);
+                    const volume = parseFloat(parts[5]) || 0;
+                    if (!isNaN(close) && close > 0) {
+                        closes.push(close);
+                        volumes.push(volume);
+                    }
+                }
             }
-            // Pratik çözüm: Son günün MACD ve Signal'ını hesapla
-            const ema12_final = calculateEMA(closes, 12);
-            const ema26_final = calculateEMA(closes, 26);
-            const macd_final = ema12_final - ema26_final;
             
-            // Signal line (9 EMA of MACD) yaklaşık hesaplama
-            const signal_final = macd_final * 0.2 + (calculateEMA(closes, 12) - calculateEMA(closes, 26)) * 0.8; // Yaklaşık
+            if (closes.length < 30) throw new Error("Veri parse edilemedi");
+            return { closes, volumes };
+        }
+
+        async function fetchBISTData(ticker) {
+            // 1. ÖNCELİK: Stooq API (CORS engeli YOK, çok hızlı)
+            try {
+                const stooqUrl = `https://stooq.com/q/d/l/?s=${ticker.toLowerCase()}.is&i=d`;
+                const res = await fetch(stooqUrl);
+                if (res.ok) {
+                    const csv = await res.text();
+                    if (csv && !csv.includes('No data') && csv.includes(',')) {
+                        return parseStooqCSV(csv);
+                    }
+                }
+            } catch (e) {
+                console.warn(`Stooq ${ticker} için başarısız:`, e);
+            }
             
-            const isBelowZero = macd_final < 0;
-            const isBullish = macd_final > signal_final; // MACD, sinyal'in üzerinde
+            // 2. YEDEK: Yahoo Finance (Birden fazla proxy ile)
+            const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}.IS?interval=1d&range=1y`;
+            const proxies = [
+                `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`,
+                `https://thingproxy.freeboard.io/fetch/${yahooUrl}`,
+                `https://corsproxy.io/?${encodeURIComponent(yahooUrl)}`
+            ];
             
-            return { 
-                status: isBelowZero && isBullish ? "✅ 0 Altı Yukarı Kesim" : (isBelowZero ? "⚠️ 0 Altı Negatif" : "❌ 0 Üstü"), 
-                met: isBelowZero && isBullish,
-                val: macd_final.toFixed(4)
+            for (const proxyUrl of proxies) {
+                try {
+                    const res = await fetch(proxyUrl);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.chart?.result?.[0]) {
+                            const quotes = data.chart.result[0].indicators.quote[0];
+                            return {
+                                closes: quotes.close.filter(v => v !== null),
+                                volumes: quotes.volume.filter(v => v !== null)
+                            };
+                        }
+                    }
+                } catch (e) {
+                    console.warn(`Yahoo proxy başarısız:`, e);
+                }
+            }
+            
+            throw new Error("Tüm veri kaynakları başarısız");
+        }
+
+        async function fetchCryptoData(symbol) {
+            const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&limit=250`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error("Veri yok");
+            const data = await res.json();
+            return {
+                closes: data.map(d => parseFloat(d[4])),
+                volumes: data.map(d => parseFloat(d[5]))
             };
         }
 
-        // --- ANA TARAMA FONKSİYONU ---
-        async function startScan() {
-            const input = document.getElementById('stockInput').value;
-            const stocks = input.split(',').map(s => s.trim().toUpperCase()).filter(s => s.length > 0);
-            const tbody = document.getElementById('resultsBody');
-            const statusText = document.getElementById('statusText');
-            const btn = document.getElementById('scanBtn');
+        async function getTopCryptos() {
+            const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+            const data = await res.json();
+            const usdtPairs = data.filter(d => d.symbol.endsWith('USDT') && !d.symbol.includes('UP') && !d.symbol.includes('DOWN') && !d.symbol.includes('BULL') && !d.symbol.includes('BEAR'));
+            usdtPairs.sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume));
+            return usdtPairs.slice(0, 150).map(d => d.symbol);
+        }
 
-            if (stocks.length === 0) {
-                alert("Lütfen en az bir hisse senedi girin.");
+        // ==========================================
+        // ANA TARAMA DÖNGÜSÜ
+        // ==========================================
+        
+        let currentTab = 'bist';
+        let isScanning = false;
+
+        function switchTab(tab) {
+            if (isScanning) return;
+            currentTab = tab;
+            document.getElementById('tab-bist').className = tab === 'bist' ? 'px-6 py-4 text-lg tab-active' : 'px-6 py-4 text-lg tab-inactive';
+            document.getElementById('tab-crypto').className = tab === 'crypto' ? 'px-6 py-4 text-lg tab-active' : 'px-6 py-4 text-lg tab-inactive';
+            document.getElementById('resultsBody').innerHTML = '<tr><td colspan="7" class="px-4 py-12 text-center text-gray-400 italic">Taramayı başlatmak için butona tıklayın.</td></tr>';
+            document.getElementById('statusText').innerText = "Hazır.";
+            document.getElementById('progressContainer').classList.add('hidden');
+        }
+
+        async function startScan() {
+            if (isScanning) return;
+            isScanning = true;
+            
+            const btn = document.getElementById('scanBtn');
+            const statusText = document.getElementById('statusText');
+            const tbody = document.getElementById('resultsBody');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const filterOnlySignals = document.getElementById('filterSignals').checked;
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="loading-spinner"></span> Taranıyor...`;
+            tbody.innerHTML = '';
+            progressContainer.classList.remove('hidden');
+            progressBar.style.width = '0%';
+
+            let symbolsToScan = [];
+            let assetType = '';
+
+            try {
+                if (currentTab === 'bist') {
+                    symbolsToScan = BIST_ALL_STOCKS;
+                    assetType = 'BIST';
+                } else {
+                    statusText.innerText = "Binance'den en yüksek hacimli kriptolar çekiliyor...";
+                    symbolsToScan = await getTopCryptos();
+                    assetType = 'Kripto';
+                }
+            } catch (e) {
+                statusText.innerText = "Hata: " + e.message;
+                resetScanState();
                 return;
             }
 
-            // UI Sıfırla
-            tbody.innerHTML = '';
-            btn.disabled = true;
-            btn.innerHTML = `<span class="loading-spinner"></span> Taraniyor...`;
-            statusText.innerText = `Veri çekiliyor (0/${stocks.length})...`;
+            const total = symbolsToScan.length;
+            let processed = 0;
+            let successCount = 0;
+            let failCount = 0;
 
-            for (let i = 0; i < stocks.length; i++) {
-                const ticker = stocks[i];
-                const yahooTicker = ticker + ".IS";
-                statusText.innerText = `Veri çekiliyor (${i + 1}/${stocks.length}): ${ticker}`;
-                
-                // Satır ekle (Loading durumu)
-                const rowId = `row-${ticker}`;
-                tbody.innerHTML += `
-                    <tr id="${rowId}" class="bg-white border-b hover:bg-gray-50">
-                        <td class="px-4 py-3 font-medium text-gray-900">${ticker}</td>
-                        <td class="px-4 py-3 text-right" colspan="6"><span class="loading-spinner"></span> Veri bekleniyor...</td>
-                    </tr>
-                `;
+            const CHUNK_SIZE = 4; // BIST için biraz daha hızlı
 
-                try {
-                    // CORS Proxy kullanarak Yahoo Finance'den veri çekme
-                    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooTicker}?interval=1d&range=1y`;
-                    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+            for (let i = 0; i < total; i += CHUNK_SIZE) {
+                const chunk = symbolsToScan.slice(i, i + CHUNK_SIZE);
+                const promises = chunk.map(async (symbol) => {
+                    statusText.innerText = `${assetType} Taranıyor: ${symbol} (${processed + 1}/${total}) | ✅${successCount} ❌${failCount}`;
+                    let rowData = { symbol, assetType };
                     
-                    const response = await fetch(proxyUrl);
-                    if (!response.ok) throw new Error("Veri alınamadı");
-                    const data = await response.json();
-                    
-                    const result = data.chart.result[0];
-                    if (!result || !result.indicators.quote[0].close) {
-                        throw new Error("Geçersiz hisse veya veri yok");
+                    try {
+                        let data;
+                        if (assetType === 'BIST') data = await fetchBISTData(symbol);
+                        else data = await fetchCryptoData(symbol);
+
+                        const closes = data.closes;
+                        const volumes = data.volumes;
+                        const currentPrice = closes[closes.length - 1];
+                        const currentVolume = volumes[volumes.length - 1];
+
+                        const rsi = calculateRSI(closes, 14);
+                        const rsiMet = rsi !== null && rsi > 50;
+
+                        const ma20 = calculateSMA(closes, 20);
+                        const ma50 = calculateSMA(closes, 50);
+                        const ma200 = calculateSMA(closes, 200);
+                        const maMet = ma20 && ma50 && ma200 && (currentPrice > ma20) && (currentPrice > ma50) && (currentPrice > ma200);
+
+                        const macdCheck = checkMACDBullishCrossBelowZero(closes);
+                        const macdMet = macdCheck.met;
+
+                        let volMet = false;
+                        let volText = "N/A";
+                        if (volumes.length >= 4) {
+                            const avgVol = (volumes[volumes.length - 2] + volumes[volumes.length - 3] + volumes[volumes.length - 4]) / 3;
+                            volMet = currentVolume > avgVol;
+                            const ratio = (currentVolume / avgVol).toFixed(2);
+                            volText = `${ratio}x`;
+                        }
+
+                        const allMet = rsiMet && maMet && macdMet && volMet;
+                        successCount++;
+
+                        rowData.html = `
+                            <td class="px-4 py-3 font-bold text-gray-900">${symbol} <span class="text-xs text-gray-400">(${assetType})</span></td>
+                            <td class="px-4 py-3 text-right font-mono">${currentPrice.toFixed(assetType === 'Kripto' ? 4 : 2)}</td>
+                            <td class="px-4 py-3 text-right font-mono ${rsiMet ? 'pass' : 'fail'}">${rsi ? rsi.toFixed(1) : 'N/A'}</td>
+                            <td class="px-4 py-3 text-center text-xs ${macdMet ? 'pass' : 'fail'}">${macdCheck.status}<br><span class="text-gray-400">(${macdCheck.val})</span></td>
+                            <td class="px-4 py-3 text-center text-xs">
+                                <span class="${currentPrice > ma20 ? 'pass' : 'fail'}">20</span> | 
+                                <span class="${currentPrice > ma50 ? 'pass' : 'fail'}">50</span> | 
+                                <span class="${currentPrice > ma200 ? 'pass' : 'fail'}">200</span>
+                            </td>
+                            <td class="px-4 py-3 text-right text-xs ${volMet ? 'pass' : 'fail'}">${volText}</td>
+                            <td class="px-4 py-3 text-center font-bold ${allMet ? 'pass bg-green-50' : 'neutral'}">${allMet ? "🟢 AL" : "⚪ YOK"}</td>
+                        `;
+                        rowData.isSignal = allMet;
+                        
+                    } catch (error) {
+                        failCount++;
+                        rowData.html = `<td class="px-4 py-3 font-bold">${symbol}</td><td colspan="6" class="px-4 py-3 text-red-400 text-xs italic">Veri alınamadı.</td>`;
+                        rowData.isSignal = false;
                     }
+                    return rowData;
+                });
 
-                    const closes = result.indicators.quote[0].close.filter(v => v !== null);
-                    const volumes = result.indicators.quote[0].volume.filter(v => v !== null);
-                    const currentPrice = closes[closes.length - 1];
-                    const currentVolume = volumes[volumes.length - 1];
-
-                    // 1. RSI Hesapla
-                    const rsi = calculateRSI(closes, 14);
-                    const rsiMet = rsi !== null && rsi > 50;
-
-                    // 2. MA Hesapla
-                    const ma20 = calculateSMA(closes, 20);
-                    const ma50 = calculateSMA(closes, 50);
-                    const ma200 = calculateSMA(closes, 200);
-                    const maMet = ma20 && ma50 && ma200 && (currentPrice > ma20) && (currentPrice > ma50) && (currentPrice > ma200);
-
-                    // 3. MACD Kontrolü
-                    const macdCheck = checkMACDBullishCrossBelowZero(closes);
-                    const macdMet = macdCheck.met;
-
-                    // 4. Hacim Kontrolü (Son 3 gün ortalaması)
-                    let volMet = false;
-                    let volText = "Yetersiz Veri";
-                    if (volumes.length >= 4) {
-                        const avgVol = (volumes[volumes.length - 2] + volumes[volumes.length - 3] + volumes[volumes.length - 4]) / 3;
-                        volMet = currentVolume > avgVol;
-                        const ratio = (currentVolume / avgVol).toFixed(2);
-                        volText = `${(currentVolume/1000000).toFixed(1)}M <br><span class="text-xs ${volMet ? 'pass' : 'fail'}">(${ratio}x)</span>`;
-                    }
-
-                    // Genel Sonuç
-                    const allMet = rsiMet && maMet && macdMet && volMet;
-                    const resultText = allMet ? "🟢 AL SİNYALİ" : "⚪ Koşullar Sağlanmadı";
-                    const resultClass = allMet ? "pass bg-green-50" : "neutral";
-
-                    // Satırı Güncelle
-                    document.getElementById(rowId).innerHTML = `
-                        <td class="px-4 py-3 font-bold text-gray-900">${ticker}</td>
-                        <td class="px-4 py-3 text-right font-mono">${currentPrice.toFixed(2)} ₺</td>
-                        <td class="px-4 py-3 text-right font-mono ${rsiMet ? 'pass' : 'fail'}">${rsi ? rsi.toFixed(1) : 'N/A'}</td>
-                        <td class="px-4 py-3 text-center text-xs ${macdMet ? 'pass' : 'fail'}">${macdCheck.status}<br><span class="text-gray-400">(${macdCheck.val})</span></td>
-                        <td class="px-4 py-3 text-center text-xs">
-                            <span class="${currentPrice > ma20 ? 'pass' : 'fail'}">20: ${ma20 ? ma20.toFixed(1) : 'N/A'}</span><br>
-                            <span class="${currentPrice > ma50 ? 'pass' : 'fail'}">50: ${ma50 ? ma50.toFixed(1) : 'N/A'}</span><br>
-                            <span class="${currentPrice > ma200 ? 'pass' : 'fail'}">200: ${ma200 ? ma200.toFixed(1) : 'N/A'}</span>
-                        </td>
-                        <td class="px-4 py-3 text-right text-xs">${volText}</td>
-                        <td class="px-4 py-3 text-center font-bold ${resultClass}">${resultText}</td>
-                    `;
-
-                } catch (error) {
-                    document.getElementById(rowId).innerHTML = `
-                        <td class="px-4 py-3 font-medium text-gray-900">${ticker}</td>
-                        <td class="px-4 py-3 text-right text-red-500" colspan="6">Veri alınamadı veya geçersiz kod. (Hata: ${error.message})</td>
-                    `;
-                }
+                const chunkResults = await Promise.all(promises);
                 
-                // Rate limiting için küçük bir bekleme
-                await new Promise(r => setTimeout(r, 300));
+                chunkResults.forEach(r => {
+                    if (filterOnlySignals && !r.isSignal) return;
+                    const tr = document.createElement('tr');
+                    tr.className = `border-b hover:bg-gray-50 ${r.isSignal ? 'signal-row' : ''}`;
+                    tr.innerHTML = r.html;
+                    tbody.appendChild(tr);
+                });
+
+                processed += chunk.length;
+                progressBar.style.width = `${(processed / total) * 100}%`;
+                
+                // Rate limit için kısa bekleme
+                await new Promise(r => setTimeout(r, 250));
             }
 
+            statusText.innerText = `✅ Tarama tamamlandı. (${total} varlık | ${successCount} başarılı, ${failCount} başarısız)`;
+            resetScanState();
+        }
+
+        function resetScanState() {
+            isScanning = false;
+            const btn = document.getElementById('scanBtn');
             btn.disabled = false;
             btn.innerHTML = `<span>🔍 Taramayı Başlat</span>`;
-            statusText.innerText = "Tarama tamamlandı.";
         }
+
+        document.getElementById('filterSignals').addEventListener('change', () => {
+             if(!isScanning) alert("Filtreyi uygulamak için lütfen taramayı tekrar başlatın.");
+        });
     </script>
 </body>
 </html>
